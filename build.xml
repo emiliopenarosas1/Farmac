@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Farmac" default="dist" basedir=".">
+    <description>Farmac - Sistema de Inventario y Punto de Venta para Farmacia</description>
+
+    <!-- Propiedades de directorios -->
+    <property name="src.dir" location="src"/>
+    <property name="test.dir" location="test"/>
+    <property name="lib.dir" location="lib"/>
+    <property name="config.dir" location="config"/>
+    <property name="build.dir" location="build"/>
+    <property name="build.classes" location="${build.dir}/classes"/>
+    <property name="build.test" location="${build.dir}/test"/>
+    <property name="dist.dir" location="dist"/>
+    <property name="main.class" value="farmac.app.Main"/>
+    <property name="jar.name" value="Farmac.jar"/>
+
+    <!-- Classpath para compilación y ejecución -->
+    <path id="classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="test.classpath">
+        <path refid="classpath"/>
+        <pathelement location="${build.classes}"/>
+        <pathelement location="${build.test}"/>
+    </path>
+
+    <!-- Limpiar artefactos anteriores -->
+    <target name="clean" description="Elimina directorios de compilación y distribución">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <!-- Inicializar directorios de build -->
+    <target name="init">
+        <mkdir dir="${build.classes}"/>
+        <mkdir dir="${build.test}"/>
+        <mkdir dir="${dist.dir}"/>
+    </target>
+
+    <!-- Compilar código fuente -->
+    <target name="compile" depends="init" description="Compila el código fuente Java">
+        <javac srcdir="${src.dir}"
+               destdir="${build.classes}"
+               classpathref="classpath"
+               includeantruntime="false"
+               encoding="UTF-8"
+               debug="true"
+               source="17"
+               target="17"/>
+    </target>
+
+    <!-- Compilar pruebas unitarias -->
+    <target name="compile-test" depends="compile" description="Compila las pruebas unitarias">
+        <javac srcdir="${test.dir}"
+               destdir="${build.test}"
+               classpathref="test.classpath"
+               includeantruntime="false"
+               encoding="UTF-8"
+               debug="true"
+               source="17"
+               target="17"/>
+    </target>
+
+    <!-- Ejecutar pruebas JUnit -->
+    <target name="test" depends="compile-test" description="Ejecuta las pruebas unitarias JUnit">
+        <junit printsummary="yes" haltonfailure="yes" fork="true">
+            <classpath refid="test.classpath"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest>
+                <fileset dir="${test.dir}">
+                    <include name="**/*Test.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <!-- Empaquetar JAR ejecutable -->
+    <target name="jar" depends="compile" description="Genera el archivo JAR ejecutable">
+        <mkdir dir="${dist.dir}/lib"/>
+        <copy todir="${dist.dir}/lib">
+            <fileset dir="${lib.dir}">
+                <include name="**/*.jar"/>
+            </fileset>
+        </copy>
+
+        <mkdir dir="${dist.dir}/config"/>
+        <copy todir="${dist.dir}/config">
+            <fileset dir="${config.dir}">
+                <include name="**/*.*"/>
+            </fileset>
+        </copy>
+
+        <!-- Manifest con Class-Path a lib/ -->
+        <manifestclasspath property="jar.classpath" jarfile="${dist.dir}/${jar.name}">
+            <classpath>
+                <fileset dir="${dist.dir}/lib">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </manifestclasspath>
+
+        <jar destfile="${dist.dir}/${jar.name}" basedir="${build.classes}">
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Distribución completa -->
+    <target name="dist" depends="clean, test, jar" description="Limpia, prueba y genera distribución completa"/>
+
+    <!-- Ejecutar aplicación -->
+    <target name="run" depends="jar" description="Ejecuta la aplicación Farmac">
+        <java jar="${dist.dir}/${jar.name}" fork="true">
+            <classpath>
+                <pathelement location="${dist.dir}/${jar.name}"/>
+                <path refid="classpath"/>
+            </classpath>
+        </java>
+    </target>
+
+</project>

@@ -1,0 +1,30 @@
+# NetBeans
+nbproject/private/
+build/
+dist/
+nbbuild/
+nbdist/
+nbactions.xml
+.nb-gradle/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Compilados
+*.class
+*.jar
+*.war
+
+# Logs y temporales
+*.log
+tickets/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Zips de entrega
+*.zip
