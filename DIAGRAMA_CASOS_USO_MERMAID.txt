@@ -1,0 +1,69 @@
+flowchart LR
+    %% Actores
+    subgraph Actores["Actores del Sistema"]
+        Usuario["fa:fa-user Usuario\n(Abstracto)"]
+        Empleado["fa:fa-user-nurse Empleado\n(Cajero)"]
+        Encargado["fa:fa-user-tie Encargado\n(Administrador)"]
+        SistemaArchivos["fa:fa-file-pdf Sistema de Archivos\n(Actor Secundario)"]
+    end
+
+    Empleado --|> Usuario
+    Encargado --|> Usuario
+
+    %% Limite del Sistema
+    subgraph SistemaFarmac ["LIMITE DEL SISTEMA: Sistema de Gestion Farmaceutica (Farmac)"]
+        
+        %% Modulo de Sesion
+        CU01(["CU-01: Iniciar Sesion"])
+        CU02(["CU-02: Cambiar Contrasena"])
+        
+        %% Modulo de Ventas y Caja
+        CU03(["CU-03: Abrir Turno de Caja"])
+        CU04(["CU-04: Registrar Venta de Mostrador"])
+        CU05(["CU-05: Descontar Lotes FEFO"])
+        CU06(["CU-06: Generar Ticket PDF"])
+        CU07(["CU-07: Registrar Receta Medica"])
+        CU08(["CU-08: Cancelar Venta"])
+        CU09(["CU-09: Realizar Corte de Caja"])
+        CU10(["CU-10: Calcular Discrepancia Arqueo"])
+        
+        %% Modulo de Inventarios
+        CU11(["CU-11: Consultar Existencias"])
+        CU12(["CU-12: Registrar Entrada de Lote"])
+        CU13(["CU-13: Autorizar Ajuste de Stock"])
+        CU14(["CU-14: Consultar Alertas de Caducidad"])
+        CU15(["CU-15: Exportar Alertas a CSV"])
+        
+        %% Modulo de Administracion
+        CU16(["CU-16: Gestionar Catalogo Productos"])
+        CU17(["CU-17: Gestionar Cuentas Usuarios"])
+
+        %% Relaciones Include
+        CU04 -.->|"<<include>>"| CU05
+        CU04 -.->|"<<include>>"| CU06
+        CU09 -.->|"<<include>>"| CU10
+
+        %% Relaciones Extend
+        CU07 -.->|"<<extend>>\n[Requiere Receta]"| CU04
+        CU15 -.->|"<<extend>>\n[Solicitud de archivo]"| CU14
+    end
+
+    %% Asociaciones Actor-Caso de Uso
+    Usuario --- CU01
+    Usuario --- CU02
+
+    Empleado --- CU03
+    Empleado --- CU04
+    Empleado --- CU08
+    Empleado --- CU09
+    Empleado --- CU11
+
+    Encargado --- CU12
+    Encargado --- CU13
+    Encargado --- CU14
+    Encargado --- CU16
+    Encargado --- CU17
+    Encargado --- CU11
+
+    CU06 --- SistemaArchivos
+    CU15 --- SistemaArchivos
