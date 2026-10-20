@@ -1,0 +1,98 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam roundcorner 15
+
+skinparam actor {
+    BackgroundColor #E8F4F8
+    BorderColor #0F4761
+}
+
+skinparam usecase {
+    BackgroundColor #FFFFFF
+    BorderColor #0F4761
+    ArrowColor #187C93
+}
+
+skinparam rectangle {
+    BorderColor #0F4761
+    BackgroundColor #FAFAFA
+}
+
+' ==========================================
+' ACTORES (DIBUJO DE PERSONITAS)
+' ==========================================
+actor "Usuario\n(Base/Abstracto)" as Usuario
+actor "Empleado\n(Cajero)" as Empleado
+actor "Encargado\n(Administrador)" as Encargado
+actor "Sistema de Archivos" as SistemaArchivos << Sistema >>
+
+' Generalización de actores (Herencia)
+Usuario <|-- Empleado
+Usuario <|-- Encargado
+
+' ==========================================
+' LÍMITE DEL SISTEMA (RECTÁNGULO)
+' ==========================================
+rectangle "Sistema Farmacéutico Farmac" {
+
+    ' Seguridad y Sesión
+    usecase "CU-01: Iniciar Sesión" as CU01
+    usecase "CU-02: Cambiar Contraseña" as CU02
+
+    ' Mostrador y Caja
+    usecase "CU-03: Abrir Turno de Caja" as CU03
+    usecase "CU-04: Registrar Venta de Mostrador" as CU04
+    usecase "CU-05: Descontar Lotes FEFO" as CU05
+    usecase "CU-06: Generar Ticket PDF" as CU06
+    usecase "CU-07: Registrar Receta Médica" as CU07
+    usecase "CU-08: Cancelar Venta" as CU08
+    usecase "CU-09: Realizar Corte de Caja" as CU09
+    usecase "CU-10: Calcular Discrepancia Arqueo" as CU10
+
+    ' Inventario
+    usecase "CU-11: Consultar Existencias" as CU11
+    usecase "CU-12: Registrar Entrada de Lotes" as CU12
+    usecase "CU-13: Autorizar Ajuste de Stock" as CU13
+    usecase "CU-14: Consultar Alertas Caducidad" as CU14
+    usecase "CU-15: Exportar Alertas a CSV" as CU15
+
+    ' Administración
+    usecase "CU-16: Administrar Catálogo Productos" as CU16
+    usecase "CU-17: Administrar Cuentas Usuarios" as CU17
+
+    ' Relaciones <<include>>
+    CU04 .> CU05 : <<include>>
+    CU04 .> CU06 : <<include>>
+    CU09 .> CU10 : <<include>>
+
+    ' Relaciones <<extend>>
+    CU07 .> CU04 : <<extend>>\n(requiere receta)
+    CU15 .> CU14 : <<extend>>\n(a solicitud)
+}
+
+' ==========================================
+' ASOCIACIONES ACTOR -> CASO DE USO
+' ==========================================
+Usuario -- CU01
+Usuario -- CU02
+
+Empleado -- CU03
+Empleado -- CU04
+Empleado -- CU08
+Empleado -- CU09
+Empleado -- CU11
+
+Encargado -- CU12
+Encargado -- CU13
+Encargado -- CU14
+Encargado -- CU16
+Encargado -- CU17
+Encargado -- CU11
+
+CU06 -- SistemaArchivos
+CU15 -- SistemaArchivos
+
+@enduml

@@ -1,68 +1,90 @@
 package farmac.ui;
 
-import farmac.dominio.Encargado;
+import farmac.dao.BitacoraDAO;
+import farmac.dao.LoteDAO;
+import farmac.dao.ProductoDAO;
+import farmac.dao.ProveedorDAO;
+import farmac.dominio.Lote;
 import farmac.dominio.Producto;
+import farmac.dominio.Proveedor;
 import farmac.dominio.Usuario;
+import farmac.util.Sesion;
 import farmac.util.TemaFarmac;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Catalogo con barra de acciones superior prominente para CRUD completo y exportacion.
+ * Pantalla de Catálogo y Mantenimiento de Medicamentos (RF03 a RF06).
+ * Persistencia en PostgreSQL, baja lógica, proveedores dinámicos y stock/caducidad calculados.
  */
 public class CatalogoProductosScreen extends JPanel {
+
     private final Usuario usuarioActivo;
+    private final ProductoDAO productoDAO;
+    private final ProveedorDAO proveedorDAO;
+    private final LoteDAO loteDAO;
+
     private JTextField txtBuscar;
+    private JComboBox<String> cmbFiltroCategoria;
     private JTable tblProductos;
     private DefaultTableModel modeloTabla;
-    private List<Producto> listaProductos;
-
-    public CatalogoProductosScreen() {
-        this(new Encargado(1, "admin", "Administrador General", "••••••", true));
-    }
+    private List<Producto> listaProductosActual;
+    private List<Lote> listaLotesActual;
 
     public CatalogoProductosScreen(Usuario usuario) {
-        this.usuarioActivo = usuario;
-        this.listaProductos = new ArrayList<>();
-        cargarProductosIniciales();
-        inicializarUI();
-    }
+        this.usuarioActivo = usuario != null ? usuario : Sesion.getUsuarioActivo();
+        this.productoDAO = new ProductoDAO();
+        this.proveedorDAO = new ProveedorDAO();
+        this.loteDAO = new LoteDAO();
+        this.listaProductosActual = new ArrayList<>();
+        this.listaLotesActual = new ArrayList<>();
 
-    private void cargarProductosIniciales() {
-        listaProductos.add(new Producto(1, "75010001", "Amoxicilina 500mg (Caja c/12)", "Antibioticos", "Farmaceutica Nal", 85.00, true, 5));
-        listaProductos.add(new Producto(2, "75010002", "Paracetamol 500mg (Caja c/20)", "Analgesicos", "Laboratorios Alfa", 25.00, false, 10));
-        listaProductos.add(new Producto(3, "75010003", "Ibuprofeno 400mg (Caja c/10)", "Antiinflamatorios", "Genericos MX", 45.00, false, 8));
-        listaProductos.add(new Producto(4, "75010004", "Omeprazol 20mg (Caja c/14)", "Gastroenterologia", "Laboratorios Beta", 60.00, false, 6));
-        listaProductos.add(new Producto(5, "75010005", "Azitromicina 500mg (Caja c/3)", "Antibioticos", "Farmaceutica Nal", 145.00, true, 4));
-        listaProductos.add(new Producto(6, "75010006", "Loratadina 10mg (Caja c/10)", "Antihistaminicos", "Laboratorios Alfa", 35.00, false, 5));
+        inicializarUI();
+        cargarDatos();
     }
 
     private void inicializarUI() {
         setLayout(new BorderLayout(14, 14));
-        setBackground(TemaFarmac.FONDO);
+        setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(new EmptyBorder(16, 18, 16, 18));
 
-        // 1. Panel Superior con Titulo y Barra de Herramientas CRUD
+        // Cabecera superior
         JPanel pnlNorte = new JPanel();
         pnlNorte.setLayout(new BoxLayout(pnlNorte, BoxLayout.Y_AXIS));
         pnlNorte.setOpaque(false);
 
-        // Fila 1: Titulo
         JPanel pnlTit = new JPanel(new BorderLayout());
         pnlTit.setOpaque(false);
-        JLabel lblTitulo = new JLabel("Catalogo y Mantenimiento de Medicamentos");
+        JLabel lblTitulo = new JLabel("Catálogo de Medicamentos y Productos");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Administracion de articulos, precios oficiales, receta medica obligatoria y stock minimo");
+        JLabel lblSub = new JLabel("Administración de catálogo, baja lógica, control médico y trazabilidad de lotes (RF03 a RF06)");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -77,15 +99,15 @@ public class CatalogoProductosScreen extends JPanel {
         pnlNorte.add(pnlTit);
         pnlNorte.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Fila 2: Barra de Botones de Accion y Buscador (Siempre Visible arriba)
+        // Barra de Herramientas
         JPanel pnlBarraHerramientas = new JPanel(new BorderLayout(10, 0));
         pnlBarraHerramientas.setOpaque(false);
 
-        // Botones CRUD (Lado izquierdo)
+        // Botones CRUD (Exclusivo Encargado)
         JPanel pnlBotonesCrud = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         pnlBotonesCrud.setOpaque(false);
 
-        boolean esAdmin = (usuarioActivo instanceof Encargado) || "ENCARGADO".equalsIgnoreCase(usuarioActivo.obtenerRol());
+        boolean esAdmin = (usuarioActivo != null) && "ENCARGADO".equalsIgnoreCase(usuarioActivo.obtenerRol());
         if (esAdmin) {
             JButton btnNuevo = TemaFarmac.crearBoton("+ Nuevo Medicamento", TemaFarmac.TURQUESA, Color.WHITE);
             btnNuevo.addActionListener(e -> abrirFormularioNuevo());
@@ -93,7 +115,7 @@ public class CatalogoProductosScreen extends JPanel {
             JButton btnEditar = TemaFarmac.crearBoton("Editar Medicamento", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
             btnEditar.addActionListener(e -> abrirFormularioEditar());
 
-            JButton btnEliminar = TemaFarmac.crearBoton("Desactivar Medicamento", TemaFarmac.ROJO, Color.WHITE);
+            JButton btnEliminar = TemaFarmac.crearBoton("Desactivar (Baja Lógica)", TemaFarmac.ROJO, Color.WHITE);
             btnEliminar.addActionListener(e -> eliminarProductoSeleccionado());
 
             pnlBotonesCrud.add(btnNuevo);
@@ -101,21 +123,27 @@ public class CatalogoProductosScreen extends JPanel {
             pnlBotonesCrud.add(btnEliminar);
         }
 
-        // Buscador y Exportacion (Lado derecho)
+        // Buscador y Exportación
         JPanel pnlBuscarExportar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         pnlBuscarExportar.setOpaque(false);
 
-        txtBuscar = TemaFarmac.crearCampoTexto("", 16);
-        txtBuscar.setPreferredSize(new Dimension(200, 34));
+        cmbFiltroCategoria = new JComboBox<>(new String[]{"TODAS"});
+        TemaFarmac.estilizarComboBox(cmbFiltroCategoria);
+        cmbFiltroCategoria.addActionListener(e -> filtrar());
+
+        txtBuscar = TemaFarmac.crearCampoTexto(14);
+        txtBuscar.putClientProperty("JTextField.placeholderText", "Nombre o código...");
         txtBuscar.addActionListener(e -> filtrar());
 
         JButton btnBuscar = TemaFarmac.crearBoton("Buscar", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
         btnBuscar.addActionListener(e -> filtrar());
 
-        JButton btnExportar = TemaFarmac.crearBoton("Exportar Catalogo (CSV)", TemaFarmac.VERDE, Color.WHITE);
+        JButton btnExportar = TemaFarmac.crearBoton("Exportar CSV", TemaFarmac.VERDE, Color.WHITE);
         btnExportar.addActionListener(e -> exportarCSV());
 
-        pnlBuscarExportar.add(new JLabel("Filtrar:"));
+        pnlBuscarExportar.add(new JLabel("Categoría:"));
+        pnlBuscarExportar.add(cmbFiltroCategoria);
+        pnlBuscarExportar.add(new JLabel("Buscar:"));
         pnlBuscarExportar.add(txtBuscar);
         pnlBuscarExportar.add(btnBuscar);
         pnlBuscarExportar.add(btnExportar);
@@ -126,177 +154,320 @@ public class CatalogoProductosScreen extends JPanel {
 
         add(pnlNorte, BorderLayout.NORTH);
 
-        // 2. Tabla Principal en Card
+        // Tabla Principal
         JPanel pnlCard = TemaFarmac.crearCard();
         pnlCard.setLayout(new BorderLayout(8, 8));
 
-        String[] columnas = {"Codigo de Barras", "Nombre del Medicamento", "Categoria", "Laboratorio", "Precio Venta", "Tipo Venta", "Stock Minimo"};
+        String[] columnas = {
+            "ID", "Código Barras", "Nombre del Medicamento", "Categoría",
+            "Proveedor", "Precio Venta", "Tipo Venta", "Stock Mín.", "Existencia Actual", "Caducidad Próx."
+        };
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tblProductos = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tblProductos);
-        tblProductos.getColumnModel().getColumn(5).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+        tblProductos.getColumnModel().getColumn(0).setPreferredWidth(45);
+        tblProductos.getColumnModel().getColumn(1).setPreferredWidth(110);
+        tblProductos.getColumnModel().getColumn(2).setPreferredWidth(210);
+        tblProductos.getColumnModel().getColumn(3).setPreferredWidth(120);
+        tblProductos.getColumnModel().getColumn(4).setPreferredWidth(140);
+        tblProductos.getColumnModel().getColumn(5).setPreferredWidth(85);
+        tblProductos.getColumnModel().getColumn(6).setPreferredWidth(120);
+        tblProductos.getColumnModel().getColumn(7).setPreferredWidth(75);
+        tblProductos.getColumnModel().getColumn(8).setPreferredWidth(95);
+        tblProductos.getColumnModel().getColumn(9).setPreferredWidth(105);
+
+        tblProductos.getColumnModel().getColumn(6).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
 
         JScrollPane scroll = new JScrollPane(tblProductos);
-        scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.BORDE));
+        scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
         scroll.getViewport().setBackground(Color.WHITE);
         pnlCard.add(scroll, BorderLayout.CENTER);
 
-        JLabel lblInfoSeleccion = new JLabel("Haga clic sobre un medicamento de la tabla para seleccionarlo y luego use los botones superiores.");
-        lblInfoSeleccion.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblInfoSeleccion.setForeground(TemaFarmac.TEXTO_MUTED);
-        pnlCard.add(lblInfoSeleccion, BorderLayout.SOUTH);
-
-        llenarTabla(listaProductos);
         add(pnlCard, BorderLayout.CENTER);
+    }
+
+    public void cargarDatos() {
+        try {
+            listaProductosActual = productoDAO.listarTodos(true); // Solo productos activos (RF04)
+            listaLotesActual = loteDAO.listarTodos();
+
+            // Cargar categorías en el combo
+            List<String> categorias = productoDAO.listarCategorias();
+            String seleccionPrevia = (String) cmbFiltroCategoria.getSelectedItem();
+            cmbFiltroCategoria.removeAllItems();
+            cmbFiltroCategoria.addItem("TODAS");
+            for (String c : categorias) {
+                cmbFiltroCategoria.addItem(c);
+            }
+            if (seleccionPrevia != null) {
+                cmbFiltroCategoria.setSelectedItem(seleccionPrevia);
+            }
+
+            llenarTabla(listaProductosActual);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar medicamentos: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void llenarTabla(List<Producto> productos) {
         modeloTabla.setRowCount(0);
+        if (productos == null) return;
         for (Producto p : productos) {
+            int stock = p.calcularStockTotal(listaLotesActual);
+            LocalDate cadProxima = p.obtenerCaducidadProxima(listaLotesActual);
+
             modeloTabla.addRow(new Object[]{
-                    p.getCodigoBarras(),
-                    p.getNombre(),
-                    p.getCategoria(),
-                    p.getProveedor(),
-                    String.format("$%.2f", p.getPrecioVenta()),
-                    p.isRequiereReceta() ? "REQUIERE RECETA" : "VENTA LIBRE",
-                    p.getStockMinimo() + " pzas"
+                p.getId(),
+                p.getCodigoBarras(),
+                p.getNombre(),
+                p.getCategoria(),
+                p.getProveedor(),
+                String.format("$%.2f", p.getPrecioVenta()),
+                p.isRequiereReceta() ? "REQUIERE RECETA" : "VENTA LIBRE",
+                p.getStockMinimo() + " pzas",
+                stock + " pzas",
+                cadProxima != null ? cadProxima.toString() : "Sin lotes vigentes"
             });
         }
     }
 
     private void filtrar() {
-        String query = txtBuscar.getText().toLowerCase().trim();
-        List<Producto> filtrados = new ArrayList<>();
-        for (Producto p : listaProductos) {
-            if (p.getNombre().toLowerCase().contains(query) || p.getCodigoBarras().contains(query)) {
-                filtrados.add(p);
-            }
+        String texto = txtBuscar.getText().trim();
+        String cat = (String) cmbFiltroCategoria.getSelectedItem();
+        try {
+            List<Producto> filtrados = productoDAO.buscarPorFiltro(texto, cat, true);
+            llenarTabla(filtrados);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al filtrar: " + e.getMessage());
         }
-        llenarTabla(filtrados);
+    }
+
+    private Producto obtenerProductoSeleccionado() {
+        int fila = tblProductos.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione un medicamento de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+        int id = (int) modeloTabla.getValueAt(fila, 0);
+        try {
+            return productoDAO.buscarPorId(id);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar producto: " + e.getMessage());
+            return null;
+        }
     }
 
     private void abrirFormularioNuevo() {
-        JTextField txtCod = TemaFarmac.crearCampoTexto("7501" + (10000 + listaProductos.size() + 1), 15);
-        JTextField txtNom = TemaFarmac.crearCampoTexto("", 20);
-        JComboBox<String> cmbCat = new JComboBox<>(new String[]{"Antibioticos", "Analgesicos", "Antiinflamatorios", "Gastroenterologia", "Antihistaminicos", "Vitaminas"});
-        cmbCat.setBackground(Color.WHITE);
-        JTextField txtProv = TemaFarmac.crearCampoTexto("Laboratorios Nacionales", 15);
-        JTextField txtPrecio = TemaFarmac.crearCampoTexto("50.00", 10);
-        JCheckBox chkReceta = new JCheckBox("Requiere Receta Medica Obligatoria");
-        JTextField txtMin = TemaFarmac.crearCampoTexto("5", 5);
-
-        JPanel form = new JPanel(new GridLayout(7, 2, 8, 8));
-        form.add(new JLabel("Codigo de Barras:")); form.add(txtCod);
-        form.add(new JLabel("Nombre Medicamento:")); form.add(txtNom);
-        form.add(new JLabel("Categoria:")); form.add(cmbCat);
-        form.add(new JLabel("Laboratorio / Proveedor:")); form.add(txtProv);
-        form.add(new JLabel("Precio Venta ($):")); form.add(txtPrecio);
-        form.add(new JLabel("Control Medico:")); form.add(chkReceta);
-        form.add(new JLabel("Stock Minimo (Alertas):")); form.add(txtMin);
-
-        int res = JOptionPane.showConfirmDialog(this, form, "Alta de Nuevo Medicamento", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (res == JOptionPane.OK_OPTION) {
-            String nom = txtNom.getText().trim();
-            if (nom.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "El nombre del medicamento es obligatorio.", "Validacion", JOptionPane.WARNING_MESSAGE);
+        try {
+            List<Proveedor> proveedores = proveedorDAO.listarTodos(true);
+            if (proveedores.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Debe registrar al menos un Proveedor antes de agregar productos.", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            Producto nuevo = new Producto(
-                    listaProductos.size() + 1,
-                    txtCod.getText().trim(),
-                    nom,
-                    (String) cmbCat.getSelectedItem(),
-                    txtProv.getText().trim(),
-                    Double.parseDouble(txtPrecio.getText().trim()),
-                    chkReceta.isSelected(),
-                    Integer.parseInt(txtMin.getText().trim())
-            );
-            listaProductos.add(nuevo);
-            llenarTabla(listaProductos);
-            JOptionPane.showMessageDialog(this, "Medicamento '" + nom + "' agregado exitosamente al catalogo.", "Alta Exitosa", JOptionPane.INFORMATION_MESSAGE);
+
+            List<String> categorias = productoDAO.listarCategorias();
+
+            JTextField txtCod = TemaFarmac.crearCampoTexto(15);
+            JTextField txtNom = TemaFarmac.crearCampoTexto(20);
+            JComboBox<String> cmbCat = new JComboBox<>(categorias.toArray(new String[0]));
+            cmbCat.setEditable(true);
+            JComboBox<Proveedor> cmbProv = new JComboBox<>(proveedores.toArray(new Proveedor[0]));
+            JTextField txtPrecio = TemaFarmac.crearCampoTexto("50.00", 10);
+            JCheckBox chkReceta = new JCheckBox("Requiere Receta Médica Obligatoria (Antibiótico / Controlado)");
+            JTextField txtMin = TemaFarmac.crearCampoTexto("5", 5);
+
+            JPanel form = new JPanel(new GridLayout(7, 2, 8, 8));
+            form.add(new JLabel("Código de Barras *:")); form.add(txtCod);
+            form.add(new JLabel("Nombre Medicamento *:")); form.add(txtNom);
+            form.add(new JLabel("Categoría:")); form.add(cmbCat);
+            form.add(new JLabel("Proveedor *:")); form.add(cmbProv);
+            form.add(new JLabel("Precio Venta ($) *:")); form.add(txtPrecio);
+            form.add(new JLabel("Control Médico:")); form.add(chkReceta);
+            form.add(new JLabel("Stock Mínimo (Seguridad):")); form.add(txtMin);
+
+            int res = JOptionPane.showConfirmDialog(this, form, "Alta de Nuevo Medicamento", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (res == JOptionPane.OK_OPTION) {
+                String cod = txtCod.getText().trim();
+                String nom = txtNom.getText().trim();
+                String cat = cmbCat.getSelectedItem() != null ? cmbCat.getSelectedItem().toString().trim() : "General";
+                Proveedor prov = (Proveedor) cmbProv.getSelectedItem();
+
+                if (cod.isEmpty() || nom.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Código de barras y nombre son campos obligatorios.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                if (productoDAO.existeCodigoBarras(cod, 0)) {
+                    JOptionPane.showMessageDialog(this, "El código de barras '" + cod + "' ya está registrado.", "Código Duplicado", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                double precio;
+                int stockMin;
+                try {
+                    precio = Double.parseDouble(txtPrecio.getText().trim());
+                    if (precio <= 0) throw new NumberFormatException();
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "El precio de venta debe ser un número mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                try {
+                    stockMin = Integer.parseInt(txtMin.getText().trim());
+                    if (stockMin < 0) throw new NumberFormatException();
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "El stock mínimo debe ser un número mayor o igual a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                Producto nuevo = new Producto(0, cod, nom, cat, prov, precio, chkReceta.isSelected(), stockMin, true);
+                productoDAO.insertar(nuevo);
+                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PRODUCTO_ALTA", "Alta de medicamento: " + nom + " [" + cod + "]");
+                cargarDatos();
+                JOptionPane.showMessageDialog(this, "Medicamento '" + nom + "' agregado exitosamente al catálogo.", "Alta Exitosa", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void abrirFormularioEditar() {
-        int fila = tblProductos.getSelectedRow();
-        if (fila < 0) {
-            JOptionPane.showMessageDialog(this, "Seleccione un medicamento de la tabla para modificar.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        Producto p = listaProductos.get(fila);
+        Producto p = obtenerProductoSeleccionado();
+        if (p == null) return;
 
-        JTextField txtCod = TemaFarmac.crearCampoTexto(p.getCodigoBarras(), 15);
-        JTextField txtNom = TemaFarmac.crearCampoTexto(p.getNombre(), 20);
-        JTextField txtCat = TemaFarmac.crearCampoTexto(p.getCategoria(), 15);
-        JTextField txtProv = TemaFarmac.crearCampoTexto(p.getProveedor(), 15);
-        JTextField txtPrecio = TemaFarmac.crearCampoTexto(String.valueOf(p.getPrecioVenta()), 10);
-        JCheckBox chkReceta = new JCheckBox("Requiere Receta Medica Obligatoria", p.isRequiereReceta());
-        JTextField txtMin = TemaFarmac.crearCampoTexto(String.valueOf(p.getStockMinimo()), 5);
+        try {
+            List<Proveedor> proveedores = proveedorDAO.listarTodos(true);
+            List<String> categorias = productoDAO.listarCategorias();
 
-        JPanel form = new JPanel(new GridLayout(7, 2, 8, 8));
-        form.add(new JLabel("Codigo de Barras:")); form.add(txtCod);
-        form.add(new JLabel("Nombre Medicamento:")); form.add(txtNom);
-        form.add(new JLabel("Categoria:")); form.add(txtCat);
-        form.add(new JLabel("Laboratorio:")); form.add(txtProv);
-        form.add(new JLabel("Precio Venta ($):")); form.add(txtPrecio);
-        form.add(new JLabel("Control Medico:")); form.add(chkReceta);
-        form.add(new JLabel("Stock Minimo:")); form.add(txtMin);
+            JTextField txtCod = TemaFarmac.crearCampoTexto(p.getCodigoBarras(), 15);
+            JTextField txtNom = TemaFarmac.crearCampoTexto(p.getNombre(), 20);
+            JComboBox<String> cmbCat = new JComboBox<>(categorias.toArray(new String[0]));
+            cmbCat.setEditable(true);
+            cmbCat.setSelectedItem(p.getCategoria());
 
-        int res = JOptionPane.showConfirmDialog(this, form, "Modificar Medicamento #" + p.getId(), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (res == JOptionPane.OK_OPTION) {
-            p.setCodigoBarras(txtCod.getText().trim());
-            p.setNombre(txtNom.getText().trim());
-            p.setCategoria(txtCat.getText().trim());
-            p.setProveedor(txtProv.getText().trim());
-            p.setPrecioVenta(Double.parseDouble(txtPrecio.getText().trim()));
-            p.setRequiereReceta(chkReceta.isSelected());
-            p.setStockMinimo(Integer.parseInt(txtMin.getText().trim()));
-            llenarTabla(listaProductos);
-            JOptionPane.showMessageDialog(this, "Datos de medicamento actualizados correctamente.", "Actualizado", JOptionPane.INFORMATION_MESSAGE);
+            JComboBox<Proveedor> cmbProv = new JComboBox<>(proveedores.toArray(new Proveedor[0]));
+            if (p.getProveedorObj() != null) {
+                for (int i = 0; i < cmbProv.getItemCount(); i++) {
+                    if (cmbProv.getItemAt(i).getId() == p.getProveedorObj().getId()) {
+                        cmbProv.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
+
+            JTextField txtPrecio = TemaFarmac.crearCampoTexto(String.valueOf(p.getPrecioVenta()), 10);
+            JCheckBox chkReceta = new JCheckBox("Requiere Receta Médica Obligatoria", p.isRequiereReceta());
+            JTextField txtMin = TemaFarmac.crearCampoTexto(String.valueOf(p.getStockMinimo()), 5);
+
+            JPanel form = new JPanel(new GridLayout(7, 2, 8, 8));
+            form.add(new JLabel("Código de Barras *:")); form.add(txtCod);
+            form.add(new JLabel("Nombre Medicamento *:")); form.add(txtNom);
+            form.add(new JLabel("Categoría:")); form.add(cmbCat);
+            form.add(new JLabel("Proveedor:")); form.add(cmbProv);
+            form.add(new JLabel("Precio Venta ($) *:")); form.add(txtPrecio);
+            form.add(new JLabel("Control Médico:")); form.add(chkReceta);
+            form.add(new JLabel("Stock Mínimo:")); form.add(txtMin);
+
+            int res = JOptionPane.showConfirmDialog(this, form, "Modificar Medicamento #" + p.getId(), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (res == JOptionPane.OK_OPTION) {
+                String cod = txtCod.getText().trim();
+                String nom = txtNom.getText().trim();
+                String cat = cmbCat.getSelectedItem() != null ? cmbCat.getSelectedItem().toString().trim() : "General";
+                Proveedor prov = (Proveedor) cmbProv.getSelectedItem();
+
+                if (cod.isEmpty() || nom.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Código y nombre son obligatorios.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                if (productoDAO.existeCodigoBarras(cod, p.getId())) {
+                    JOptionPane.showMessageDialog(this, "El código '" + cod + "' ya pertenece a otro medicamento.", "Código Duplicado", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                double precio;
+                int stockMin;
+                try {
+                    precio = Double.parseDouble(txtPrecio.getText().trim());
+                    if (precio <= 0) throw new NumberFormatException();
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "El precio debe ser mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                try {
+                    stockMin = Integer.parseInt(txtMin.getText().trim());
+                    if (stockMin < 0) throw new NumberFormatException();
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "El stock mínimo debe ser >= 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                p.setCodigoBarras(cod);
+                p.setNombre(nom);
+                p.setCategoria(cat);
+                p.setProveedorObj(prov);
+                p.setPrecioVenta(precio);
+                p.setRequiereReceta(chkReceta.isSelected());
+                p.setStockMinimo(stockMin);
+
+                productoDAO.actualizar(p);
+                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PRODUCTO_EDICION", "Edición de medicamento #" + p.getId() + " [" + cod + "]");
+                cargarDatos();
+                JOptionPane.showMessageDialog(this, "Medicamento actualizado correctamente en base de datos.", "Actualización Exitosa", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error BD: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void eliminarProductoSeleccionado() {
-        int fila = tblProductos.getSelectedRow();
-        if (fila < 0) {
-            JOptionPane.showMessageDialog(this, "Seleccione un medicamento de la tabla para desactivar.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        Producto p = listaProductos.get(fila);
-        int confirm = JOptionPane.showConfirmDialog(this, "¿Esta seguro de desactivar el medicamento '" + p.getNombre() + "' del catalogo?", "Confirmar Desactivacion", JOptionPane.YES_NO_OPTION);
+        Producto p = obtenerProductoSeleccionado();
+        if (p == null) return;
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Está seguro de desactivar el medicamento '" + p.getNombre() + "' del catálogo activo?\n"
+                + "Se aplicará BAJA LÓGICA (RF04) conservando la trazabilidad de ventas e inventario.",
+                "Confirmar Desactivación", JOptionPane.YES_NO_OPTION);
+
         if (confirm == JOptionPane.YES_OPTION) {
-            listaProductos.remove(fila);
-            llenarTabla(listaProductos);
-            JOptionPane.showMessageDialog(this, "Medicamento retirado del catalogo.", "Desactivado", JOptionPane.INFORMATION_MESSAGE);
+            try {
+                productoDAO.darDeBajaLogica(p.getId());
+                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PRODUCTO_BAJA", "Baja lógica de producto #" + p.getId() + " (" + p.getNombre() + ")");
+                cargarDatos();
+                JOptionPane.showMessageDialog(this, "Medicamento desactivado exitosamente (baja lógica aplicada).", "Baja Completada", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Error al desactivar: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void exportarCSV() {
-        try {
-            File dirReportes = new File("reportes");
-            if (!dirReportes.exists()) dirReportes.mkdirs();
-
-            File archivoCSV = new File(dirReportes, "catalogo_medicamentos.csv");
-            try (PrintWriter pw = new PrintWriter(new FileWriter(archivoCSV))) {
-                pw.println("CODIGO_BARRAS,NOMBRE,CATEGORIA,PROVEEDOR,PRECIO_VENTA,REQUIERE_RECETA,STOCK_MINIMO");
-                for (Producto p : listaProductos) {
-                    pw.printf("%s,\"%s\",\"%s\",\"%s\",%.2f,%s,%d%n",
+        JFileChooser fc = new JFileChooser();
+        fc.setSelectedFile(new File("catalogo_medicamentos_" + LocalDate.now() + ".csv"));
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File f = fc.getSelectedFile();
+            try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+                pw.println("CodigoBarras,Nombre,Categoria,Proveedor,PrecioVenta,RequiereReceta,StockMinimo,ExistenciaActual");
+                for (Producto p : listaProductosActual) {
+                    int stock = p.calcularStockTotal(listaLotesActual);
+                    pw.printf("\"%s\",\"%s\",\"%s\",\"%s\",%.2f,%s,%d,%d%n",
                             p.getCodigoBarras(),
                             p.getNombre(),
                             p.getCategoria(),
                             p.getProveedor(),
                             p.getPrecioVenta(),
                             p.isRequiereReceta() ? "SI" : "NO",
-                            p.getStockMinimo());
+                            p.getStockMinimo(),
+                            stock);
                 }
+                JOptionPane.showMessageDialog(this, "Catálogo exportado exitosamente a:\n" + f.getAbsolutePath(), "Exportación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al exportar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-            JOptionPane.showMessageDialog(this, "Catalogo exportado exitosamente a:\n" + archivoCSV.getAbsolutePath(), "Exportacion Exitosa", JOptionPane.INFORMATION_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al exportar catalogo: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

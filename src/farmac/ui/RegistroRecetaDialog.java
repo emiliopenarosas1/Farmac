@@ -3,17 +3,32 @@ package farmac.ui;
 import farmac.dominio.Producto;
 import farmac.dominio.RecetaMedica;
 import farmac.util.TemaFarmac;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 
 /**
- * Ventana modal para captura y validacion de Recetas Medicas obligatorias (COFEPRIS).
+ * Ventana modal para captura y validación estricta de Recetas Médicas obligatorias (COFEPRIS, RF14, RNF09).
  */
 public class RegistroRecetaDialog extends JDialog {
+
     private JTextField txtMedico;
     private JTextField txtCedula;
     private JTextField txtFolio;
@@ -24,21 +39,21 @@ public class RegistroRecetaDialog extends JDialog {
     private final Producto productoAmparado;
 
     public RegistroRecetaDialog(Frame parent, Producto producto) {
-        super(parent, "Registro Obligatorio de Receta Medica", true);
+        super(parent, "Registro Obligatorio de Receta Médica", true);
         this.productoAmparado = producto;
         configurarVentana();
         inicializarComponentes();
     }
 
     private void configurarVentana() {
-        setSize(460, 440);
+        setSize(480, 460);
         setLocationRelativeTo(getParent());
         setResizable(false);
     }
 
     private void inicializarComponentes() {
         JPanel pnlFondo = new JPanel(new BorderLayout(12, 12));
-        pnlFondo.setBackground(TemaFarmac.FONDO);
+        pnlFondo.setBackground(TemaFarmac.GRIS_FONDO);
         pnlFondo.setBorder(new EmptyBorder(16, 18, 16, 18));
         setContentPane(pnlFondo);
 
@@ -47,11 +62,11 @@ public class RegistroRecetaDialog extends JDialog {
         pnlHeader.setLayout(new BoxLayout(pnlHeader, BoxLayout.Y_AXIS));
         pnlHeader.setOpaque(false);
 
-        JLabel lblTit = new JLabel("Control de Medicamento con Receta");
+        JLabel lblTit = new JLabel("Control de Medicamento Regulado");
         lblTit.setFont(TemaFarmac.FUENTE_TITULO);
         lblTit.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Este medicamento requiere registro de receta para autorizar la venta.");
+        JLabel lblSub = new JLabel("Este producto requiere receta médica vigente (máx. 30 días de expedición) - RF14");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -60,7 +75,7 @@ public class RegistroRecetaDialog extends JDialog {
         pnlHeader.add(lblSub);
         pnlFondo.add(pnlHeader, BorderLayout.NORTH);
 
-        // Tarjeta central con formulario
+        // Formulario central
         JPanel pnlCard = TemaFarmac.crearCard();
         pnlCard.setLayout(new GridBagLayout());
 
@@ -68,50 +83,59 @@ public class RegistroRecetaDialog extends JDialog {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(6, 8, 6, 8);
 
+        // Medicamento
         gbc.gridx = 0; gbc.gridy = 0;
-        JLabel lblMed = new JLabel("Medicamento:");
+        JLabel lblMed = new JLabel("Medicamento Amparado:");
         lblMed.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblMed, gbc);
 
-        lblMedicamento = new JLabel(productoAmparado != null ? productoAmparado.getNombre() : "Medicamento");
+        lblMedicamento = new JLabel(productoAmparado != null ? productoAmparado.getNombre() : "Medicamento Controlado");
         lblMedicamento.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblMedicamento.setForeground(TemaFarmac.AZUL_PETROLEO);
         gbc.gridx = 1;
         pnlCard.add(lblMedicamento, gbc);
 
+        // Médico
         gbc.gridy = 1; gbc.gridx = 0;
-        JLabel lblM = new JLabel("Nombre del Medico:");
+        JLabel lblM = new JLabel("Nombre Completo del Médico *:");
         lblM.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblM, gbc);
 
-        txtMedico = TemaFarmac.crearCampoTexto("Dr. Roberto Garza Morales", 18);
+        txtMedico = TemaFarmac.crearCampoTexto(18);
+        txtMedico.putClientProperty("JTextField.placeholderText", "Ej. Dr. Alejandro Gómez");
         gbc.gridx = 1;
         pnlCard.add(txtMedico, gbc);
 
+        // Cédula
         gbc.gridy = 2; gbc.gridx = 0;
-        JLabel lblC = new JLabel("Cedula Profesional:");
+        JLabel lblC = new JLabel("Cédula Profesional *:");
         lblC.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblC, gbc);
 
-        txtCedula = TemaFarmac.crearCampoTexto("MED-884920", 18);
+        txtCedula = TemaFarmac.crearCampoTexto(18);
+        txtCedula.putClientProperty("JTextField.placeholderText", "Ej. 7481920");
         gbc.gridx = 1;
         pnlCard.add(txtCedula, gbc);
 
+        // Folio
         gbc.gridy = 3; gbc.gridx = 0;
-        JLabel lblF = new JLabel("Folio de la Receta:");
+        JLabel lblF = new JLabel("Folio de Receta *:");
         lblF.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblF, gbc);
 
-        txtFolio = TemaFarmac.crearCampoTexto("REC-2026-991", 18);
+        txtFolio = TemaFarmac.crearCampoTexto(18);
+        txtFolio.putClientProperty("JTextField.placeholderText", "Ej. FOL-2026-0045");
         gbc.gridx = 1;
         pnlCard.add(txtFolio, gbc);
 
+        // Fecha de Expedición
         gbc.gridy = 4; gbc.gridx = 0;
-        JLabel lblFecha = new JLabel("Fecha Expedicion (AAAA-MM-DD):");
+        JLabel lblFecha = new JLabel("Fecha de Expedición (AAAA-MM-DD) *:");
         lblFecha.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblFecha, gbc);
 
-        txtFechaExpedicion = TemaFarmac.crearCampoTexto(LocalDate.now().toString(), 18);
+        txtFechaExpedicion = TemaFarmac.crearCampoTexto(18);
+        txtFechaExpedicion.setText(LocalDate.now().toString());
         gbc.gridx = 1;
         pnlCard.add(txtFechaExpedicion, gbc);
 
@@ -121,13 +145,13 @@ public class RegistroRecetaDialog extends JDialog {
         JPanel pnlBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         pnlBotones.setOpaque(false);
 
-        JButton btnCancelar = TemaFarmac.crearBoton("Cancelar Venta", TemaFarmac.BORDE, TemaFarmac.TEXTO);
+        JButton btnCancelar = TemaFarmac.crearBoton("Cancelar Venta del Ítem", TemaFarmac.BORDE, TemaFarmac.TEXTO);
         btnCancelar.addActionListener(e -> {
             confirmado = false;
             dispose();
         });
 
-        JButton btnGuardar = TemaFarmac.crearBoton("Validar y Proceder al Cobro", TemaFarmac.VERDE, Color.WHITE);
+        JButton btnGuardar = TemaFarmac.crearBoton("Validar y Autorizar Ítem", TemaFarmac.VERDE, Color.WHITE);
         btnGuardar.addActionListener(e -> validarYGuardar());
 
         pnlBotones.add(btnCancelar);
@@ -142,7 +166,7 @@ public class RegistroRecetaDialog extends JDialog {
         String fechaStr = txtFechaExpedicion.getText().trim();
 
         if (medico.isEmpty() || cedula.isEmpty() || folio.isEmpty() || fechaStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Todos los datos de la receta medica son obligatorios.", "Receta Incompleta", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Todos los datos de la receta médica son obligatorios por ley (COFEPRIS).", "Receta Incompleta", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -150,13 +174,29 @@ public class RegistroRecetaDialog extends JDialog {
         try {
             fechaExp = LocalDate.parse(fechaStr);
         } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha invalido. Use AAAA-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Utilice el formato AAAA-MM-DD.", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        recetaRegistrada = new RecetaMedica(1, productoAmparado, medico, cedula, fechaExp, folio);
+        LocalDate hoy = LocalDate.now();
+        if (fechaExp.isAfter(hoy)) {
+            JOptionPane.showMessageDialog(this, "La fecha de expedición no puede ser una fecha futura.", "Fecha Inválida", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        recetaRegistrada = new RecetaMedica(0, productoAmparado, medico, cedula, fechaExp, folio);
+
+        // Validación de vigencia de 30 días (COFEPRIS / RF14)
+        if (!recetaRegistrada.estaVigente(hoy)) {
+            JOptionPane.showMessageDialog(this,
+                    "La receta médica está VENCIDA.\nHan transcurrido más de 30 días naturales desde su expedición (" + fechaExp + ").\n"
+                    + "Por disposición legal no se puede surtir este medicamento.",
+                    "Receta Vencida", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (!recetaRegistrada.validarDatos()) {
-            JOptionPane.showMessageDialog(this, "Los datos de la receta no son validos.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Los datos capturados no cumplen los requisitos de validez.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 

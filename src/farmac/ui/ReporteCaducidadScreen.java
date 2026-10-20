@@ -1,50 +1,72 @@
 package farmac.ui;
 
+import farmac.dao.BitacoraDAO;
+import farmac.dao.LoteDAO;
+import farmac.dao.MovimientoDAO;
 import farmac.dominio.Lote;
-import farmac.dominio.Producto;
+import farmac.dominio.MovimientoInventario;
+import farmac.dominio.OperacionesInventario;
+import farmac.util.Sesion;
 import farmac.util.TemaFarmac;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Control y Semaforo de Caducidades con exportacion funcional a CSV.
+ * Pantalla de Control y Semáforo de Caducidades conectada a PostgreSQL (RF10, RF19).
+ * Accesible exclusivamente para Encargados.
  */
 public class ReporteCaducidadScreen extends JPanel {
+
+    private final LoteDAO loteDAO;
+    private final MovimientoDAO movimientoDAO;
+    private final OperacionesInventario operacionesInventario;
+
     private JTable tblAlertas;
     private DefaultTableModel modeloTabla;
-    private List<Lote> lotes;
-    private JButton btnExportar;
+    private List<Lote> lotesActuales;
+
+    private JLabel lblKpiVencidos;
+    private JLabel lblKpiPorVencer;
+    private JLabel lblKpiVigentes;
+    private JComboBox<String> cmbUmbralDias;
 
     public ReporteCaducidadScreen() {
-        this.lotes = new ArrayList<>();
-        cargarLotesDemo();
+        this.loteDAO = new LoteDAO();
+        this.movimientoDAO = new MovimientoDAO();
+        this.operacionesInventario = new OperacionesInventario(60);
+        this.lotesActuales = new ArrayList<>();
+
         inicializarUI();
-    }
-
-    private void cargarLotesDemo() {
-        Producto p1 = new Producto(1, "75010001", "Amoxicilina 500mg", "Antibioticos", "Farmaceutica Nal", 85.0, true, 5);
-        Producto p2 = new Producto(2, "75010002", "Paracetamol 500mg", "Analgesicos", "Laboratorios Alfa", 25.0, false, 10);
-        Producto p3 = new Producto(3, "75010003", "Ibuprofeno 400mg", "Antiinflamatorios", "Genericos MX", 45.0, false, 8);
-        Producto p4 = new Producto(4, "75010004", "Omeprazol 20mg", "Gastroenterologia", "Laboratorios Beta", 60.0, false, 6);
-
-        lotes.add(new Lote(1, "LT-2026-V1", LocalDate.now().minusDays(12), 15, 30.0, p1));
-        lotes.add(new Lote(2, "LT-2026-PV", LocalDate.now().plusDays(20), 38, 18.0, p2));
-        lotes.add(new Lote(3, "LT-2026-PV2", LocalDate.now().plusDays(45), 25, 35.0, p4));
-        lotes.add(new Lote(4, "LT-2027-OK", LocalDate.now().plusMonths(9), 120, 22.0, p3));
+        cargarDatos();
     }
 
     private void inicializarUI() {
         setLayout(new BorderLayout(16, 16));
-        setBackground(TemaFarmac.FONDO);
+        setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(new EmptyBorder(18, 20, 18, 20));
 
         JPanel pnlHeader = new JPanel(new BorderLayout(12, 12));
@@ -54,11 +76,11 @@ public class ReporteCaducidadScreen extends JPanel {
         pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
         pnlTit.setOpaque(false);
 
-        JLabel lblTitulo = new JLabel("Control de Caducidades y Semaforo Preventivo");
+        JLabel lblTitulo = new JLabel("Control de Caducidades y Semáforo Preventivo");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Monitoreo de lotes por vencer (umbral <=60 dias) y lotes caducados");
+        JLabel lblSub = new JLabel("Monitoreo de lotes vencidos, partidas en riesgo de caducidad y bajas por merma (RF10, RF19)");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -66,90 +88,231 @@ public class ReporteCaducidadScreen extends JPanel {
         pnlTit.add(Box.createRigidArea(new Dimension(0, 2)));
         pnlTit.add(lblSub);
 
-        btnExportar = TemaFarmac.crearBoton("Exportar Reporte (CSV)", TemaFarmac.VERDE, Color.WHITE);
+        // Barra de acciones derecha
+        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        pnlAcciones.setOpaque(false);
+
+        cmbUmbralDias = new JComboBox<>(new String[]{"30 días", "60 días (Estándar)", "90 días", "180 días"});
+        cmbUmbralDias.setSelectedIndex(1);
+        TemaFarmac.estilizarComboBox(cmbUmbralDias);
+        cmbUmbralDias.addActionListener(e -> aplicarUmbral());
+
+        JButton btnActualizar = TemaFarmac.crearBotonSecundario("Actualizar");
+        btnActualizar.addActionListener(e -> cargarDatos());
+
+        JButton btnAjustarCaducado = TemaFarmac.crearBotonPeligro("Dar Baja Lote Vencido");
+        btnAjustarCaducado.addActionListener(e -> darDeBajaLoteVencido());
+
+        JButton btnExportar = TemaFarmac.crearBoton("Exportar CSV", TemaFarmac.VERDE, Color.WHITE);
         btnExportar.addActionListener(e -> exportarReporteCSV());
 
+        pnlAcciones.add(new JLabel("Umbral de Alerta:"));
+        pnlAcciones.add(cmbUmbralDias);
+        pnlAcciones.add(btnActualizar);
+        pnlAcciones.add(btnAjustarCaducado);
+        pnlAcciones.add(btnExportar);
+
         pnlHeader.add(pnlTit, BorderLayout.WEST);
-        pnlHeader.add(btnExportar, BorderLayout.EAST);
+        pnlHeader.add(pnlAcciones, BorderLayout.EAST);
         add(pnlHeader, BorderLayout.NORTH);
 
         JPanel pnlCentro = new JPanel(new BorderLayout(0, 16));
         pnlCentro.setOpaque(false);
 
+        // KPIs
         JPanel pnlKpis = new JPanel(new GridLayout(1, 3, 12, 0));
         pnlKpis.setOpaque(false);
-        pnlKpis.add(TemaFarmac.crearKpiCard("LOTES VENCIDOS", "1 lote (15 pzas)", TemaFarmac.ROJO));
-        pnlKpis.add(TemaFarmac.crearKpiCard("POR VENCER (<=60 DIAS)", "2 lotes (63 pzas)", TemaFarmac.AMBAR));
-        pnlKpis.add(TemaFarmac.crearKpiCard("LOTES VIGENTES", "1 lote (120 pzas)", TemaFarmac.VERDE));
+
+        lblKpiVencidos = new JLabel("0 lotes", JLabel.CENTER);
+        lblKpiPorVencer = new JLabel("0 lotes", JLabel.CENTER);
+        lblKpiVigentes = new JLabel("0 lotes", JLabel.CENTER);
+
+        pnlKpis.add(TemaFarmac.crearTarjetaKPI("LOTES VENCIDOS", lblKpiVencidos, TemaFarmac.ROJO));
+        pnlKpis.add(TemaFarmac.crearTarjetaKPI("POR VENCER (ALERTA)", lblKpiPorVencer, TemaFarmac.AMBAR));
+        pnlKpis.add(TemaFarmac.crearTarjetaKPI("LOTES VIGENTES", lblKpiVigentes, TemaFarmac.VERDE));
         pnlCentro.add(pnlKpis, BorderLayout.NORTH);
 
+        // Tabla
         JPanel pnlCard = TemaFarmac.crearCard();
         pnlCard.setLayout(new BorderLayout());
 
-        String[] columnas = {"Numero de Lote", "Medicamento", "Fecha Caducidad", "Stock Actual", "Dias Restantes", "Estado"};
+        String[] columnas = {"ID", "Número Lote", "Medicamento", "Proveedor", "Fecha Caducidad", "Stock Actual", "Días Restantes", "Estado"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tblAlertas = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tblAlertas);
-        tblAlertas.getColumnModel().getColumn(5).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+        tblAlertas.getColumnModel().getColumn(0).setPreferredWidth(45);
+        tblAlertas.getColumnModel().getColumn(1).setPreferredWidth(130);
+        tblAlertas.getColumnModel().getColumn(2).setPreferredWidth(210);
+        tblAlertas.getColumnModel().getColumn(3).setPreferredWidth(150);
+        tblAlertas.getColumnModel().getColumn(4).setPreferredWidth(110);
+        tblAlertas.getColumnModel().getColumn(5).setPreferredWidth(90);
+        tblAlertas.getColumnModel().getColumn(6).setPreferredWidth(130);
+        tblAlertas.getColumnModel().getColumn(7).setPreferredWidth(120);
+
+        tblAlertas.getColumnModel().getColumn(7).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
 
         JScrollPane scroll = new JScrollPane(tblAlertas);
-        scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.BORDE));
+        scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
         scroll.getViewport().setBackground(Color.WHITE);
         pnlCard.add(scroll, BorderLayout.CENTER);
-
-        LocalDate hoy = LocalDate.now();
-        for (Lote l : lotes) {
-            long dias = l.diasParaVencer(hoy);
-            String estado;
-            if (l.estaVencido(hoy)) {
-                estado = "VENCIDO";
-            } else if (dias <= 60) {
-                estado = "POR VENCER";
-            } else {
-                estado = "VIGENTE";
-            }
-
-            modeloTabla.addRow(new Object[]{
-                    l.getNumeroLote(),
-                    l.getProducto() != null ? l.getProducto().getNombre() : "",
-                    l.getFechaCaducidad(),
-                    l.getCantidadActual() + " pzas",
-                    (dias < 0 ? Math.abs(dias) + " dias vencido" : dias + " dias restantes"),
-                    estado
-            });
-        }
 
         pnlCentro.add(pnlCard, BorderLayout.CENTER);
         add(pnlCentro, BorderLayout.CENTER);
     }
 
-    private void exportarReporteCSV() {
-        try {
-            File dir = new File("reportes");
-            if (!dir.exists()) dir.mkdirs();
+    private int obtenerDiasUmbral() {
+        int idx = cmbUmbralDias.getSelectedIndex();
+        return switch (idx) {
+            case 0 -> 30;
+            case 2 -> 90;
+            case 3 -> 180;
+            default -> 60;
+        };
+    }
 
-            File archivo = new File(dir, "reporte_caducidades_" + LocalDate.now() + ".csv");
-            try (PrintWriter pw = new PrintWriter(new FileWriter(archivo))) {
-                pw.println("NUMERO_LOTE,MEDICAMENTO,CADUCIDAD,STOCK_ACTUAL,DIAS_RESTANTES,ESTADO");
-                LocalDate hoy = LocalDate.now();
-                for (Lote l : lotes) {
-                    long dias = l.diasParaVencer(hoy);
-                    String estado = l.estaVencido(hoy) ? "VENCIDO" : (dias <= 60 ? "POR_VENCER" : "VIGENTE");
-                    pw.printf("%s,\"%s\",%s,%d,%d,%s%n",
-                            l.getNumeroLote(),
-                            l.getProducto() != null ? l.getProducto().getNombre() : "",
-                            l.getFechaCaducidad(),
-                            l.getCantidadActual(),
-                            dias,
-                            estado);
-                }
+    private void aplicarUmbral() {
+        int dias = obtenerDiasUmbral();
+        operacionesInventario.setDiasAlertaCaducidad(dias);
+        llenarTabla();
+    }
+
+    public void cargarDatos() {
+        try {
+            lotesActuales = loteDAO.listarTodos();
+            operacionesInventario.setInventario(lotesActuales);
+            llenarTabla();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar lotes: " + e.getMessage());
+        }
+    }
+
+    private void llenarTabla() {
+        modeloTabla.setRowCount(0);
+        LocalDate hoy = LocalDate.now();
+        int diasUmbral = obtenerDiasUmbral();
+
+        int contVencidos = 0;
+        int pzasVencidas = 0;
+        int contPorVencer = 0;
+        int pzasPorVencer = 0;
+        int contVigentes = 0;
+        int pzasVigentes = 0;
+
+        for (Lote l : lotesActuales) {
+            long dias = l.diasParaVencer(hoy);
+            String estado;
+            if (l.estaVencido(hoy)) {
+                estado = "VENCIDO";
+                contVencidos++;
+                pzasVencidas += l.getCantidadActual();
+            } else if (dias <= diasUmbral) {
+                estado = "POR VENCER";
+                contPorVencer++;
+                pzasPorVencer += l.getCantidadActual();
+            } else {
+                estado = "VIGENTE";
+                contVigentes++;
+                pzasVigentes += l.getCantidadActual();
             }
-            JOptionPane.showMessageDialog(this, "Reporte de caducidades exportado a:\n" + archivo.getAbsolutePath(), "Exportacion Exitosa", JOptionPane.INFORMATION_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al exportar reporte: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+
+            modeloTabla.addRow(new Object[]{
+                l.getId(),
+                l.getNumeroLote(),
+                l.getProducto() != null ? l.getProducto().getNombre() : "-",
+                l.getProveedor() != null ? l.getProveedor().getRazonSocial() : "-",
+                l.getFechaCaducidad(),
+                l.getCantidadActual() + " pzas",
+                (dias < 0 ? Math.abs(dias) + " días vencido" : dias + " días restantes"),
+                estado
+            });
+        }
+
+        lblKpiVencidos.setText(contVencidos + " lotes (" + pzasVencidas + " pzas)");
+        lblKpiPorVencer.setText(contPorVencer + " lotes (" + pzasPorVencer + " pzas)");
+        lblKpiVigentes.setText(contVigentes + " lotes (" + pzasVigentes + " pzas)");
+    }
+
+    private void darDeBajaLoteVencido() {
+        int fila = tblAlertas.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione un lote vencido de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int loteId = (int) modeloTabla.getValueAt(fila, 0);
+        Lote l = null;
+        for (Lote item : lotesActuales) {
+            if (item.getId() == loteId) {
+                l = item;
+                break;
+            }
+        }
+
+        if (l == null) return;
+
+        if (!l.estaVencido(LocalDate.now())) {
+            JOptionPane.showMessageDialog(this, "El lote seleccionado todavía no está vencido. Solo se pueden dar de baja por este medio los lotes vencidos.", "Acción No Permitida", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (l.getCantidadActual() <= 0) {
+            JOptionPane.showMessageDialog(this, "El lote ya no cuenta con existencias para dar de baja.", "Sin Existencias", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Desea enviar a merma/baja las " + l.getCantidadActual() + " piezas del lote vencido '"
+                + l.getNumeroLote() + "'?\nMotivo: PRODUCTO CADUCADO (RF09, RF10)",
+                "Confirmar Ajuste por Caducidad", JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                int cantMerma = l.getCantidadActual();
+                loteDAO.actualizarStock(l.getId(), 0, null);
+                l.setCantidadActual(0);
+
+                MovimientoInventario mov = new MovimientoInventario(
+                        0, l, "AJUSTE", -cantMerma, "PRODUCTO CADUCADO",
+                        "MERMA-CAD-" + l.getId(), Sesion.getUsuarioActivo(), LocalDateTime.now()
+                );
+                movimientoDAO.insertar(mov, null);
+
+                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "INVENTARIO_CADUCADO",
+                        "Baja por caducidad de lote " + l.getNumeroLote() + " (-" + cantMerma + " pzas)");
+
+                JOptionPane.showMessageDialog(this, "Lote vencido dado de baja exitosamente del inventario.", "Ajuste Completado", JOptionPane.INFORMATION_MESSAGE);
+                cargarDatos();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Error al registrar baja: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void exportarReporteCSV() {
+        JFileChooser fc = new JFileChooser();
+        fc.setSelectedFile(new File("reporte_caducidades_" + LocalDate.now() + ".csv"));
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File archivo = fc.getSelectedFile();
+            try (PrintWriter pw = new PrintWriter(new FileWriter(archivo))) {
+                pw.println("ID,NumeroLote,Medicamento,Proveedor,FechaCaducidad,StockActual,DiasRestantes,Estado");
+                for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+                    pw.printf("%s,\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\",\"%s\"%n",
+                            modeloTabla.getValueAt(i, 0),
+                            modeloTabla.getValueAt(i, 1),
+                            modeloTabla.getValueAt(i, 2),
+                            modeloTabla.getValueAt(i, 3),
+                            modeloTabla.getValueAt(i, 4),
+                            modeloTabla.getValueAt(i, 5),
+                            modeloTabla.getValueAt(i, 6),
+                            modeloTabla.getValueAt(i, 7));
+                }
+                JOptionPane.showMessageDialog(this, "Reporte exportado exitosamente a:\n" + archivo.getAbsolutePath(), "Exportación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al exportar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

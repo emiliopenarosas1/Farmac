@@ -1,41 +1,79 @@
 package farmac.ui;
 
+import farmac.dao.BitacoraDAO;
+import farmac.dao.LoteDAO;
+import farmac.dao.MovimientoDAO;
+import farmac.dao.ProductoDAO;
+import farmac.dao.ProveedorDAO;
 import farmac.dominio.Lote;
+import farmac.dominio.MovimientoInventario;
 import farmac.dominio.Producto;
+import farmac.dominio.Proveedor;
+import farmac.util.Sesion;
 import farmac.util.TemaFarmac;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 
 /**
- * Pantalla para recepcion y registro de lotes de medicamentos.
+ * Pantalla para recepción y registro de lotes de medicamentos en PostgreSQL (RF07, RF08).
  */
 public class RecepcionInventarioScreen extends JPanel {
+
+    private final ProductoDAO productoDAO;
+    private final ProveedorDAO proveedorDAO;
+    private final LoteDAO loteDAO;
+    private final MovimientoDAO movimientoDAO;
+
+    private JComboBox<Producto> cmbProductos;
+    private JComboBox<Proveedor> cmbProveedores;
     private JTextField txtNumLote;
     private JTextField txtCaducidad;
     private JTextField txtCantidad;
     private JTextField txtPrecioCompra;
-    private JComboBox<String> cmbProductos;
+    private JTextField txtFactura;
 
     public RecepcionInventarioScreen() {
+        this.productoDAO = new ProductoDAO();
+        this.proveedorDAO = new ProveedorDAO();
+        this.loteDAO = new LoteDAO();
+        this.movimientoDAO = new MovimientoDAO();
+
         inicializarUI();
+        cargarCombos();
     }
 
     private void inicializarUI() {
         setLayout(new BorderLayout(16, 16));
-        setBackground(TemaFarmac.FONDO);
+        setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(new EmptyBorder(18, 20, 18, 20));
 
         JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setOpaque(false);
 
-        JLabel lblTitulo = new JLabel("Recepcion de Mercancia por Lote");
+        JLabel lblTitulo = new JLabel("Recepción de Mercancía por Lote");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Ingreso de nuevas partidas con numero de lote, fecha de vencimiento y factura");
+        JLabel lblSub = new JLabel("Registro formal de partidas con validación de caducidad futura, proveedor y remisión (RF07, RF08)");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -51,65 +89,95 @@ public class RecepcionInventarioScreen extends JPanel {
 
         JPanel pnlCard = TemaFarmac.crearCard();
         pnlCard.setLayout(new GridBagLayout());
-        pnlCard.setMaximumSize(new Dimension(650, 440));
+        pnlCard.setPreferredSize(new Dimension(680, 480));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(8, 12, 8, 12);
 
+        // 1. Producto
         gbc.gridx = 0; gbc.gridy = 0;
-        JLabel lblProd = new JLabel("Medicamento / Producto:");
+        JLabel lblProd = new JLabel("Medicamento / Producto *:");
         lblProd.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblProd, gbc);
 
-        cmbProductos = new JComboBox<>(new String[]{"Amoxicilina 500mg", "Paracetamol 500mg", "Ibuprofeno 400mg", "Omeprazol 20mg"});
+        cmbProductos = new JComboBox<>();
         cmbProductos.setFont(TemaFarmac.FUENTE_REGULAR);
         cmbProductos.setBackground(Color.WHITE);
-        cmbProductos.setPreferredSize(new Dimension(280, 36));
+        cmbProductos.setPreferredSize(new Dimension(320, 36));
         gbc.gridx = 1;
         pnlCard.add(cmbProductos, gbc);
 
+        // 2. Proveedor
         gbc.gridy = 1; gbc.gridx = 0;
-        JLabel lblLote = new JLabel("Numero de Lote:");
+        JLabel lblProv = new JLabel("Proveedor / Distribuidor *:");
+        lblProv.setForeground(TemaFarmac.TEXTO_AZUL);
+        pnlCard.add(lblProv, gbc);
+
+        cmbProveedores = new JComboBox<>();
+        cmbProveedores.setFont(TemaFarmac.FUENTE_REGULAR);
+        cmbProveedores.setBackground(Color.WHITE);
+        cmbProveedores.setPreferredSize(new Dimension(320, 36));
+        gbc.gridx = 1;
+        pnlCard.add(cmbProveedores, gbc);
+
+        // 3. Número de Lote
+        gbc.gridy = 2; gbc.gridx = 0;
+        JLabel lblLote = new JLabel("Número de Lote *:");
         lblLote.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblLote, gbc);
 
-        txtNumLote = TemaFarmac.crearCampoTexto("LT-2026-N01", 15);
+        txtNumLote = TemaFarmac.crearCampoTexto(18);
         gbc.gridx = 1;
         pnlCard.add(txtNumLote, gbc);
 
-        gbc.gridy = 2; gbc.gridx = 0;
-        JLabel lblCad = new JLabel("Fecha de Caducidad (AAAA-MM-DD):");
+        // 4. Caducidad
+        gbc.gridy = 3; gbc.gridx = 0;
+        JLabel lblCad = new JLabel("Fecha de Caducidad (AAAA-MM-DD) *:");
         lblCad.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblCad, gbc);
 
-        txtCaducidad = TemaFarmac.crearCampoTexto("2027-11-30", 15);
+        txtCaducidad = TemaFarmac.crearCampoTexto(18);
+        txtCaducidad.putClientProperty("JTextField.placeholderText", "Ej. 2027-12-31");
         gbc.gridx = 1;
         pnlCard.add(txtCaducidad, gbc);
 
-        gbc.gridy = 3; gbc.gridx = 0;
-        JLabel lblCant = new JLabel("Cantidad de Piezas Recibidas:");
+        // 5. Cantidad
+        gbc.gridy = 4; gbc.gridx = 0;
+        JLabel lblCant = new JLabel("Piezas Recibidas *:");
         lblCant.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblCant, gbc);
 
-        txtCantidad = TemaFarmac.crearCampoTexto("100", 15);
+        txtCantidad = TemaFarmac.crearCampoTexto(18);
         gbc.gridx = 1;
         pnlCard.add(txtCantidad, gbc);
 
-        gbc.gridy = 4; gbc.gridx = 0;
-        JLabel lblPrec = new JLabel("Precio Unitario de Compra:");
+        // 6. Precio Compra
+        gbc.gridy = 5; gbc.gridx = 0;
+        JLabel lblPrec = new JLabel("Precio Unitario Compra ($) *:");
         lblPrec.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblPrec, gbc);
 
-        txtPrecioCompra = TemaFarmac.crearCampoTexto("45.00", 15);
+        txtPrecioCompra = TemaFarmac.crearCampoTexto(18);
         gbc.gridx = 1;
         pnlCard.add(txtPrecioCompra, gbc);
 
-        JButton btnGuardar = TemaFarmac.crearBoton("Guardar Entrada de Lote", TemaFarmac.VERDE, Color.WHITE);
-        btnGuardar.setPreferredSize(new Dimension(280, 40));
+        // 7. Factura / Remisión
+        gbc.gridy = 6; gbc.gridx = 0;
+        JLabel lblFact = new JLabel("Factura / Remisión:");
+        lblFact.setForeground(TemaFarmac.TEXTO_AZUL);
+        pnlCard.add(lblFact, gbc);
+
+        txtFactura = TemaFarmac.crearCampoTexto(18);
+        gbc.gridx = 1;
+        pnlCard.add(txtFactura, gbc);
+
+        // Botón Guardar
+        JButton btnGuardar = TemaFarmac.crearBoton("Guardar Entrada en Inventario", TemaFarmac.VERDE, Color.WHITE);
+        btnGuardar.setPreferredSize(new Dimension(320, 42));
         btnGuardar.addActionListener(e -> registrar());
 
-        gbc.gridy = 5; gbc.gridx = 0; gbc.gridwidth = 2;
+        gbc.gridy = 7; gbc.gridx = 0; gbc.gridwidth = 2;
         gbc.insets = new Insets(18, 12, 8, 12);
         pnlCard.add(btnGuardar, gbc);
 
@@ -120,14 +188,96 @@ public class RecepcionInventarioScreen extends JPanel {
         add(pnlContenedor, BorderLayout.CENTER);
     }
 
+    public void cargarCombos() {
+        try {
+            List<Producto> prods = productoDAO.listarTodos(true);
+            cmbProductos.removeAllItems();
+            for (Producto p : prods) {
+                cmbProductos.addItem(p);
+            }
+
+            List<Proveedor> provs = proveedorDAO.listarTodos(true);
+            cmbProveedores.removeAllItems();
+            for (Proveedor pr : provs) {
+                cmbProveedores.addItem(pr);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar catálogos: " + e.getMessage());
+        }
+    }
+
     private void registrar() {
+        Producto p = (Producto) cmbProductos.getSelectedItem();
+        Proveedor prov = (Proveedor) cmbProveedores.getSelectedItem();
         String lote = txtNumLote.getText().trim();
-        if (lote.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe especificar el numero de lote.", "Validacion", JOptionPane.WARNING_MESSAGE);
+        String cadStr = txtCaducidad.getText().trim();
+        String cantStr = txtCantidad.getText().trim();
+        String precioStr = txtPrecioCompra.getText().trim();
+        String factura = txtFactura.getText().trim();
+
+        if (p == null || prov == null || lote.isEmpty() || cadStr.isEmpty() || cantStr.isEmpty() || precioStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor complete todos los campos obligatorios (*).", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        Producto p = new Producto(1, "75010001", (String) cmbProductos.getSelectedItem(), "General", "Nacional", 85.0, false, 5);
-        Lote nuevoLote = new Lote(1, lote, LocalDate.parse(txtCaducidad.getText()), Integer.parseInt(txtCantidad.getText()), Double.parseDouble(txtPrecioCompra.getText()), p);
-        JOptionPane.showMessageDialog(this, "Lote " + nuevoLote.getNumeroLote() + " registrado exitosamente en el inventario.", "Operacion Exitosa", JOptionPane.INFORMATION_MESSAGE);
+
+        LocalDate caducidad;
+        try {
+            caducidad = LocalDate.parse(cadStr);
+            if (!caducidad.isAfter(LocalDate.now())) {
+                JOptionPane.showMessageDialog(this, "La fecha de caducidad debe ser futura a la fecha actual.", "Caducidad Inválida", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Utilice el formato AAAA-MM-DD (ej. 2027-10-15).", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int cantidad;
+        try {
+            cantidad = Integer.parseInt(cantStr);
+            if (cantidad <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "La cantidad de piezas debe ser un número entero mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        double precioCompra;
+        try {
+            precioCompra = Double.parseDouble(precioStr);
+            if (precioCompra <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "El precio de compra unitario debe ser mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            Lote nuevoLote = new Lote(0, lote, caducidad, cantidad, cantidad, precioCompra, p, prov, LocalDate.now(), factura);
+            loteDAO.insertar(nuevoLote);
+
+            // Registrar movimiento de auditoría
+            MovimientoInventario mov = new MovimientoInventario(
+                    0, nuevoLote, "RECEPCION", cantidad, "Entrada de mercancía / factura: " + factura,
+                    factura.isEmpty() ? "REC-" + nuevoLote.getId() : factura,
+                    Sesion.getUsuarioActivo(), LocalDateTime.now()
+            );
+            movimientoDAO.insertar(mov, null);
+
+            BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "INVENTARIO_RECEPCION",
+                    "Recepción de lote " + lote + " (" + cantidad + " pzas) para " + p.getNombre());
+
+            JOptionPane.showMessageDialog(this,
+                    "Lote '" + lote + "' registrado exitosamente en el inventario con " + cantidad + " piezas.",
+                    "Recepción Completada", JOptionPane.INFORMATION_MESSAGE);
+
+            // Limpiar campos
+            txtNumLote.setText("");
+            txtCaducidad.setText("");
+            txtCantidad.setText("");
+            txtPrecioCompra.setText("");
+            txtFactura.setText("");
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al guardar lote en base de datos: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

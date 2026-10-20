@@ -1,20 +1,39 @@
 package farmac.util;
 
-import javax.swing.*;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.RoundRectangle2D;
+import java.util.function.Consumer;
+import javax.swing.AbstractCellEditor;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.geom.RoundRectangle2D;
-import java.util.function.Consumer;
 
 /**
- * Sistema de diseno y componentes responsivos para la interfaz de escritorio de Farmac.
+ * Sistema de diseño y componentes responsivos para la interfaz de escritorio de Farmac.
  */
 public class TemaFarmac {
 
@@ -37,7 +56,12 @@ public class TemaFarmac {
     public static final Color BORDE          = new Color(0xCB, 0xD5, 0xE1);
     public static final Color TABLA_HEADER_BG= new Color(0x0F, 0x47, 0x61);
 
-    // Tipografias escalables
+    // Alias para compatibilidad
+    public static final Color GRIS_FONDO     = FONDO;
+    public static final Color GRIS_BORDE     = BORDE;
+    public static final Color GRIS_TEXTO     = TEXTO_MUTED;
+
+    // Tipografías escalables
     public static final Font FUENTE_DISPLAY   = new Font("Segoe UI", Font.BOLD, 22);
     public static final Font FUENTE_TITULO    = new Font("Segoe UI", Font.BOLD, 17);
     public static final Font FUENTE_SUBTITULO = new Font("Segoe UI", Font.BOLD, 13);
@@ -47,7 +71,7 @@ public class TemaFarmac {
     public static final Font FUENTE_BADGE     = new Font("Segoe UI", Font.BOLD, 10);
 
     /**
-     * Crea un boton estilizado con padding flexible.
+     * Crea un botón estilizado con color personalizado.
      */
     public static JButton crearBoton(String texto, Color colorFondo, Color colorTexto) {
         JButton btn = new JButton(texto) {
@@ -78,6 +102,18 @@ public class TemaFarmac {
         return btn;
     }
 
+    public static JButton crearBotonPrimario(String texto) {
+        return crearBoton(texto, TURQUESA, BLANCO);
+    }
+
+    public static JButton crearBotonSecundario(String texto) {
+        return crearBoton(texto, AZUL_PETROLEO, BLANCO);
+    }
+
+    public static JButton crearBotonPeligro(String texto) {
+        return crearBoton(texto, ROJO, BLANCO);
+    }
+
     public static JTextField crearCampoTexto(String valorInicial, int columnas) {
         JTextField txt = new JTextField(valorInicial, columnas);
         txt.setFont(FUENTE_REGULAR);
@@ -91,6 +127,10 @@ public class TemaFarmac {
         return txt;
     }
 
+    public static JTextField crearCampoTexto(int columnas) {
+        return crearCampoTexto("", columnas);
+    }
+
     public static JPasswordField crearCampoPassword(String valorInicial, int columnas) {
         JPasswordField txt = new JPasswordField(valorInicial, columnas);
         txt.setFont(FUENTE_REGULAR);
@@ -102,6 +142,20 @@ public class TemaFarmac {
                 new EmptyBorder(5, 8, 5, 8)
         ));
         return txt;
+    }
+
+    public static JPasswordField crearCampoPassword(int columnas) {
+        return crearCampoPassword("", columnas);
+    }
+
+    public static void estilizarComboBox(JComboBox<?> cmb) {
+        cmb.setFont(FUENTE_REGULAR);
+        cmb.setForeground(TEXTO);
+        cmb.setBackground(BLANCO);
+        cmb.setBorder(BorderFactory.createCompoundBorder(
+                new BordeRedondeado(BORDE, 6, 1),
+                new EmptyBorder(3, 6, 3, 6)
+        ));
     }
 
     public static JPanel crearCard() {
@@ -137,6 +191,23 @@ public class TemaFarmac {
 
         card.add(lblTit, BorderLayout.NORTH);
         card.add(lblVal, BorderLayout.CENTER);
+        return card;
+    }
+
+    public static JPanel crearTarjetaKPI(String titulo, JLabel lblValor, Color colorValor) {
+        JPanel card = crearCard();
+        card.setLayout(new BorderLayout(4, 4));
+        card.setPreferredSize(new Dimension(170, 75));
+
+        JLabel lblTit = new JLabel(titulo);
+        lblTit.setFont(FUENTE_PEQUENA);
+        lblTit.setForeground(TEXTO_AZUL);
+
+        lblValor.setFont(FUENTE_TITULO);
+        lblValor.setForeground(colorValor);
+
+        card.add(lblTit, BorderLayout.NORTH);
+        card.add(lblValor, BorderLayout.CENTER);
         return card;
     }
 
@@ -179,9 +250,6 @@ public class TemaFarmac {
         tabla.setDefaultRenderer(Object.class, bodyRenderer);
     }
 
-    /**
-     * Renderer y Editor para Boton en Celda de JTable (Boton "Agregar").
-     */
     public static class BotonTablaRenderer extends JButton implements TableCellRenderer {
         public BotonTablaRenderer(String texto, Color fondo, Color textoColor) {
             super(texto);
@@ -249,11 +317,11 @@ public class TemaFarmac {
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     Color bg = new Color(0xF1, 0xF5, 0xF9);
                     Color fg = TEXTO;
-                    if (texto.contains("VIGENTE") || texto.contains("ACTIVO") || texto.contains("COMPLETADA") || texto.contains("ABIERTO") || texto.contains("VENTA LIBRE")) {
+                    if (texto.contains("VIGENTE") || texto.contains("ACTIVO") || texto.contains("COMPLETADA") || texto.contains("ABIERTO") || texto.contains("VENTA LIBRE") || texto.contains("ÓPTIMO") || texto.contains("LIBRE")) {
                         bg = VERDE_BG; fg = VERDE;
-                    } else if (texto.contains("POR VENCER") || texto.contains("TARJETA")) {
+                    } else if (texto.contains("POR VENCER") || texto.contains("TARJETA") || texto.contains("TRANSFERENCIA") || texto.contains("BAJO STOCK")) {
                         bg = AMBAR_BG; fg = AMBAR;
-                    } else if (texto.contains("VENCIDO") || texto.contains("INACTIVO") || texto.contains("CANCELADA") || texto.contains("CERRADO") || texto.contains("REQUIERE RECETA")) {
+                    } else if (texto.contains("VENCIDO") || texto.contains("INACTIVO") || texto.contains("CANCELADA") || texto.contains("CERRADO") || texto.contains("REQUIERE RECETA") || texto.contains("RECETA")) {
                         bg = ROJO_BG; fg = ROJO;
                     }
                     g2.setColor(bg);

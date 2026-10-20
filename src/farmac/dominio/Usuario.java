@@ -1,13 +1,16 @@
 package farmac.dominio;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 /**
  * Clase base abstracta que representa a un usuario general del sistema Farmac.
+ * Aplica hash seguro BCrypt (A5) y herencia polimórfica (Encargado / Empleado).
  */
 public abstract class Usuario {
     protected int id;
     protected String nombreUsuario;
     protected String nombreCompleto;
-    protected String password;
+    protected String password; // Puede almacenar hash BCrypt o texto durante captura
     protected boolean activo;
 
     public Usuario() {
@@ -22,13 +25,29 @@ public abstract class Usuario {
         this.activo = activo;
     }
 
+    /**
+     * Valida la contraseña ingresada contra el hash BCrypt o texto plano si fuera migración.
+     */
     public boolean autenticar(String passwordIngresada) {
-        return this.activo && this.password != null && this.password.equals(passwordIngresada);
+        if (!this.activo || this.password == null || passwordIngresada == null) {
+            return false;
+        }
+        try {
+            if (this.password.startsWith("$2a$") || this.password.startsWith("$2b$") || this.password.startsWith("$2y$")) {
+                return BCrypt.checkpw(passwordIngresada, this.password);
+            }
+        } catch (Exception e) {
+            // Si el formato no coincide con BCrypt, fallback a comparación directa
+        }
+        return this.password.equals(passwordIngresada);
     }
 
+    /**
+     * Hashea y actualiza la contraseña usando BCrypt (A5).
+     */
     public void cambiarPassword(String nuevaPassword) {
         if (nuevaPassword != null && !nuevaPassword.trim().isEmpty()) {
-            this.password = nuevaPassword;
+            this.password = BCrypt.hashpw(nuevaPassword, BCrypt.gensalt());
         }
     }
 

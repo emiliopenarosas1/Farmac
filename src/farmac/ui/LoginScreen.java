@@ -1,36 +1,59 @@
 package farmac.ui;
 
-import farmac.dominio.Empleado;
-import farmac.dominio.Encargado;
+import farmac.dao.BitacoraDAO;
+import farmac.dao.UsuarioDAO;
 import farmac.dominio.Usuario;
+import farmac.util.Sesion;
 import farmac.util.TemaFarmac;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
+import java.sql.SQLException;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 
 /**
- * Pantalla de inicio de sesion con Switch / Selector interactivo de Rol (Empleado / Encargado).
+ * Pantalla de inicio de sesión con autenticación real en base de datos y BCrypt (RF02, A5).
  */
 public class LoginScreen extends JFrame {
+
+    private final UsuarioDAO usuarioDAO;
     private JTextField txtUsuario;
     private JPasswordField txtPassword;
     private JButton btnIngresar;
     private JButton btnRolEmpleado;
     private JButton btnRolEncargado;
     private JLabel lblRolDescripcion;
-    private boolean esEncargado = true; // Por defecto Encargado
+    private boolean esEncargado = true;
 
     public LoginScreen() {
         super("Farmac - Acceso al Sistema");
+        this.usuarioDAO = new UsuarioDAO();
         configurarVentana();
         inicializarComponentes();
     }
 
     private void configurarVentana() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(480, 600);
+        setSize(480, 580);
         setLocationRelativeTo(null);
         setResizable(false);
     }
@@ -61,7 +84,7 @@ public class LoginScreen extends JFrame {
             }
         };
         card.setOpaque(false);
-        card.setPreferredSize(new Dimension(380, 500));
+        card.setPreferredSize(new Dimension(380, 480));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new EmptyBorder(24, 28, 24, 28));
 
@@ -76,7 +99,7 @@ public class LoginScreen extends JFrame {
         lblSlogan.setForeground(TemaFarmac.TURQUESA);
         lblSlogan.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Switch / Segmented Control para selección de Rol
+        // Switch / Segmented Control como ayuda visual
         JPanel pnlSwitchContenedor = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -101,27 +124,32 @@ public class LoginScreen extends JFrame {
         pnlSwitchContenedor.add(btnRolEmpleado);
         pnlSwitchContenedor.add(btnRolEncargado);
 
-        lblRolDescripcion = new JLabel("Modo: Administracion e Inventario Completo", SwingConstants.CENTER);
+        lblRolDescripcion = new JLabel("Autenticación con permisos de Encargado", SwingConstants.CENTER);
         lblRolDescripcion.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblRolDescripcion.setForeground(TemaFarmac.TEXTO_MUTED);
         lblRolDescripcion.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Campos de entrada
-        JLabel lblUser = new JLabel("Usuario");
+        // Campos de entrada (sin valores precargados fijos)
+        JLabel lblUser = new JLabel("Nombre de Usuario");
         lblUser.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblUser.setForeground(TemaFarmac.TEXTO_AZUL);
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        txtUsuario = TemaFarmac.crearCampoTexto("admin", 20);
+        txtUsuario = TemaFarmac.crearCampoTexto(20);
         txtUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         txtUsuario.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblPass = new JLabel("Contrasena");
+        JLabel lblPass = new JLabel("Contraseña");
         lblPass.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblPass.setForeground(TemaFarmac.TEXTO_AZUL);
         lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        txtPassword = TemaFarmac.crearCampoPassword("123456", 20);
+        txtPassword = new JPasswordField(20);
+        txtPassword.setFont(TemaFarmac.FUENTE_REGULAR);
+        txtPassword.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE),
+                BorderFactory.createEmptyBorder(6, 10, 6, 10)
+        ));
         txtPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         txtPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtPassword.addActionListener(e -> procesarLogin());
@@ -174,11 +202,9 @@ public class LoginScreen extends JFrame {
     private void seleccionarRol(boolean encargado) {
         this.esEncargado = encargado;
         if (encargado) {
-            txtUsuario.setText("admin");
-            lblRolDescripcion.setText("Modo: Administracion e Inventario Completo");
+            lblRolDescripcion.setText("Autenticación con permisos de Encargado");
         } else {
-            txtUsuario.setText("empleado1");
-            lblRolDescripcion.setText("Modo: Punto de Venta y Atencion al Cliente");
+            lblRolDescripcion.setText("Autenticación con permisos de Empleado");
         }
         actualizarEstiloSwitch();
     }
@@ -210,18 +236,40 @@ public class LoginScreen extends JFrame {
         String pass = new String(txtPassword.getPassword());
 
         if (user.isEmpty() || pass.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor ingrese usuario y contrasena.", "Validacion", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor ingrese usuario y contraseña.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        Usuario usuarioLogueado;
-        if (esEncargado) {
-            usuarioLogueado = new Encargado(1, user, "Administrador General", pass, true);
-        } else {
-            usuarioLogueado = new Empleado(2, user, "Carlos Lopez", pass, true);
-        }
+        try {
+            Usuario u = usuarioDAO.buscarPorNombreUsuario(user);
+            if (u == null) {
+                JOptionPane.showMessageDialog(this, "El usuario '" + user + "' no se encuentra registrado.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-        dispose();
-        new MainScreen(usuarioLogueado).setVisible(true);
+            if (!u.isActivo()) {
+                JOptionPane.showMessageDialog(this, "La cuenta del usuario '" + user + "' está INACTIVA.\nContacte al Encargado para reactivarla.", "Cuenta Inactiva", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (!u.autenticar(pass)) {
+                JOptionPane.showMessageDialog(this, "Contraseña incorrecta. Verifique sus credenciales.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Inicio de sesión exitoso
+            Sesion.setUsuarioActivo(u);
+            Sesion.refrescarTurno();
+            BitacoraDAO.registrar(u, "LOGIN", "Inicio de sesión exitoso como " + u.obtenerRol());
+
+            dispose();
+            new MainScreen(u).setVisible(true);
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al comunicarse con la base de datos PostgreSQL: " + ex.getMessage()
+                    + "\nVerifique que el servicio esté activo en localhost:5432.",
+                    "Error de Conexión (RNF03)", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

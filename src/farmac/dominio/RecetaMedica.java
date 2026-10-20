@@ -38,6 +38,10 @@ public class RecetaMedica {
         return !fechaExpedicion.plusDays(30).isBefore(fechaActual);
     }
 
+    public boolean estaVigente() {
+        return estaVigente(LocalDate.now());
+    }
+
     // Getters y Setters completos
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
