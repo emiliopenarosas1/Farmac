@@ -3,14 +3,12 @@ package farmac.util;
 import farmac.config.ConexionBD;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Properties;
 
 /**
  * Utilidad de respaldo de base de datos PostgreSQL (A6, RNF05).
@@ -27,19 +25,24 @@ public class RespaldoUtil {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File archivoSalida = new File(dir, "respaldo_farmac_" + timeStamp + ".sql");
 
-        // Intentar primero con pg_dump
+        // Intentar primero con pg_dump usando la misma configuración de la aplicación
         boolean pgDumpExitoso = false;
         try {
+            String[] conexion = parsearUrlJdbc(ConexionBD.getUrl());
             ProcessBuilder pb = new ProcessBuilder(
                     "pg_dump",
-                    "-h", "localhost",
-                    "-p", "5432",
-                    "-U", "postgres",
+                    "-h", conexion[0],
+                    "-p", conexion[1],
+                    "-U", ConexionBD.getUsuario(),
                     "-F", "p", // Plain text SQL
                     "-f", archivoSalida.getAbsolutePath(),
-                    "farmac_db"
+                    conexion[2]
             );
-            pb.environment().put("PGPASSWORD", "postgres");
+            pb.environment().put("PGPASSWORD", ConexionBD.getPassword());
+            // Descartar la salida del proceso: si se dejara sin consumir, un volcado
+            // grande llenaría el buffer del pipe y bloquearía pg_dump.
+            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            pb.redirectError(ProcessBuilder.Redirect.DISCARD);
             Process p = pb.start();
             int exitCode = p.waitFor();
             if (exitCode == 0 && archivoSalida.exists() && archivoSalida.length() > 0) {
@@ -75,9 +78,13 @@ public class RespaldoUtil {
                 try (Statement st = conn.createStatement();
                      ResultSet rs = st.executeQuery("SELECT * FROM " + tabla)) {
                     int cols = rs.getMetaData().getColumnCount();
+                    String columnas = "";
+                    for (int i = 1; i <= cols; i++) {
+                        columnas = i == 1 ? "\"" + rs.getMetaData().getColumnLabel(i) + "\"" : columnas + ", \"" + rs.getMetaData().getColumnLabel(i) + "\"";
+                    }
                     pw.println("-- Datos de tabla: " + tabla);
                     while (rs.next()) {
-                        StringBuilder sb = new StringBuilder("INSERT INTO " + tabla + " VALUES (");
+                        StringBuilder sb = new StringBuilder("INSERT INTO " + tabla + " (" + columnas + ") VALUES (");
                         for (int i = 1; i <= cols; i++) {
                             Object val = rs.getObject(i);
                             if (val == null) {
@@ -98,5 +105,55 @@ public class RespaldoUtil {
                 }
             }
         }
+    }
+
+    /**
+     * Extrae host, puerto y nombre de base desde una URL JDBC de PostgreSQL.
+     * Formato esperado: jdbc:postgresql://host:puerto/base?parametros
+     * Si la URL no trae algún dato se usan los valores por defecto de la aplicación
+     * (localhost, 5432, farmac_db).
+     */
+    static String[] parsearUrlJdbc(String jdbcUrl) {
+        String host = "localhost";
+        String puerto = "5432";
+        String base = "farmac_db";
+
+        if (jdbcUrl != null && !jdbcUrl.trim().isEmpty()) {
+            String resto = jdbcUrl.trim();
+
+            int idx = resto.indexOf("//");
+            if (idx >= 0) {
+                resto = resto.substring(idx + 2);
+            } else {
+                String prefijo = "jdbc:postgresql:";
+                if (resto.startsWith(prefijo)) {
+                    resto = resto.substring(prefijo.length());
+                }
+            }
+
+            int corte = resto.indexOf('?');
+            if (corte >= 0) {
+                resto = resto.substring(0, corte);
+            }
+
+            int barra = resto.indexOf('/');
+            String autoridad = barra >= 0 ? resto.substring(0, barra) : resto;
+            String baseCruda = barra >= 0 ? resto.substring(barra + 1) : "";
+            if (!baseCruda.trim().isEmpty()) {
+                base = baseCruda.trim();
+            }
+
+            if (!autoridad.trim().isEmpty()) {
+                int dosPuntos = autoridad.lastIndexOf(':');
+                if (dosPuntos > 0 && dosPuntos < autoridad.length() - 1) {
+                    host = autoridad.substring(0, dosPuntos).trim();
+                    puerto = autoridad.substring(dosPuntos + 1).trim();
+                } else {
+                    host = autoridad.trim();
+                }
+            }
+        }
+
+        return new String[]{host, puerto, base};
     }
 }

@@ -1,6 +1,7 @@
 package farmac.util;
 
 import farmac.dominio.DetalleVenta;
+import farmac.dominio.RecetaMedica;
 import farmac.dominio.Venta;
 
 import java.io.ByteArrayOutputStream;
@@ -58,7 +59,7 @@ public class TicketGenerator {
                 String nom = (d.getLote() != null && d.getLote().getProducto() != null)
                         ? d.getLote().getProducto().getNombre() : "Medicamento";
                 if (nom.length() > 18) {
-                    nom = nom.substring(0, 15) + "...";
+                    nom = nom.substring(0, 15).trim() + "...";
                 }
                 lineas.add(String.format("%-18s %4d %8.2f %8.2f", nom, d.getCantidad(), d.getPrecioUnitario(), d.getSubtotal()));
                 if (d.getLote() != null) {
@@ -70,13 +71,19 @@ public class TicketGenerator {
             lineas.add(String.format("TOTAL A PAGAR:                $%10.2f", venta.getTotal()));
             lineas.add("==========================================");
 
-            if (venta.getReceta() != null && venta.getReceta().validarDatos()) {
+            if (venta.getRecetas() != null && !venta.getRecetas().isEmpty()) {
                 lineas.add("DATOS DE RECETA MEDICA (COFEPRIS):");
-                lineas.add("Folio Receta: " + venta.getReceta().getFolioReceta());
-                lineas.add("Medico:       Dr. " + venta.getReceta().getNombreMedico());
-                lineas.add("Cedula Prof:  " + venta.getReceta().getCedulaProfesional());
-                lineas.add("Expedicion:   " + venta.getReceta().getFechaExpedicion());
-                lineas.add("------------------------------------------");
+                for (RecetaMedica r : venta.getRecetas()) {
+                    if (r == null || !r.validarDatos()) continue;
+                    if (r.getProducto() != null) {
+                        lineas.add("Producto:     " + r.getProducto().getNombre());
+                    }
+                    lineas.add("Folio Receta: " + r.getFolioReceta());
+                    lineas.add("Medico:       Dr. " + r.getNombreMedico());
+                    lineas.add("Cedula Prof:  " + r.getCedulaProfesional());
+                    lineas.add("Expedicion:   " + r.getFechaExpedicion());
+                    lineas.add("------------------------------------------");
+                }
             }
 
             lineas.add("        Cada lote, bajo control.          ");

@@ -234,11 +234,13 @@ public class ProductoDAO {
                 }
             }
         }
-        return 1;
+        throw new SQLException("No se pudo registrar la categoría '" + nombreCat + "'.");
     }
 
     private int obtenerIdProveedorPorNombre(String razonSocial) throws SQLException {
-        if (razonSocial == null || razonSocial.trim().isEmpty()) return 1;
+        if (razonSocial == null || razonSocial.trim().isEmpty()) {
+            throw new SQLException("Debe seleccionar un proveedor válido para el producto.");
+        }
         String sql = "SELECT id FROM proveedor WHERE LOWER(razon_social) = LOWER(?)";
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -249,7 +251,7 @@ public class ProductoDAO {
                 }
             }
         }
-        return 1;
+        throw new SQLException("El proveedor '" + razonSocial.trim() + "' no existe.");
     }
 
     private Producto mapearProducto(ResultSet rs) throws SQLException {

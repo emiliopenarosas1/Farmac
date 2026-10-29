@@ -32,4 +32,10 @@ public class ConexionBD {
     public static Connection obtenerConexion() throws SQLException {
         return DriverManager.getConnection(url, usuario, password);
     }
+
+    // Accesores usados por utilidades externas (por ejemplo, pg_dump) para no
+    // duplicar credenciales hardcodeadas.
+    public static String getUrl() { return url; }
+    public static String getUsuario() { return usuario; }
+    public static String getPassword() { return password; }
 }

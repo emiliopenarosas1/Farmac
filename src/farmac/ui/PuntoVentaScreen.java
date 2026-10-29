@@ -346,11 +346,7 @@ public class PuntoVentaScreen extends JPanel {
         if (catalogoProductos == null) return;
         for (Producto p : catalogoProductos) {
             // Calcular existencias únicamente en lotes vigentes (no vencidos)
-            List<Lote> lotesFefo = operacionesInventario.obtenerLotesFEFO(p, 1);
-            int stockDisponible = 0;
-            for (Lote l : lotesFefo) {
-                stockDisponible += l.getCantidadActual();
-            }
+            int stockDisponible = operacionesInventario.calcularStockDisponible(p);
 
             modeloCatalogo.addRow(new Object[]{
                 p.getCodigoBarras(),
@@ -403,12 +399,8 @@ public class PuntoVentaScreen extends JPanel {
     }
 
     private void agregarProductoAlCarrito(Producto prod, int cantidad) {
-        // Validar stock disponible en lotes FEFO vigentes
-        List<Lote> vigentes = operacionesInventario.obtenerLotesFEFO(prod, 1);
-        int stockTotalDisponible = 0;
-        for (Lote l : vigentes) {
-            stockTotalDisponible += l.getCantidadActual();
-        }
+        // Validar stock disponible en lotes vigentes
+        int stockTotalDisponible = operacionesInventario.calcularStockDisponible(prod);
 
         if (stockTotalDisponible <= 0) {
             JOptionPane.showMessageDialog(this,
@@ -449,8 +441,7 @@ public class PuntoVentaScreen extends JPanel {
             productosCarrito.remove(prodId);
         } else {
             // Validar stock disponible
-            List<Lote> vigentes = operacionesInventario.obtenerLotesFEFO(p, 1);
-            int stockDisp = vigentes.stream().mapToInt(Lote::getCantidadActual).sum();
+            int stockDisp = operacionesInventario.calcularStockDisponible(p);
             if (cant > stockDisp) {
                 JOptionPane.showMessageDialog(this, "No puede exceder el stock disponible (" + stockDisp + " pzas).", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;

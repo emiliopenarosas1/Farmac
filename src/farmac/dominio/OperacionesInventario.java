@@ -1,7 +1,6 @@
 package farmac.dominio;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,16 +44,16 @@ public class OperacionesInventario {
     }
 
     /**
-     * Aplica el principio FEFO (First Expired, First Out) seleccionando los lotes vigentes
-     * con fecha de caducidad más próxima (excluye lotes caducados o sin stock).
+     * Devuelve todos los lotes vigentes (no caducados y con existencias) del producto,
+     * ordenados por fecha de caducidad ascendente.
      */
-    public List<Lote> obtenerLotesFEFO(Producto producto, int cantidadRequerida) {
+    public List<Lote> obtenerLotesVigentes(Producto producto) {
         List<Lote> candidatos = new ArrayList<>();
         if (producto == null) return candidatos;
         LocalDate hoy = LocalDate.now();
 
         for (Lote l : inventario) {
-            if (l.getProducto() != null && l.getProducto().getId() == producto.getId()
+            if (l != null && l.getProducto() != null && l.getProducto().getId() == producto.getId()
                     && !l.estaVencido(hoy) && l.getCantidadActual() > 0) {
                 candidatos.add(l);
             }
@@ -66,13 +65,45 @@ public class OperacionesInventario {
     }
 
     /**
+     * Aplica el principio FEFO (First Expired, First Out) seleccionando los lotes
+     * necesarios para cubrir la cantidad requerida, empezando por el más próximo
+     * a caducar. Si no alcanza, devuelve todos los lotes disponibles.
+     */
+    public List<Lote> obtenerLotesFEFO(Producto producto, int cantidadRequerida) {
+        List<Lote> vigentes = obtenerLotesVigentes(producto);
+        if (cantidadRequerida <= 0) {
+            return new ArrayList<>();
+        }
+
+        List<Lote> seleccionados = new ArrayList<>();
+        int restante = cantidadRequerida;
+        for (Lote l : vigentes) {
+            if (restante <= 0) break;
+            seleccionados.add(l);
+            restante -= l.getCantidadActual();
+        }
+        return seleccionados;
+    }
+
+    /**
+     * Existencias totales disponibles para la venta (solo lotes vigentes).
+     */
+    public int calcularStockDisponible(Producto producto) {
+        int total = 0;
+        for (Lote l : obtenerLotesVigentes(producto)) {
+            total += l.getCantidadActual();
+        }
+        return total;
+    }
+
+    /**
      * Calcula la asignación exacta de cantidades entre múltiples lotes bajo la regla FEFO.
      */
     public List<DespachoLote> calcularDespachoFEFO(Producto producto, int cantidadRequerida) {
         List<DespachoLote> despachos = new ArrayList<>();
         if (cantidadRequerida <= 0) return despachos;
 
-        List<Lote> fefo = obtenerLotesFEFO(producto, cantidadRequerida);
+        List<Lote> fefo = obtenerLotesVigentes(producto);
         int restante = cantidadRequerida;
 
         for (Lote l : fefo) {
@@ -94,6 +125,7 @@ public class OperacionesInventario {
         LocalDate hoy = LocalDate.now();
 
         for (Lote l : inventario) {
+            if (l == null) continue;
             if (l.estaVencido(hoy) || l.diasParaVencer(hoy) <= diasAlertaCaducidad) {
                 alertas.add(l);
             }
@@ -141,33 +173,7 @@ public class OperacionesInventario {
             if (l != null && l.getCantidadActual() > 0) {
                 total += l.getCantidadActual() * l.getPrecioCompra();
             }
-        }
-        return Math.round(total * 100.0) / 100.0;
-    }
-
-    /**
-     * Aplica un ajuste de inventario descontando existencias y generando el movimiento (RF09).
-     */
-    public MovimientoInventario ajustarStockLote(Lote lote, int cantidadADescontar, String motivo, Usuario usuario) {
-        if (lote == null || cantidadADescontar <= 0 || motivo == null || motivo.trim().isEmpty()) {
-            return null;
-        }
-        if (lote.descontarStock(cantidadADescontar)) {
-            return new MovimientoInventario(
-                    0, lote, "AJUSTE", -cantidadADescontar, motivo,
-                    "AJUSTE-" + System.currentTimeMillis(), usuario, LocalDateTime.now()
-            );
-        }
-        return null;
-    }
-
-    // Sobrecarga de compatibilidad anterior
-    public boolean ajustarStockLote(Lote lote, int nuevaCantidad, String motivo) {
-        if (lote == null || nuevaCantidad < 0 || motivo == null || motivo.trim().isEmpty()) {
-            return false;
-        }
-        lote.setCantidadActual(nuevaCantidad);
-        return true;
+        }        return Math.round(total * 100.0) / 100.0;
     }
 
     // Getters y Setters

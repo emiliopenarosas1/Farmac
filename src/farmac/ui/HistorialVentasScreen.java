@@ -2,9 +2,11 @@ package farmac.ui;
 
 import farmac.dao.BitacoraDAO;
 import farmac.dao.RecetaDAO;
+import farmac.dao.TurnoCajaDAO;
 import farmac.dao.VentaDAO;
 import farmac.dominio.DetalleVenta;
 import farmac.dominio.RecetaMedica;
+import farmac.dominio.TurnoCaja;
 import farmac.dominio.Venta;
 import farmac.util.Sesion;
 import farmac.util.TemaFarmac;
@@ -14,9 +16,11 @@ import java.awt.GridLayout;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -35,18 +39,25 @@ public class HistorialVentasScreen extends JPanel {
 
     private final VentaDAO ventaDAO;
     private final RecetaDAO recetaDAO;
+    private final TurnoCajaDAO turnoCajaDAO;
     private JTable tablaVentas;
     private DefaultTableModel modeloVentas;
     private JTable tablaRotacion;
     private DefaultTableModel modeloRotacion;
+    private JTable tablaVentasConReceta;
+    private DefaultTableModel modeloVentasConReceta;
+    private JTable tablaTurnos;
+    private DefaultTableModel modeloTurnos;
     private JTextField txtFechaDesde;
     private JTextField txtFechaHasta;
     private JComboBox<String> cmbEstado;
+    private JCheckBox chkSoloRecetas;
     private List<Venta> listaVentasActual;
 
     public HistorialVentasScreen() {
         this.ventaDAO = new VentaDAO();
         this.recetaDAO = new RecetaDAO();
+        this.turnoCajaDAO = new TurnoCajaDAO();
         initComponents();
         cargarDatos();
     }
@@ -98,6 +109,9 @@ public class HistorialVentasScreen extends JPanel {
         JButton btnCancelar = TemaFarmac.crearBotonPeligro("Cancelar Venta");
         btnCancelar.addActionListener(e -> cancelarVentaSeleccionada());
 
+        chkSoloRecetas = new JCheckBox("Solo ventas con receta");
+        pnlFiltros.add(chkSoloRecetas);
+
         pnlFiltros.add(new JLabel("Desde:"));
         pnlFiltros.add(txtFechaDesde);
         pnlFiltros.add(new JLabel("Hasta:"));
@@ -145,6 +159,26 @@ public class HistorialVentasScreen extends JPanel {
             TemaFarmac.estilizarTabla(tablaRotacion);
             JScrollPane scrollRot = new JScrollPane(tablaRotacion);
             tabbed.addTab("Ranking de Rotación (Más / Menos Vendidos)", scrollRot);
+
+            // Pestaña 3: Ventas con Receta Médica asociada (RF14, auditoría)
+            String[] colsRec = {"Venta", "Fecha", "Cajero", "Producto", "Folio Receta", "Médico", "Estado"};
+            modeloVentasConReceta = new DefaultTableModel(colsRec, 0) {
+                @Override
+                public boolean isCellEditable(int r, int c) { return false; }
+            };
+            tablaVentasConReceta = new JTable(modeloVentasConReceta);
+            TemaFarmac.estilizarTabla(tablaVentasConReceta);
+            tabbed.addTab("Ventas con Receta", new JScrollPane(tablaVentasConReceta));
+
+            // Pestaña 4: Historial de Turnos de Caja (apertura / cierre) (RF12, RF16)
+            String[] colsTurnos = {"ID", "Usuario", "Apertura", "Cierre", "Estado", "Fondo Inicial", "Monto Esperado", "Contado", "Diferencia"};
+            modeloTurnos = new DefaultTableModel(colsTurnos, 0) {
+                @Override
+                public boolean isCellEditable(int r, int c) { return false; }
+            };
+            tablaTurnos = new JTable(modeloTurnos);
+            TemaFarmac.estilizarTabla(tablaTurnos);
+            tabbed.addTab("Historial de Turnos", new JScrollPane(tablaTurnos));
         }
 
         add(tabbed, BorderLayout.CENTER);
@@ -198,8 +232,100 @@ public class HistorialVentasScreen extends JPanel {
                     });
                 }
             }
+
+            // Filtro opcional: solo ventas con receta médica capturada (RF14)
+            if (chkSoloRecetas.isSelected() && listaVentasActual != null) {
+                List<Venta> ventasConReceta = new ArrayList<>();
+                for (Venta v : listaVentasActual) {
+                    if (v == null) continue;
+                    List<RecetaMedica> recetas = recetaDAO.listarPorVenta(v.getId());
+                    if (recetas != null && !recetas.isEmpty()) {
+                        ventasConReceta.add(v);
+                    }
+                }
+                listaVentasActual = ventasConReceta;
+            }
+
+            // Historial de ventas con receta asociada
+            if (modeloVentasConReceta != null) {
+                cargarVentasConReceta();
+            }
+
+            // Historial de turnos de caja (apertura / cierre)
+            if (modeloTurnos != null) {
+                cargarTurnos();
+            }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error al cargar historial: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Carga en la pestaña las ventas del periodo/estado que tengan receta médica asociada.
+     */
+    private void cargarVentasConReceta() {
+        modeloVentasConReceta.setRowCount(0);
+        LocalDate desde = null;
+        LocalDate hasta = null;
+        try {
+            if (!txtFechaDesde.getText().trim().isEmpty()) {
+                desde = LocalDate.parse(txtFechaDesde.getText().trim());
+            }
+            if (!txtFechaHasta.getText().trim().isEmpty()) {
+                hasta = LocalDate.parse(txtFechaHasta.getText().trim());
+            }
+        } catch (Exception ex) {
+            return;
+        }
+        String estado = (String) cmbEstado.getSelectedItem();
+
+        try {
+            List<Venta> ventas = ventaDAO.listarVentas(desde, hasta, estado);
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            for (Venta v : ventas) {
+                if (v == null) continue;
+                List<RecetaMedica> recetas = recetaDAO.listarPorVenta(v.getId());
+                if (recetas == null || recetas.isEmpty()) continue;
+                for (RecetaMedica r : recetas) {
+                    modeloVentasConReceta.addRow(new Object[]{
+                        "#" + v.getId(),
+                        v.getFechaHora() != null ? v.getFechaHora().format(dtf) : "-",
+                        v.getUsuario() != null ? v.getUsuario().getNombreCompleto() : "N/A",
+                        v.getTurnoCaja() != null ? "Turno #" + v.getTurnoCaja().getId() : "-",
+                        String.format("$%.2f", v.getTotal()),
+                        r.getFolioReceta(),
+                        r.getNombreMedico()
+                    });
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar ventas con receta: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Carga el historial de turnos de caja con sus datos de apertura y cierre.
+     */
+    private void cargarTurnos() {
+        modeloTurnos.setRowCount(0);
+        try {
+            List<TurnoCaja> turnos = turnoCajaDAO.listarHistorial(200);
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            for (TurnoCaja t : turnos) {
+                modeloTurnos.addRow(new Object[]{
+                    t.getId(),
+                    t.getUsuario() != null ? t.getUsuario().getNombreCompleto() : "N/A",
+                    t.getFechaApertura() != null ? t.getFechaApertura().format(dtf) : "-",
+                    t.getFechaCierre() != null ? t.getFechaCierre().format(dtf) : "Abierto",
+                    t.getEstado(),
+                    String.format("$%.2f", t.getMontoInicial()),
+                    String.format("$%.2f", t.getMontoEsperado()),
+                    String.format("$%.2f", t.getEfectivoContado()),
+                    String.format("$%.2f", t.getDiferencia())
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar historial de turnos: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

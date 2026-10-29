@@ -132,7 +132,14 @@ public class TurnoCajaDAO {
     }
 
     private TurnoCaja mapearTurno(ResultSet rs) throws SQLException {
-        Usuario u = new UsuarioDAO().buscarPorId(rs.getInt("user_id"));
+        Usuario u = UsuarioDAO.construirUsuario(
+                rs.getInt("user_id"),
+                rs.getString("nombre_usuario"),
+                rs.getString("nombre_completo"),
+                null,
+                rs.getString("rol"),
+                rs.getBoolean("activo")
+        );
         TurnoCaja t = new TurnoCaja();
         t.setId(rs.getInt("id"));
         t.setUsuario(u);

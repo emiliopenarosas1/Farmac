@@ -26,21 +26,25 @@ Farmac/
 │   └── farmac/
 │       ├── app/          # Punto de entrada (Main.java)
 │       ├── config/       # Conexion a base de datos (ConexionBD.java)
-│       ├── dominio/      # 10 clases de dominio
+│       ├── dominio/      # 13 clases de dominio
 │       │   ├── Usuario.java              (abstracta)
 │       │   ├── Encargado.java
 │       │   ├── Empleado.java
 │       │   ├── Producto.java
+│       │   ├── Proveedor.java
 │       │   ├── Lote.java
 │       │   ├── TurnoCaja.java
 │       │   ├── Venta.java
 │       │   ├── DetalleVenta.java
 │       │   ├── RecetaMedica.java
+│       │   ├── MovimientoInventario.java
+│       │   ├── Bitacora.java
 │       │   └── OperacionesInventario.java
-│       ├── ui/           # 10 pantallas Swing + 1 dialogo
-│       └── util/         # TemaFarmac.java, TicketGenerator.java
-├── test/                 # Pruebas JUnit 4
-├── lib/                  # junit-4.13.2.jar, hamcrest-core-1.3.jar
+│       ├── ui/           # 12 pantallas Swing + 1 dialogo
+│       └── util/         # TemaFarmac, TicketGenerator, Sesion, RespaldoUtil
+├── sql/                  # Scripts de esquema, datos y migraciones
+├── test/                 # Pruebas JUnit 4 (opcional)
+├── lib/                  # jbcrypt, postgresql, junit, hamcrest
 ├── build.xml             # Build con Apache Ant
 ├── README.md
 ├── DIAGRAMA_CLASES.md
@@ -71,6 +75,31 @@ Farmac/
 
 ---
 
+## Base de datos
+
+El proyecto usa PostgreSQL. Cree la base y ejecute los scripts en orden:
+
+```bash
+createdb -U postgres farmac_db
+
+psql -U postgres -d farmac_db -f sql/01_schema.sql
+psql -U postgres -d farmac_db -f sql/02_datos.sql
+psql -U postgres -d farmac_db -f sql/03_inventario.sql
+psql -U postgres -d farmac_db -f sql/04_ventas.sql
+```
+
+Si la base ya existia antes de esta version, aplique tambien la migracion
+que agrega la bitacora y el tipo de movimiento `CANCELACION`:
+
+```bash
+psql -U postgres -d farmac_db -f sql/05_migracion_auditoria.sql
+```
+
+La conexion se configura en `config/farmac.properties` (`db.url`, `db.user`,
+`db.password`).
+
+---
+
 ## Como compilar y ejecutar
 
 ```bash
@@ -82,6 +111,19 @@ java -jar dist/Farmac.jar
 ```
 
 O directamente desde NetBeans: `Run Project (F6)`.
+
+---
+
+## Consultas de Auditoría (Historial de Ventas y Turnos)
+
+La pantalla **Historial de Ventas** (acceso del Encargado) incluye dos consultas
+adicionales de auditoría:
+
+- **Pestaña "Ventas con Receta"**: lista las ventas del periodo filtrado que
+  contaron con receta médica asociada (folio de receta, médico, producto y estado).
+- **Pestaña "Historial de Turnos"**: registra la apertura y el cierre de cada
+  turno de caja, con fondos iniciales, montos esperados, efectivo contado y diferencia.
+- **Filtro "Solo ventas con receta"** en la barra de filtros.
 
 ---
 
@@ -102,10 +144,11 @@ tickets/
 
 | Rol | Acceso |
 |---|---|
-| **Encargado** | Todos los modulos: catalogo, inventario, ajustes, usuarios, reportes, corte |
+| **Encargado** | Todos los modulos: catalogo, inventario, ajustes, proveedores, usuarios, reportes y corte |
 | **Empleado** | Punto de venta y corte de caja unicamente |
 
-El login incluye un selector Encargado / Empleado con credenciales de prueba precargadas.
+El login incluye un selector visual Encargado / Empleado. El rol efectivo siempre
+se toma del usuario almacenado en la base de datos.
 
 ---
 
@@ -114,7 +157,17 @@ El login incluye un selector Encargado / Empleado con credenciales de prueba pre
 | Usuario | Password | Rol |
 |---|---|---|
 | `admin` | `admin123` | Encargado |
-| `cajero1` | `caja123` | Empleado |
+| `empleado1` | `caja123` | Empleado |
+
+Los hashes BCrypt correspondientes estan en `sql/02_datos.sql`. Si la base ya
+tenia usuarios con hashes invalidos, actualicelos con:
+
+```sql
+UPDATE usuario SET password_hash = '$2a$10$fm2dGYB.bd80nsqMQ00waePHAiyCiZdOj8RlXKOVT3uzR7N/SX5/O'
+WHERE nombre_usuario = 'admin';
+UPDATE usuario SET password_hash = '$2a$10$0UvIkCceCpYYbajeb42PVO8NyJznYD/lw1PpgcMOlJhdmpISMnjym'
+WHERE nombre_usuario = 'empleado1';
+```
 
 ---
 

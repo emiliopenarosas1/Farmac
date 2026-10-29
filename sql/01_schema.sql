@@ -12,6 +12,19 @@ CREATE TABLE IF NOT EXISTS usuario (
     activo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+-- Tabla: bitacora (auditoria del sistema, A7)
+CREATE TABLE IF NOT EXISTS bitacora (
+    id SERIAL PRIMARY KEY,
+    usuario_id INT REFERENCES usuario(id),
+    accion VARCHAR(50) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL,
+    fecha_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ip VARCHAR(50)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bitacora_usuario_id ON bitacora(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_bitacora_fecha_hora ON bitacora(fecha_hora);
+
 -- Tabla: proveedor
 CREATE TABLE IF NOT EXISTS proveedor (
     id SERIAL PRIMARY KEY,

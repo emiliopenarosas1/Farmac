@@ -16,7 +16,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
-import java.sql.SQLException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -260,16 +259,20 @@ public class LoginScreen extends JFrame {
             // Inicio de sesión exitoso
             Sesion.setUsuarioActivo(u);
             Sesion.refrescarTurno();
+
+            // Construir la ventana principal antes de cerrar el login: si falla,
+            // el usuario conserva la pantalla de acceso para reintentar.
+            MainScreen principal = new MainScreen(u);
+            principal.setVisible(true);
+            dispose();
+
             BitacoraDAO.registrar(u, "LOGIN", "Inicio de sesión exitoso como " + u.obtenerRol());
 
-            dispose();
-            new MainScreen(u).setVisible(true);
-
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                    "Error al comunicarse con la base de datos PostgreSQL: " + ex.getMessage()
-                    + "\nVerifique que el servicio esté activo en localhost:5432.",
-                    "Error de Conexión (RNF03)", JOptionPane.ERROR_MESSAGE);
+                    "No fue posible iniciar sesión: " + ex.getMessage()
+                    + "\nVerifique que PostgreSQL esté activo en localhost:5432 y la configuración de la base.",
+                    "Error al Iniciar Sesión (RNF03)", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

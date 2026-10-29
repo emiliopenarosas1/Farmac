@@ -61,6 +61,10 @@ public class VentaDAO {
         if (venta.getTurnoCaja() == null || !venta.getTurnoCaja().estaAbierto()) {
             throw new SQLException("No hay un turno de caja abierto para registrar la venta (RF12).");
         }
+        if (venta.getUsuario() == null || venta.getUsuario().getId() <= 0) {
+            throw new SQLException("La venta no tiene un usuario válido asociado.");
+        }
+        validarRecetasObligatorias(venta);
 
         Connection conn = null;
         try {
@@ -72,7 +76,7 @@ public class VentaDAO {
                             + "VALUES (?, ?, ?, ?, ?, 'COMPLETADA')";
             try (PreparedStatement psVenta = conn.prepareStatement(sqlVenta, Statement.RETURN_GENERATED_KEYS)) {
                 psVenta.setInt(1, venta.getTurnoCaja().getId());
-                psVenta.setInt(2, venta.getUsuario() != null ? venta.getUsuario().getId() : 1);
+                psVenta.setInt(2, venta.getUsuario().getId());
                 psVenta.setTimestamp(3, Timestamp.valueOf(venta.getFechaHora() != null ? venta.getFechaHora() : LocalDateTime.now()));
                 psVenta.setDouble(4, venta.getTotal());
                 psVenta.setString(5, venta.getFormaPago() != null ? venta.getFormaPago() : "EFECTIVO");
@@ -141,26 +145,11 @@ public class VentaDAO {
                 }
             }
 
-            // 3. Guardar Recetas Médicas asociadas (RF14, RNF09)
+            // 3. Guardar Recetas Médicas asociadas dentro de la misma transacción (RF14, RNF09)
             if (venta.getRecetas() != null && !venta.getRecetas().isEmpty()) {
-                String sqlReceta = "INSERT INTO receta_venta (venta_id, producto_id, nombre_medico, cedula_profesional, fecha_expedicion, folio_receta) "
-                                 + "VALUES (?, ?, ?, ?, ?, ?)";
-                try (PreparedStatement psReceta = conn.prepareStatement(sqlReceta, Statement.RETURN_GENERATED_KEYS)) {
-                    for (RecetaMedica r : venta.getRecetas()) {
-                        psReceta.setInt(1, venta.getId());
-                        psReceta.setInt(2, r.getProducto() != null ? r.getProducto().getId() : 1);
-                        psReceta.setString(3, r.getNombreMedico());
-                        psReceta.setString(4, r.getCedulaProfesional());
-                        psReceta.setDate(5, Date.valueOf(r.getFechaExpedicion()));
-                        psReceta.setString(6, r.getFolioReceta());
-                        psReceta.executeUpdate();
-
-                        try (ResultSet rsR = psReceta.getGeneratedKeys()) {
-                            if (rsR.next()) {
-                                r.setId(rsR.getInt(1));
-                            }
-                        }
-                    }
+                RecetaDAO recetaDAO = new RecetaDAO();
+                for (RecetaMedica r : venta.getRecetas()) {
+                    recetaDAO.insertar(r, venta.getId(), conn);
                 }
             }
 
@@ -183,6 +172,42 @@ public class VentaDAO {
                 } catch (SQLException e) {
                     // Cierre seguro
                 }
+            }
+        }
+    }
+
+    /**
+     * Valida que cada producto controlado de la venta tenga su receta capturada.
+     * Es una segunda barrera además de la validación de la interfaz (RF14).
+     */
+    private void validarRecetasObligatorias(Venta venta) throws SQLException {
+        if (venta.getDetalles() == null) return;
+
+        for (DetalleVenta d : venta.getDetalles()) {
+            if (d == null || d.getLote() == null || d.getLote().getProducto() == null) continue;
+            Producto p = d.getLote().getProducto();
+            if (!p.isRequiereReceta()) continue;
+
+            boolean amparado = false;
+            if (venta.getRecetas() != null) {
+                for (RecetaMedica r : venta.getRecetas()) {
+                    if (r != null && r.getProducto() != null && r.getProducto().getId() == p.getId()) {
+                        if (!r.validarDatos()) {
+                            throw new SQLException("La receta del producto '" + p.getNombre()
+                                    + "' está incompleta (RF14).");
+                        }
+                        if (!r.estaVigente()) {
+                            throw new SQLException("La receta del producto '" + p.getNombre()
+                                    + "' tiene más de 30 días de expedida y no es válida (RF14).");
+                        }
+                        amparado = true;
+                        break;
+                    }
+                }
+            }
+            if (!amparado) {
+                throw new SQLException("El producto '" + p.getNombre()
+                        + "' requiere receta médica y no fue capturada (RF14).");
             }
         }
     }
@@ -289,7 +314,7 @@ public class VentaDAO {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT v.id, v.turno_id, v.usuario_id, v.fecha_hora, v.total, v.forma_pago, ")
            .append("v.estado, v.motivo_cancelacion, ")
-           .append("u.nombre_usuario, u.nombre_completo, u.rol, ")
+           .append("u.nombre_usuario, u.nombre_completo, u.password_hash, u.rol, u.activo, ")
            .append("t.estado AS turno_estado, t.monto_inicial ")
            .append("FROM venta v ")
            .append("JOIN usuario u ON v.usuario_id = u.id ")
@@ -335,7 +360,14 @@ public class VentaDAO {
                     t.setEstado(rs.getString("turno_estado"));
                     v.setTurnoCaja(t);
 
-                    Usuario u = new UsuarioDAO().buscarPorId(rs.getInt("usuario_id"));
+                    Usuario u = UsuarioDAO.construirUsuario(
+                            rs.getInt("usuario_id"),
+                            rs.getString("nombre_usuario"),
+                            rs.getString("nombre_completo"),
+                            rs.getString("password_hash"),
+                            rs.getString("rol"),
+                            rs.getBoolean("activo")
+                    );
                     v.setUsuario(u);
 
                     lista.add(v);
@@ -351,34 +383,42 @@ public class VentaDAO {
     public List<RotacionProducto> obtenerRankingRotacion(LocalDate desde, LocalDate hasta) throws SQLException {
         List<RotacionProducto> lista = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
+        // Solo se suman detalles de ventas COMPLETADAS; las canceladas no cuentan
+        // como rotación y los productos sin ventas aparecen en cero.
         sql.append("SELECT p.id, p.codigo_barras, p.nombre, ")
            .append("COALESCE(SUM(dv.cantidad), 0) AS unidades, ")
            .append("COALESCE(SUM(dv.subtotal), 0) AS importe ")
            .append("FROM producto p ")
-           .append("LEFT JOIN detalle_venta dv ON p.id = dv.producto_id ")
-           .append("LEFT JOIN venta v ON dv.venta_id = v.id AND v.estado = 'COMPLETADA' ");
+           .append("LEFT JOIN (")
+           .append("  SELECT dv2.producto_id, dv2.cantidad, dv2.subtotal ")
+           .append("  FROM detalle_venta dv2 ")
+           .append("  JOIN venta v2 ON dv2.venta_id = v2.id ")
+           .append("  WHERE v2.estado = 'COMPLETADA' ");
 
-        if (desde != null || hasta != null) {
-            sql.append("AND 1=1 ");
-            if (desde != null) sql.append("AND DATE(v.fecha_hora) >= '").append(Date.valueOf(desde)).append("' ");
-            if (hasta != null) sql.append("AND DATE(v.fecha_hora) <= '").append(Date.valueOf(hasta)).append("' ");
-        }
+        if (desde != null) sql.append("AND DATE(v2.fecha_hora) >= ? ");
+        if (hasta != null) sql.append("AND DATE(v2.fecha_hora) <= ? ");
 
-        sql.append("WHERE p.activo = TRUE ")
+        sql.append(") dv ON p.id = dv.producto_id ")
+           .append("WHERE p.activo = TRUE ")
            .append("GROUP BY p.id, p.codigo_barras, p.nombre ")
            .append("ORDER BY unidades DESC, importe DESC");
 
         try (Connection conn = ConexionBD.obtenerConexion();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(sql.toString())) {
-            while (rs.next()) {
-                lista.add(new RotacionProducto(
-                        rs.getInt("id"),
-                        rs.getString("codigo_barras"),
-                        rs.getString("nombre"),
-                        rs.getInt("unidades"),
-                        rs.getDouble("importe")
-                ));
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (desde != null) ps.setDate(idx++, Date.valueOf(desde));
+            if (hasta != null) ps.setDate(idx++, Date.valueOf(hasta));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new RotacionProducto(
+                            rs.getInt("id"),
+                            rs.getString("codigo_barras"),
+                            rs.getString("nombre"),
+                            rs.getInt("unidades"),
+                            rs.getDouble("importe")
+                    ));
+                }
             }
         }
         return lista;

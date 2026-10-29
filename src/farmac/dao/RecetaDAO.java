@@ -18,6 +18,10 @@ import java.util.List;
 public class RecetaDAO {
 
     public RecetaMedica insertar(RecetaMedica receta, int ventaId, Connection connExterna) throws SQLException {
+        if (receta == null || receta.getProducto() == null || !receta.validarDatos()) {
+            throw new SQLException("La receta médica está incompleta o no está asociada a un producto (RF14).");
+        }
+
         String sql = "INSERT INTO receta_venta (venta_id, producto_id, nombre_medico, cedula_profesional, fecha_expedicion, folio_receta) "
                    + "VALUES (?, ?, ?, ?, ?, ?)";
         boolean cerrar = false;
@@ -29,7 +33,7 @@ public class RecetaDAO {
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, ventaId);
-            ps.setInt(2, receta.getProducto() != null ? receta.getProducto().getId() : 1);
+            ps.setInt(2, receta.getProducto().getId());
             ps.setString(3, receta.getNombreMedico().trim());
             ps.setString(4, receta.getCedulaProfesional().trim());
             ps.setDate(5, Date.valueOf(receta.getFechaExpedicion()));

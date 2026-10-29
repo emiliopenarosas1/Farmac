@@ -1,5 +1,6 @@
 package farmac.ui;
 
+import farmac.config.ConexionBD;
 import farmac.dao.BitacoraDAO;
 import farmac.dao.LoteDAO;
 import farmac.dao.MovimientoDAO;
@@ -16,6 +17,7 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -237,19 +239,27 @@ public class AjusteInventarioScreen extends JPanel {
                 "Confirmar Ajuste Manual", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
+            Connection conn = null;
             try {
-                int nuevoStock = lote.getCantidadActual() - cantidad;
-                loteDAO.actualizarStock(lote.getId(), nuevoStock, null);
-                lote.setCantidadActual(nuevoStock);
+                // Una sola transacción: actualización de stock + movimiento de auditoría.
+                conn = ConexionBD.obtenerConexion();
+                conn.setAutoCommit(false);
 
-                // Registrar movimiento
+                int nuevoStock = lote.getCantidadActual() - cantidad;
+                if (!loteDAO.actualizarStock(lote.getId(), nuevoStock, conn)) {
+                    throw new SQLException("El lote ya no existe o no pudo actualizarse.");
+                }
+
                 MovimientoInventario mov = new MovimientoInventario(
                         0, lote, "AJUSTE", -cantidad, motivo,
-                        "AJUSTE-" + System.currentTimeMillis(), Sesion.getUsuarioActivo(), LocalDateTime.now()
+                        "AJUSTE-" + System.currentTimeMillis(), usuario, LocalDateTime.now()
                 );
-                movimientoDAO.insertar(mov, null);
+                movimientoDAO.insertar(mov, conn);
 
-                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "INVENTARIO_AJUSTE",
+                conn.commit();
+                lote.setCantidadActual(nuevoStock);
+
+                BitacoraDAO.registrar(usuario, "INVENTARIO_AJUSTE",
                         "Ajuste en lote " + lote.getNumeroLote() + " (-" + cantidad + " pzas) por: " + motivo);
 
                 JOptionPane.showMessageDialog(this,
@@ -260,7 +270,23 @@ public class AjusteInventarioScreen extends JPanel {
                 cargarLotes();
 
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Error al aplicar ajuste en base de datos: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error al revertir ajuste: " + rollbackEx.getMessage());
+                    }
+                }
+                JOptionPane.showMessageDialog(this, "Error al aplicar ajuste en base de datos (rollback): " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                if (conn != null) {
+                    try {
+                        conn.setAutoCommit(true);
+                        conn.close();
+                    } catch (SQLException e) {
+                        // Cierre seguro
+                    }
+                }
             }
         }
     }

@@ -49,11 +49,17 @@ public class Producto {
         this.activo = activo;
     }
 
+    /**
+     * Suma las existencias de los lotes vigentes (excluye lotes caducados).
+     * Un lote vencido no debe contarse como stock disponible para la venta.
+     */
     public int calcularStockTotal(List<Lote> lotes) {
         if (lotes == null) return 0;
+        LocalDate hoy = LocalDate.now();
         int total = 0;
         for (Lote lote : lotes) {
-            if (lote != null && lote.getProducto() != null && lote.getProducto().getId() == this.id) {
+            if (lote != null && lote.getProducto() != null && lote.getProducto().getId() == this.id
+                    && !lote.estaVencido(hoy)) {
                 total += lote.getCantidadActual();
             }
         }

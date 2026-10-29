@@ -42,6 +42,8 @@ public class Sesion {
             TurnoCajaDAO dao = new TurnoCajaDAO();
             turnoActivo = dao.obtenerTurnoAbierto();
         } catch (SQLException e) {
+            // Sin conexión no debe conservarse un turno potencialmente obsoleto.
+            turnoActivo = null;
             System.err.println("Error al refrescar turno de caja: " + e.getMessage());
         }
         notificarCambioTurno();
@@ -59,6 +61,8 @@ public class Sesion {
     public static synchronized void cerrarSesion() {
         usuarioActivo = null;
         turnoActivo = null;
+        // Evita que pantallas de una sesión anterior sigan recibiendo notificaciones.
+        listenersTurno.clear();
     }
 
     public static synchronized void agregarListenerTurno(Runnable r) {

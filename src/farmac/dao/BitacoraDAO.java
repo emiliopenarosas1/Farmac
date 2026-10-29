@@ -41,7 +41,7 @@ public class BitacoraDAO {
     public List<Bitacora> listarRecientes(int limite) throws SQLException {
         List<Bitacora> lista = new ArrayList<>();
         String sql = "SELECT b.id, b.usuario_id, b.accion, b.descripcion, b.fecha_hora, b.ip, "
-                   + "u.nombre_usuario, u.nombre_completo "
+                   + "u.nombre_usuario, u.nombre_completo, u.password_hash, u.rol, u.activo "
                    + "FROM bitacora b "
                    + "LEFT JOIN usuario u ON b.usuario_id = u.id "
                    + "ORDER BY b.id DESC LIMIT ?";
@@ -52,7 +52,14 @@ public class BitacoraDAO {
                 while (rs.next()) {
                     Usuario u = null;
                     if (rs.getInt("usuario_id") > 0) {
-                        u = new UsuarioDAO().buscarPorId(rs.getInt("usuario_id"));
+                        u = UsuarioDAO.construirUsuario(
+                                rs.getInt("usuario_id"),
+                                rs.getString("nombre_usuario"),
+                                rs.getString("nombre_completo"),
+                                rs.getString("password_hash"),
+                                rs.getString("rol"),
+                                rs.getBoolean("activo")
+                        );
                     }
                     lista.add(new Bitacora(
                             rs.getInt("id"),

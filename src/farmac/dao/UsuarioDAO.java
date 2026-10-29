@@ -163,17 +163,25 @@ public class UsuarioDAO {
     }
 
     private Usuario mapearUsuario(ResultSet rs) throws SQLException {
-        int id = rs.getInt("id");
-        String login = rs.getString("nombre_usuario");
-        String nombre = rs.getString("nombre_completo");
-        String hash = rs.getString("password_hash");
-        String rol = rs.getString("rol");
-        boolean activo = rs.getBoolean("activo");
+        return construirUsuario(
+                rs.getInt("id"),
+                rs.getString("nombre_usuario"),
+                rs.getString("nombre_completo"),
+                rs.getString("password_hash"),
+                rs.getString("rol"),
+                rs.getBoolean("activo")
+        );
+    }
 
+    /**
+     * Construye la subclase correcta de Usuario sin consultar de nuevo la base.
+     * Evita el patrón N+1 en listados que ya traen los datos del usuario por JOIN.
+     */
+    public static Usuario construirUsuario(int id, String login, String nombre, String hash,
+                                           String rol, boolean activo) {
         if ("ENCARGADO".equalsIgnoreCase(rol)) {
             return new Encargado(id, login, nombre, hash, activo);
-        } else {
-            return new Empleado(id, login, nombre, hash, activo);
         }
+        return new Empleado(id, login, nombre, hash, activo);
     }
 }

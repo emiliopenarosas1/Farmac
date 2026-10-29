@@ -18,7 +18,10 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -29,6 +32,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
 /**
@@ -41,11 +45,13 @@ public class MainScreen extends JFrame {
     private JPanel pnlContenidoCentral;
     private CardLayout cardLayout;
     private List<JButton> botonesMenu;
+    private final Map<String, JPanel> panelesCreados;
 
     public MainScreen(Usuario usuario) {
         super("Farmac - Sistema de Gestión Farmacéutica y Punto de Venta");
         this.usuarioActivo = usuario;
         this.botonesMenu = new ArrayList<>();
+        this.panelesCreados = new HashMap<>();
         Sesion.setUsuarioActivo(usuario);
         Sesion.refrescarTurno();
 
@@ -103,20 +109,20 @@ public class MainScreen extends JFrame {
 
         boolean esEncargado = "ENCARGADO".equalsIgnoreCase(usuarioActivo.obtenerRol());
 
-        // Módulos compartidos
-        agregarOpcionMenu(pnlMenu, "Punto de Venta", "POS", new PuntoVentaScreen(usuarioActivo));
-        agregarOpcionMenu(pnlMenu, "Control de Caja", "CAJA", new CorteCajaScreen(usuarioActivo));
-        agregarOpcionMenu(pnlMenu, "Historial de Ventas", "HISTORIAL", new HistorialVentasScreen());
+        // Módulos compartidos: se construyen de forma diferida al abrir cada pestaña
+        agregarOpcionMenu(pnlMenu, "Punto de Venta", "POS", () -> new PuntoVentaScreen(usuarioActivo));
+        agregarOpcionMenu(pnlMenu, "Control de Caja", "CAJA", () -> new CorteCajaScreen(usuarioActivo));
+        agregarOpcionMenu(pnlMenu, "Historial de Ventas", "HISTORIAL", HistorialVentasScreen::new);
 
         // Módulos exclusivos de Encargado (RNF02)
         if (esEncargado) {
-            agregarOpcionMenu(pnlMenu, "Catálogo Medicamentos", "CATALOGO", new CatalogoProductosScreen(usuarioActivo));
-            agregarOpcionMenu(pnlMenu, "Recepción de Lotes", "RECEPCION", new RecepcionInventarioScreen());
-            agregarOpcionMenu(pnlMenu, "Ajustes de Inventario", "AJUSTES", new AjusteInventarioScreen(usuarioActivo));
-            agregarOpcionMenu(pnlMenu, "Reporte Existencias", "EXISTENCIAS", new ReporteExistenciasScreen());
-            agregarOpcionMenu(pnlMenu, "Alertas Caducidad", "CADUCIDAD", new ReporteCaducidadScreen());
-            agregarOpcionMenu(pnlMenu, "Proveedores", "PROVEEDORES", new ProveedoresScreen());
-            agregarOpcionMenu(pnlMenu, "Gestión de Usuarios", "USUARIOS", new GestionUsuariosScreen());
+            agregarOpcionMenu(pnlMenu, "Catálogo Medicamentos", "CATALOGO", () -> new CatalogoProductosScreen(usuarioActivo));
+            agregarOpcionMenu(pnlMenu, "Recepción de Lotes", "RECEPCION", RecepcionInventarioScreen::new);
+            agregarOpcionMenu(pnlMenu, "Ajustes de Inventario", "AJUSTES", () -> new AjusteInventarioScreen(usuarioActivo));
+            agregarOpcionMenu(pnlMenu, "Reporte Existencias", "EXISTENCIAS", ReporteExistenciasScreen::new);
+            agregarOpcionMenu(pnlMenu, "Alertas Caducidad", "CADUCIDAD", ReporteCaducidadScreen::new);
+            agregarOpcionMenu(pnlMenu, "Proveedores", "PROVEEDORES", ProveedoresScreen::new);
+            agregarOpcionMenu(pnlMenu, "Gestión de Usuarios", "USUARIOS", GestionUsuariosScreen::new);
 
             // Botón de Respaldo de BD (A6, RNF05)
             JButton btnRespaldo = new JButton("Respaldar BD (SQL)");
@@ -175,7 +181,7 @@ public class MainScreen extends JFrame {
         }
     }
 
-    private void agregarOpcionMenu(JPanel contenedorMenu, String texto, String claveCard, JPanel panelVista) {
+    private void agregarOpcionMenu(JPanel contenedorMenu, String texto, String claveCard, Supplier<JPanel> fabricaPanel) {
         JButton btn = new JButton(texto);
         btn.setFont(TemaFarmac.FUENTE_NEGRITA);
         btn.setForeground(new Color(0xD0, 0xE2, 0xEC));
@@ -197,27 +203,52 @@ public class MainScreen extends JFrame {
             btn.setOpaque(true);
             btn.setBackground(TemaFarmac.TURQUESA);
             btn.setForeground(Color.WHITE);
+
+            // Construcción diferida: cada pantalla se crea solo la primera vez que se abre.
+            if (!panelesCreados.containsKey(claveCard)) {
+                try {
+                    JPanel panelVista = fabricaPanel.get();
+                    panelesCreados.put(claveCard, panelVista);
+                    pnlContenidoCentral.add(panelVista, claveCard);
+                } catch (RuntimeException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "No se pudo abrir el módulo '" + texto + "': " + ex.getMessage(),
+                            "Error al abrir módulo", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
             cardLayout.show(pnlContenidoCentral, claveCard);
         });
 
         botonesMenu.add(btn);
         contenedorMenu.add(btn);
         contenedorMenu.add(Box.createRigidArea(new Dimension(0, 2)));
-
-        pnlContenidoCentral.add(panelVista, claveCard);
     }
 
     private void ejecutarRespaldoBD() {
-        try {
-            File f = RespaldoUtil.generarRespaldo();
-            JOptionPane.showMessageDialog(this,
-                    "Respaldo de Base de Datos generado exitosamente:\n" + f.getAbsolutePath(),
-                    "Respaldo Exitoso (RNF05)", JOptionPane.INFORMATION_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error al generar respaldo: " + ex.getMessage(),
-                    "Error de Respaldo", JOptionPane.ERROR_MESSAGE);
-        }
+        // pg_dump puede tardar: se ejecuta fuera del EDT para no congelar la interfaz.
+        SwingWorker<File, Void> worker = new SwingWorker<File, Void>() {
+            @Override
+            protected File doInBackground() throws Exception {
+                return RespaldoUtil.generarRespaldo();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    File f = get();
+                    JOptionPane.showMessageDialog(MainScreen.this,
+                            "Respaldo de Base de Datos generado exitosamente:\n" + f.getAbsolutePath(),
+                            "Respaldo Exitoso (RNF05)", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    Throwable causa = ex.getCause() != null ? ex.getCause() : ex;
+                    JOptionPane.showMessageDialog(MainScreen.this,
+                            "Error al generar respaldo: " + causa.getMessage(),
+                            "Error de Respaldo", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void comprobarAlertasInicio() {
