@@ -60,8 +60,13 @@ public class MainScreen extends JFrame {
         this.panelesCreados = new HashMap<>();
         Sesion.setUsuarioActivo(usuario);
         Sesion.refrescarTurno();
-        configurarVentana();
-        inicializarComponentes();
+        try {
+            configurarVentana();
+            inicializarComponentes();
+        } catch (Throwable t) {
+            try { java.nio.file.Files.writeString(java.nio.file.Paths.get("C:/Users/emili/AppData/Local/Temp/opencode/mainerr.txt"), t.toString() + "\n", java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND); } catch (Exception ignore) {}
+            throw t;
+        }
 
         // Lanzar comprobación de alertas en segundo plano al arrancar
         SwingUtilities.invokeLater(this::comprobarAlertasInicio);
