@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
 /**
@@ -166,48 +167,68 @@ public class CorteCajaScreen extends JPanel {
     }
 
     public void refrescarDatosTurno() {
-        try {
-            turnoActual = turnoCajaDAO.obtenerTurnoAbierto();
-            Sesion.setTurnoActivo(turnoActual);
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            private TurnoCaja turno;
+            private double ventasEf;
+            private double ventasTarj;
+            private Exception error;
 
-            if (turnoActual != null && turnoActual.estaAbierto()) {
-                lblEstado.setText("ABIERTO (#" + turnoActual.getId() + ")");
-                lblEstado.setForeground(TemaFarmac.VERDE);
-                lblFondoInicial.setText(String.format("$%.2f", turnoActual.getMontoInicial()));
-
-                double ventasEf = turnoCajaDAO.obtenerTotalVentasEfectivoTurno(turnoActual.getId());
-                double ventasTarj = turnoCajaDAO.obtenerTotalVentasTurnoPorFormaPago(turnoActual.getId(), "TARJETA")
-                                  + turnoCajaDAO.obtenerTotalVentasTurnoPorFormaPago(turnoActual.getId(), "TRANSFERENCIA");
-
-                double esperado = turnoActual.getMontoInicial() + ventasEf;
-
-                lblVentasEfectivo.setText(String.format("$%.2f", ventasEf));
-                lblVentasTarjeta.setText(String.format("$%.2f", ventasTarj));
-                lblTotalEsperado.setText(String.format("$%.2f", esperado));
-
-                btnAbrirTurno.setEnabled(false);
-                txtMontoInicial.setEnabled(false);
-                btnCerrarTurno.setEnabled(true);
-                txtEfectivoContado.setEnabled(true);
-            } else {
-                lblEstado.setText("CERRADO");
-                lblEstado.setForeground(TemaFarmac.ROJO);
-                lblFondoInicial.setText("$0.00");
-                lblVentasEfectivo.setText("$0.00");
-                lblVentasTarjeta.setText("$0.00");
-                lblTotalEsperado.setText("$0.00");
-
-                btnAbrirTurno.setEnabled(true);
-                txtMontoInicial.setEnabled(true);
-                btnCerrarTurno.setEnabled(false);
-                txtEfectivoContado.setEnabled(false);
-                txtEfectivoContado.setText("");
+            @Override
+            protected Void doInBackground() {
+                try {
+                    turno = turnoCajaDAO.obtenerTurnoAbierto();
+                    Sesion.setTurnoActivo(turno);
+                    if (turno != null && turno.estaAbierto()) {
+                        ventasEf = turnoCajaDAO.obtenerTotalVentasEfectivoTurno(turno.getId());
+                        ventasTarj = turnoCajaDAO.obtenerTotalVentasTurnoPorFormaPago(turno.getId(), "TARJETA")
+                                   + turnoCajaDAO.obtenerTotalVentasTurnoPorFormaPago(turno.getId(), "TRANSFERENCIA");
+                    }
+                } catch (Exception e) {
+                    error = e;
+                }
+                return null;
             }
-        } catch (SQLException e) {
-DialogoFarmac.mostrar(this, "Error", "Error al consultar turno: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
-        }
-    }
 
+            @Override
+            protected void done() {
+                if (error != null) {
+                    DialogoFarmac.mostrar(CorteCajaScreen.this, "Error", "Error al consultar turno: " + error.getMessage(), DialogoFarmac.Tipo.ERROR);
+                    return;
+                }
+                turnoActual = turno;
+                if (turnoActual != null && turnoActual.estaAbierto()) {
+                    lblEstado.setText("ABIERTO (#" + turnoActual.getId() + ")");
+                    lblEstado.setForeground(TemaFarmac.VERDE);
+                    lblFondoInicial.setText(String.format("$%.2f", turnoActual.getMontoInicial()));
+
+                    double esperado = turnoActual.getMontoInicial() + ventasEf;
+
+                    lblVentasEfectivo.setText(String.format("$%.2f", ventasEf));
+                    lblVentasTarjeta.setText(String.format("$%.2f", ventasTarj));
+                    lblTotalEsperado.setText(String.format("$%.2f", esperado));
+
+                    btnAbrirTurno.setEnabled(false);
+                    txtMontoInicial.setEnabled(false);
+                    btnCerrarTurno.setEnabled(true);
+                    txtEfectivoContado.setEnabled(true);
+                } else {
+                    lblEstado.setText("CERRADO");
+                    lblEstado.setForeground(TemaFarmac.ROJO);
+                    lblFondoInicial.setText("$0.00");
+                    lblVentasEfectivo.setText("$0.00");
+                    lblVentasTarjeta.setText("$0.00");
+                    lblTotalEsperado.setText("$0.00");
+
+                    btnAbrirTurno.setEnabled(true);
+                    txtMontoInicial.setEnabled(true);
+                    btnCerrarTurno.setEnabled(false);
+                    txtEfectivoContado.setEnabled(false);
+                    txtEfectivoContado.setText("");
+                }
+            }
+        };
+        worker.execute();
+    }
     private void abrirTurno() {
         String fondoStr = txtMontoInicial.getText().trim();
         double fondo;
