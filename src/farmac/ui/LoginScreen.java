@@ -137,16 +137,16 @@ public class LoginScreen extends JFrame {
         JLabel lblUser = new JLabel("Nombre de Usuario");
         lblUser.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblUser.setForeground(TemaFarmac.TEXTO_AZUL);
-        lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblUser.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         txtUsuario = TemaFarmac.crearCampoTexto(20);
-        txtUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        txtUsuario.setAlignmentX(Component.LEFT_ALIGNMENT);
+        txtUsuario.setMaximumSize(new Dimension(360, 36));
+        txtUsuario.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblPass = new JLabel("Contraseña");
         lblPass.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblPass.setForeground(TemaFarmac.TEXTO_AZUL);
-        lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblPass.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         txtPassword = new JPasswordField(20);
         txtPassword.setFont(TemaFarmac.FUENTE_REGULAR);
@@ -167,8 +167,8 @@ public class LoginScreen extends JFrame {
 
         JPanel pnlPassword = new JPanel(new BorderLayout(6, 0));
         pnlPassword.setOpaque(false);
-        pnlPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        pnlPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlPassword.setMaximumSize(new Dimension(360, 36));
+        pnlPassword.setAlignmentX(Component.CENTER_ALIGNMENT);
         pnlPassword.add(txtPassword, BorderLayout.CENTER);
         pnlPassword.add(btnVerPassword, BorderLayout.EAST);
 
