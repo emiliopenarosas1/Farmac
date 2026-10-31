@@ -314,7 +314,6 @@ public class MainScreen extends JFrame {
                 if (alertasCad.size() > max) {
                     msj.append("   ... y ").append(alertasCad.size() - max).append(" lote(s) más.\n");
                 }
-                msj.append("\n¿Desea abrir el módulo de Alertas de Caducidad para gestionarlos?");
             }
 
             // Alerta de Stock Mínimo para Encargado (RF11)
@@ -336,13 +335,10 @@ public class MainScreen extends JFrame {
             }
 
             if (msj.length() > 0) {
-                boolean ver = DialogoFarmac.confirmar(this, "Avisos del Sistema al Iniciar", msj.toString());
-                if (ver && !alertasCad.isEmpty()) {
-                    // Abrir directamente el módulo de Alertas de Caducidad
+                boolean solucionar = DialogoFarmac.alertaDesplazable(this, "Avisos del Sistema al Iniciar",
+                        msj.toString(), "Estoy enterado", "Solucionar");
+                if (solucionar && !alertasCad.isEmpty()) {
                     cardLayout.show(pnlContenidoCentral, "CADUCIDAD");
-                    for (JButton b : botonesMenu) {
-                        // marcar visualmente el botón correspondiente
-                    }
                 }
             }
 
