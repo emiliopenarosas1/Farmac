@@ -5,6 +5,7 @@ import farmac.dao.TurnoCajaDAO;
 import farmac.dominio.TurnoCaja;
 import farmac.dominio.Usuario;
 import farmac.util.Sesion;
+import farmac.util.DialogoFarmac;
 import farmac.util.TemaFarmac;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -141,7 +142,7 @@ public class CorteCajaScreen extends JPanel {
         // Cierre y Arqueo
         gbc.gridwidth = 1;
         gbc.gridy = 3; gbc.gridx = 0;
-        JLabel lblContado = new JLabel("Efectivo Contado Físico en Caja ($) *:");
+        JLabel lblContado = new JLabel("Efectivo Contado FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­sico en Caja ($) *:");
         lblContado.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCardForm.add(lblContado, gbc);
 
@@ -203,7 +204,7 @@ public class CorteCajaScreen extends JPanel {
                 txtEfectivoContado.setText("");
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al consultar turno: " + e.getMessage());
+DialogoFarmac.mostrar(this, "Error", "Error al consultar turno: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
         }
     }
 
@@ -214,7 +215,7 @@ public class CorteCajaScreen extends JPanel {
             fondo = Double.parseDouble(fondoStr);
             if (fondo < 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El fondo inicial debe ser un número válido mayor o igual a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "El fondo inicial debe ser un nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido mayor o igual a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -223,25 +224,25 @@ public class CorteCajaScreen extends JPanel {
             turnoCajaDAO.abrirTurno(nuevoTurno);
             BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "CAJA_APERTURA", "Apertura de Turno #" + nuevoTurno.getId() + " con fondo de $" + fondo);
 
-            JOptionPane.showMessageDialog(this,
+            DialogoFarmac.mostrarJO(this,
                     "Turno de caja #" + nuevoTurno.getId() + " abierto exitosamente con $" + String.format("%.2f", fondo),
                     "Apertura Exitosa", JOptionPane.INFORMATION_MESSAGE);
 
             refrescarDatosTurno();
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "No se pudo abrir el turno: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "No se pudo abrir el turno: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void cerrarTurno() {
         if (turnoActual == null || !turnoActual.estaAbierto()) {
-            JOptionPane.showMessageDialog(this, "No hay ningún turno abierto para cerrar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "No hay ningÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºn turno abierto para cerrar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String contadoStr = txtEfectivoContado.getText().trim();
         if (contadoStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el efectivo contado físico en caja.", "Arqueo Obligatorio", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Debe ingresar el efectivo contado fÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­sico en caja.", "Arqueo Obligatorio", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -250,7 +251,7 @@ public class CorteCajaScreen extends JPanel {
             contado = Double.parseDouble(contadoStr);
             if (contado < 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El efectivo contado debe ser un número válido mayor o igual a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "El efectivo contado debe ser un nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido mayor o igual a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -273,7 +274,7 @@ public class CorteCajaScreen extends JPanel {
                     "Cierre de Turno #" + turnoActual.getId() + " - Esperado: $" + turnoActual.getMontoEsperado()
                     + ", Contado: $" + contado + " [" + balanceStr + "]");
 
-            JOptionPane.showMessageDialog(this,
+            DialogoFarmac.mostrarJO(this,
                     "Corte de caja registrado exitosamente.\n\n"
                     + "Fondo Inicial: $" + String.format("%.2f", turnoActual.getMontoInicial()) + "\n"
                     + "Ventas en Efectivo: $" + String.format("%.2f", ventasEf) + "\n"
@@ -286,7 +287,7 @@ public class CorteCajaScreen extends JPanel {
             refrescarDatosTurno();
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error al cerrar turno: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Error al cerrar turno: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

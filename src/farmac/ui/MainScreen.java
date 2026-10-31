@@ -8,7 +8,11 @@ import farmac.dominio.Producto;
 import farmac.dominio.Usuario;
 import farmac.util.RespaldoUtil;
 import farmac.util.Sesion;
+import farmac.util.DialogoFarmac;
+import farmac.util.PanelFade;
 import farmac.util.TemaFarmac;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -37,7 +41,7 @@ import javax.swing.border.EmptyBorder;
 
 /**
  * Pantalla principal del sistema con control de acceso por roles (RNF02),
- * integración de todos los módulos y alertas al inicio (RF10, RF11).
+ * integraciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de todos los mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulos y alertas al inicio (RF10, RF11).
  */
 public class MainScreen extends JFrame {
 
@@ -45,10 +49,10 @@ public class MainScreen extends JFrame {
     private JPanel pnlContenidoCentral;
     private CardLayout cardLayout;
     private List<JButton> botonesMenu;
-    private final Map<String, JPanel> panelesCreados;
+    private final Map<String, PanelFade> panelesCreados;
 
     public MainScreen(Usuario usuario) {
-        super("Farmac - Sistema de Gestión Farmacéutica y Punto de Venta");
+        super("Farmac - Sistema de GestiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n FarmacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©utica y Punto de Venta");
         this.usuarioActivo = usuario;
         this.botonesMenu = new ArrayList<>();
         this.panelesCreados = new HashMap<>();
@@ -58,7 +62,7 @@ public class MainScreen extends JFrame {
         configurarVentana();
         inicializarComponentes();
 
-        // Lanzar comprobación de alertas en segundo plano al arrancar
+        // Lanzar comprobaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de alertas en segundo plano al arrancar
         SwingUtilities.invokeLater(this::comprobarAlertasInicio);
     }
 
@@ -97,7 +101,7 @@ public class MainScreen extends JFrame {
         pnlBrand.add(lblSlogan);
         pnlSidebar.add(pnlBrand, BorderLayout.NORTH);
 
-        // Menú de opciones
+        // MenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº de opciones
         JPanel pnlMenu = new JPanel();
         pnlMenu.setBackground(TemaFarmac.AZUL_PETROLEO);
         pnlMenu.setLayout(new BoxLayout(pnlMenu, BoxLayout.Y_AXIS));
@@ -109,22 +113,22 @@ public class MainScreen extends JFrame {
 
         boolean esEncargado = "ENCARGADO".equalsIgnoreCase(usuarioActivo.obtenerRol());
 
-        // Módulos compartidos: se construyen de forma diferida al abrir cada pestaña
+        // MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulos compartidos: se construyen de forma diferida al abrir cada pestaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a
         agregarOpcionMenu(pnlMenu, "Punto de Venta", "POS", () -> new PuntoVentaScreen(usuarioActivo));
         agregarOpcionMenu(pnlMenu, "Control de Caja", "CAJA", () -> new CorteCajaScreen(usuarioActivo));
         agregarOpcionMenu(pnlMenu, "Historial de Ventas", "HISTORIAL", HistorialVentasScreen::new);
 
-        // Módulos exclusivos de Encargado (RNF02)
+        // MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulos exclusivos de Encargado (RNF02)
         if (esEncargado) {
-            agregarOpcionMenu(pnlMenu, "Catálogo Medicamentos", "CATALOGO", () -> new CatalogoProductosScreen(usuarioActivo));
-            agregarOpcionMenu(pnlMenu, "Recepción de Lotes", "RECEPCION", RecepcionInventarioScreen::new);
+            agregarOpcionMenu(pnlMenu, "CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo Medicamentos", "CATALOGO", () -> new CatalogoProductosScreen(usuarioActivo));
+            agregarOpcionMenu(pnlMenu, "RecepciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Lotes", "RECEPCION", RecepcionInventarioScreen::new);
             agregarOpcionMenu(pnlMenu, "Ajustes de Inventario", "AJUSTES", () -> new AjusteInventarioScreen(usuarioActivo));
             agregarOpcionMenu(pnlMenu, "Reporte Existencias", "EXISTENCIAS", ReporteExistenciasScreen::new);
             agregarOpcionMenu(pnlMenu, "Alertas Caducidad", "CADUCIDAD", ReporteCaducidadScreen::new);
             agregarOpcionMenu(pnlMenu, "Proveedores", "PROVEEDORES", ProveedoresScreen::new);
-            agregarOpcionMenu(pnlMenu, "Gestión de Usuarios", "USUARIOS", GestionUsuariosScreen::new);
+            agregarOpcionMenu(pnlMenu, "GestiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Usuarios", "USUARIOS", GestionUsuariosScreen::new);
 
-            // Botón de Respaldo de BD (A6, RNF05)
+            // BotÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Respaldo de BD (A6, RNF05)
             JButton btnRespaldo = new JButton("Respaldar BD (SQL)");
             btnRespaldo.setFont(TemaFarmac.FUENTE_PEQUENA);
             btnRespaldo.setForeground(new Color(0xD0, 0xE2, 0xEC));
@@ -156,7 +160,7 @@ public class MainScreen extends JFrame {
         lblUserRole.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblUserRole.setForeground(new Color(0x94, 0xD2, 0xBD));
 
-        JButton btnSalir = TemaFarmac.crearBoton("Cerrar Sesión", TemaFarmac.ROJO, Color.WHITE);
+        JButton btnSalir = TemaFarmac.crearBoton("Cerrar SesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", TemaFarmac.ROJO, Color.WHITE);
         btnSalir.setFont(TemaFarmac.FUENTE_PEQUENA);
         btnSalir.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
         btnSalir.addActionListener(e -> {
@@ -181,6 +185,22 @@ public class MainScreen extends JFrame {
         }
     }
 
+    private FontAwesomeSolid iconoPorClave(String clave) {
+        switch (clave) {
+            case "POS": return FontAwesomeSolid.SHOPPING_CART;
+            case "CAJA": return FontAwesomeSolid.CASH_REGISTER;
+            case "HISTORIAL": return FontAwesomeSolid.HISTORY;
+            case "CATALOGO": return FontAwesomeSolid.PILLS;
+            case "RECEPCION": return FontAwesomeSolid.TRUCK_LOADING;
+            case "AJUSTES": return FontAwesomeSolid.SLIDERS_H;
+            case "EXISTENCIAS": return FontAwesomeSolid.BOXES;
+            case "CADUCIDAD": return FontAwesomeSolid.EXCLAMATION_TRIANGLE;
+            case "PROVEEDORES": return FontAwesomeSolid.TRUCK;
+            case "USUARIOS": return FontAwesomeSolid.USERS;
+            default: return FontAwesomeSolid.CIRCLE;
+        }
+    }
+
     private void agregarOpcionMenu(JPanel contenedorMenu, String texto, String claveCard, Supplier<JPanel> fabricaPanel) {
         JButton btn = new JButton(texto);
         btn.setFont(TemaFarmac.FUENTE_NEGRITA);
@@ -193,31 +213,41 @@ public class MainScreen extends JFrame {
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBorder(new EmptyBorder(5, 8, 5, 8));
+        btn.setIcon(FontIcon.of(iconoPorClave(claveCard), 13, new Color(0xD0, 0xE2, 0xEC)));
+        btn.setIconTextGap(8);
 
         btn.addActionListener(e -> {
             for (JButton b : botonesMenu) {
                 b.setOpaque(false);
                 b.setBackground(TemaFarmac.AZUL_PETROLEO);
                 b.setForeground(new Color(0xD0, 0xE2, 0xEC));
+                if (b.getIcon() instanceof FontIcon) {
+                    ((FontIcon) b.getIcon()).setIconColor(new Color(0xD0, 0xE2, 0xEC));
+                }
             }
             btn.setOpaque(true);
             btn.setBackground(TemaFarmac.TURQUESA);
             btn.setForeground(Color.WHITE);
+            if (btn.getIcon() instanceof FontIcon) {
+                ((FontIcon) btn.getIcon()).setIconColor(Color.WHITE);
+            }
 
-            // Construcción diferida: cada pantalla se crea solo la primera vez que se abre.
+            // ConstrucciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n diferida: cada pantalla se crea solo la primera vez que se abre.
             if (!panelesCreados.containsKey(claveCard)) {
                 try {
                     JPanel panelVista = fabricaPanel.get();
-                    panelesCreados.put(claveCard, panelVista);
-                    pnlContenidoCentral.add(panelVista, claveCard);
+                    PanelFade wrapper = new PanelFade(panelVista);
+                    panelesCreados.put(claveCard, wrapper);
                 } catch (RuntimeException ex) {
-                    JOptionPane.showMessageDialog(this,
-                            "No se pudo abrir el módulo '" + texto + "': " + ex.getMessage(),
-                            "Error al abrir módulo", JOptionPane.ERROR_MESSAGE);
+                    DialogoFarmac.mostrarJO(this,
+                            "No se pudo abrir el mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulo '" + texto + "': " + ex.getMessage(),
+                            "Error al abrir mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulo", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             }
             cardLayout.show(pnlContenidoCentral, claveCard);
+            PanelFade pw = panelesCreados.get(claveCard);
+            if (pw != null) pw.fadeIn();
         });
 
         botonesMenu.add(btn);
@@ -237,12 +267,12 @@ public class MainScreen extends JFrame {
             protected void done() {
                 try {
                     File f = get();
-                    JOptionPane.showMessageDialog(MainScreen.this,
+                    DialogoFarmac.mostrarJO(MainScreen.this,
                             "Respaldo de Base de Datos generado exitosamente:\n" + f.getAbsolutePath(),
                             "Respaldo Exitoso (RNF05)", JOptionPane.INFORMATION_MESSAGE);
                 } catch (Exception ex) {
                     Throwable causa = ex.getCause() != null ? ex.getCause() : ex;
-                    JOptionPane.showMessageDialog(MainScreen.this,
+                    DialogoFarmac.mostrarJO(MainScreen.this,
                             "Error al generar respaldo: " + causa.getMessage(),
                             "Error de Respaldo", JOptionPane.ERROR_MESSAGE);
                 }
@@ -267,29 +297,29 @@ public class MainScreen extends JFrame {
                 long vencidos = alertasCad.stream().filter(l -> l.estaVencido(java.time.LocalDate.now())).count();
                 long porVencer = alertasCad.size() - vencidos;
                 msj.append("ALERTA DE CADUCIDADES (RF10):\n")
-                   .append("• ").append(vencidos).append(" lote(s) VENCIDOS.\n")
-                   .append("• ").append(porVencer).append(" lote(s) por vencer en los próximos 60 días.\n\n");
+                   .append("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ").append(vencidos).append(" lote(s) VENCIDOS.\n")
+                   .append("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ").append(porVencer).append(" lote(s) por vencer en los prÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ximos 60 dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as.\n\n");
             }
 
-            // Alerta de Stock Mínimo para Encargado (RF11)
+            // Alerta de Stock MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nimo para Encargado (RF11)
             if (Sesion.esEncargado()) {
                 ProductoDAO prodDAO = new ProductoDAO();
                 List<Producto> prods = prodDAO.listarTodos(true);
                 List<Producto> bajos = op.productosBajoStock(prods);
                 if (!bajos.isEmpty()) {
-                    msj.append("ALERTA DE DESABASTO / STOCK MÍNIMO (RF11):\n")
-                       .append("• ").append(bajos.size()).append(" producto(s) en o por debajo de su stock de seguridad:\n");
+                    msj.append("ALERTA DE DESABASTO / STOCK MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂNIMO (RF11):\n")
+                       .append("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ").append(bajos.size()).append(" producto(s) en o por debajo de su stock de seguridad:\n");
                     for (int i = 0; i < Math.min(bajos.size(), 4); i++) {
                         msj.append("   - ").append(bajos.get(i).getNombre()).append("\n");
                     }
                     if (bajos.size() > 4) {
-                        msj.append("   ... y ").append(bajos.size() - 4).append(" más.\n");
+                        msj.append("   ... y ").append(bajos.size() - 4).append(" mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡s.\n");
                     }
                 }
             }
 
             if (msj.length() > 0) {
-                JOptionPane.showMessageDialog(this, msj.toString(), "Avisos del Sistema al Iniciar", JOptionPane.WARNING_MESSAGE);
+                DialogoFarmac.mostrarJO(this, msj.toString(), "Avisos del Sistema al Iniciar", JOptionPane.WARNING_MESSAGE);
             }
 
         } catch (Exception e) {

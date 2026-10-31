@@ -9,6 +9,7 @@ import farmac.dominio.RecetaMedica;
 import farmac.dominio.TurnoCaja;
 import farmac.dominio.Venta;
 import farmac.util.Sesion;
+import farmac.util.DialogoFarmac;
 import farmac.util.TemaFarmac;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -33,7 +34,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Historial de Ventas, Cancelaciones y Rotación de Productos (RF15, RF17).
+ * Pantalla de Historial de Ventas, Cancelaciones y RotaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Productos (RF15, RF17).
  */
 public class HistorialVentasScreen extends JPanel {
 
@@ -71,11 +72,11 @@ public class HistorialVentasScreen extends JPanel {
         JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setBackground(TemaFarmac.GRIS_FONDO);
 
-        JLabel lblTitulo = new JLabel("Historial de Ventas y Rotación");
+        JLabel lblTitulo = new JLabel("Historial de Ventas y RotaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Auditoría de tickets, cancelaciones controladas y análisis de rotación (RF15, RF17)");
+        JLabel lblSub = new JLabel("AuditorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a de tickets, cancelaciones controladas y anÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lisis de rotaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n (RF15, RF17)");
         lblSub.setFont(TemaFarmac.FUENTE_REGULAR);
         lblSub.setForeground(TemaFarmac.GRIS_TEXTO);
 
@@ -125,10 +126,10 @@ public class HistorialVentasScreen extends JPanel {
         pnlHeader.add(pnlFiltros, BorderLayout.EAST);
         add(pnlHeader, BorderLayout.NORTH);
 
-        // Pestañas (Ventas vs Rotación)
+        // PestaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±as (Ventas vs RotaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n)
         JTabbedPane tabbed = new JTabbedPane();
 
-        // Pestaña 1: Ventas
+        // PestaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a 1: Ventas
         String[] colsVentas = {"ID / Ticket", "Fecha y Hora", "Cajero", "Turno", "Forma Pago", "Total", "Estado", "Motivo Canc."};
         modeloVentas = new DefaultTableModel(colsVentas, 0) {
             @Override
@@ -148,9 +149,9 @@ public class HistorialVentasScreen extends JPanel {
         JScrollPane scrollVentas = new JScrollPane(tablaVentas);
         tabbed.addTab("Ventas Registradas", scrollVentas);
 
-        // Pestaña 2: Rotación de Productos (RF17)
+        // PestaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a 2: RotaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Productos (RF17)
         if (Sesion.esEncargado()) {
-            String[] colsRot = {"Código Barras", "Producto", "Unidades Vendidas", "Importe Generado ($)"};
+            String[] colsRot = {"CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo Barras", "Producto", "Unidades Vendidas", "Importe Generado ($)"};
             modeloRotacion = new DefaultTableModel(colsRot, 0) {
                 @Override
                 public boolean isCellEditable(int r, int c) { return false; }
@@ -158,10 +159,10 @@ public class HistorialVentasScreen extends JPanel {
             tablaRotacion = new JTable(modeloRotacion);
             TemaFarmac.estilizarTabla(tablaRotacion);
             JScrollPane scrollRot = new JScrollPane(tablaRotacion);
-            tabbed.addTab("Ranking de Rotación (Más / Menos Vendidos)", scrollRot);
+            tabbed.addTab("Ranking de RotaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n (MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡s / Menos Vendidos)", scrollRot);
 
-            // Pestaña 3: Ventas con Receta Médica asociada (RF14, auditoría)
-            String[] colsRec = {"Venta", "Fecha", "Cajero", "Producto", "Folio Receta", "Médico", "Estado"};
+            // PestaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a 3: Ventas con Receta MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dica asociada (RF14, auditorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a)
+            String[] colsRec = {"Venta", "Fecha", "Cajero", "Producto", "Folio Receta", "MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dico", "Estado"};
             modeloVentasConReceta = new DefaultTableModel(colsRec, 0) {
                 @Override
                 public boolean isCellEditable(int r, int c) { return false; }
@@ -170,7 +171,7 @@ public class HistorialVentasScreen extends JPanel {
             TemaFarmac.estilizarTabla(tablaVentasConReceta);
             tabbed.addTab("Ventas con Receta", new JScrollPane(tablaVentasConReceta));
 
-            // Pestaña 4: Historial de Turnos de Caja (apertura / cierre) (RF12, RF16)
+            // PestaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a 4: Historial de Turnos de Caja (apertura / cierre) (RF12, RF16)
             String[] colsTurnos = {"ID", "Usuario", "Apertura", "Cierre", "Estado", "Fondo Inicial", "Monto Esperado", "Contado", "Diferencia"};
             modeloTurnos = new DefaultTableModel(colsTurnos, 0) {
                 @Override
@@ -195,7 +196,7 @@ public class HistorialVentasScreen extends JPanel {
                 hasta = LocalDate.parse(txtFechaHasta.getText().trim());
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Utilice YYYY-MM-DD.", "Validación", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Formato de fecha invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido. Utilice YYYY-MM-DD.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -219,7 +220,7 @@ public class HistorialVentasScreen extends JPanel {
                 });
             }
 
-            // Cargar rotación si existe modelo
+            // Cargar rotaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n si existe modelo
             if (modeloRotacion != null) {
                 modeloRotacion.setRowCount(0);
                 List<VentaDAO.RotacionProducto> rotacion = ventaDAO.obtenerRankingRotacion(desde, hasta);
@@ -233,7 +234,7 @@ public class HistorialVentasScreen extends JPanel {
                 }
             }
 
-            // Filtro opcional: solo ventas con receta médica capturada (RF14)
+            // Filtro opcional: solo ventas con receta mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dica capturada (RF14)
             if (chkSoloRecetas.isSelected() && listaVentasActual != null) {
                 List<Venta> ventasConReceta = new ArrayList<>();
                 for (Venta v : listaVentasActual) {
@@ -256,12 +257,12 @@ public class HistorialVentasScreen extends JPanel {
                 cargarTurnos();
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar historial: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Error al cargar historial: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     /**
-     * Carga en la pestaña las ventas del periodo/estado que tengan receta médica asociada.
+     * Carga en la pestaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a las ventas del periodo/estado que tengan receta mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dica asociada.
      */
     private void cargarVentasConReceta() {
         modeloVentasConReceta.setRowCount(0);
@@ -299,7 +300,7 @@ public class HistorialVentasScreen extends JPanel {
                 }
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar ventas con receta: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Error al cargar ventas con receta: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -325,14 +326,14 @@ public class HistorialVentasScreen extends JPanel {
                 });
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar historial de turnos: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Error al cargar historial de turnos: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private Venta obtenerSeleccionada() {
         int fila = tablaVentas.getSelectedRow();
         if (fila < 0) {
-            JOptionPane.showMessageDialog(this, "Seleccione una venta de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Seleccione una venta de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return null;
         }
         if (listaVentasActual != null && fila < listaVentasActual.size()) {
@@ -381,10 +382,10 @@ public class HistorialVentasScreen extends JPanel {
             pnlCentro.add(new JScrollPane(tblD), BorderLayout.CENTER);
 
             if (!recetas.isEmpty()) {
-                StringBuilder sb = new StringBuilder("<html><b>Receta(s) Médica(s) Asociada(s):</b><br>");
+                StringBuilder sb = new StringBuilder("<html><b>Receta(s) MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dica(s) Asociada(s):</b><br>");
                 for (RecetaMedica r : recetas) {
-                    sb.append("• Dr. ").append(r.getNombreMedico())
-                      .append(" (Céd: ").append(r.getCedulaProfesional()).append(") - Folio: ")
+                    sb.append("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Dr. ").append(r.getNombreMedico())
+                      .append(" (CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©d: ").append(r.getCedulaProfesional()).append(") - Folio: ")
                       .append(r.getFolioReceta()).append("<br>");
                 }
                 sb.append("</html>");
@@ -395,7 +396,7 @@ public class HistorialVentasScreen extends JPanel {
 
             dlg.add(pnlCentro, BorderLayout.CENTER);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(dlg, "Error al cargar detalles: " + ex.getMessage());
+DialogoFarmac.mostrar(dlg, "Error", "Error al cargar detalles: " + ex.getMessage(), DialogoFarmac.Tipo.ERROR);
         }
 
         JButton btnCerrar = TemaFarmac.crearBotonSecundario("Cerrar");
@@ -412,12 +413,12 @@ public class HistorialVentasScreen extends JPanel {
         if (v == null) return;
 
         if ("CANCELADA".equalsIgnoreCase(v.getEstado())) {
-            JOptionPane.showMessageDialog(this, "La venta #" + v.getId() + " ya se encuentra cancelada.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "La venta #" + v.getId() + " ya se encuentra cancelada.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String motivo = JOptionPane.showInputDialog(this,
-                "Ingrese el motivo de cancelación para la Venta #" + v.getId() + " (Obligatorio - RF15):",
+                "Ingrese el motivo de cancelaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n para la Venta #" + v.getId() + " (Obligatorio - RF15):",
                 "Cancelar Venta", JOptionPane.QUESTION_MESSAGE);
 
         if (motivo == null || motivo.trim().isEmpty()) {
@@ -428,16 +429,16 @@ public class HistorialVentasScreen extends JPanel {
             boolean exito = ventaDAO.cancelarVentaTransaccional(v.getId(), motivo.trim(), Sesion.getUsuarioActivo());
             if (exito) {
                 BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "VENTA_CANCELADA",
-                        "Cancelación Venta #" + v.getId() + " - Motivo: " + motivo.trim());
-                JOptionPane.showMessageDialog(this,
+                        "CancelaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Venta #" + v.getId() + " - Motivo: " + motivo.trim());
+                DialogoFarmac.mostrarJO(this,
                         "Venta #" + v.getId() + " cancelada exitosamente.\nExistencias reintegradas al inventario.",
-                        "Cancelación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                        "CancelaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Exitosa", JOptionPane.INFORMATION_MESSAGE);
                 cargarDatos();
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,
+            DialogoFarmac.mostrarJO(this,
                     "No se pudo cancelar la venta: " + e.getMessage(),
-                    "Restricción de Cancelación", JOptionPane.ERROR_MESSAGE);
+                    "RestricciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de CancelaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

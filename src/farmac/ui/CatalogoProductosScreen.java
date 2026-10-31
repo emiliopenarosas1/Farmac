@@ -9,6 +9,7 @@ import farmac.dominio.Producto;
 import farmac.dominio.Proveedor;
 import farmac.dominio.Usuario;
 import farmac.util.Sesion;
+import farmac.util.DialogoFarmac;
 import farmac.util.TemaFarmac;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -39,8 +40,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Catálogo y Mantenimiento de Medicamentos (RF03 a RF06).
- * Persistencia en PostgreSQL, baja lógica, proveedores dinámicos y stock/caducidad calculados.
+ * Pantalla de CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo y Mantenimiento de Medicamentos (RF03 a RF06).
+ * Persistencia en PostgreSQL, baja lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³gica, proveedores dinÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡micos y stock/caducidad calculados.
  */
 public class CatalogoProductosScreen extends JPanel {
 
@@ -80,11 +81,11 @@ public class CatalogoProductosScreen extends JPanel {
 
         JPanel pnlTit = new JPanel(new BorderLayout());
         pnlTit.setOpaque(false);
-        JLabel lblTitulo = new JLabel("Catálogo de Medicamentos y Productos");
+        JLabel lblTitulo = new JLabel("CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo de Medicamentos y Productos");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Administración de catálogo, baja lógica, control médico y trazabilidad de lotes (RF03 a RF06)");
+        JLabel lblSub = new JLabel("AdministraciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de catÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo, baja lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³gica, control mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dico y trazabilidad de lotes (RF03 a RF06)");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -115,7 +116,7 @@ public class CatalogoProductosScreen extends JPanel {
             JButton btnEditar = TemaFarmac.crearBoton("Editar Medicamento", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
             btnEditar.addActionListener(e -> abrirFormularioEditar());
 
-            JButton btnEliminar = TemaFarmac.crearBoton("Desactivar (Baja Lógica)", TemaFarmac.ROJO, Color.WHITE);
+            JButton btnEliminar = TemaFarmac.crearBoton("Desactivar (Baja LÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³gica)", TemaFarmac.ROJO, Color.WHITE);
             btnEliminar.addActionListener(e -> eliminarProductoSeleccionado());
 
             pnlBotonesCrud.add(btnNuevo);
@@ -123,7 +124,7 @@ public class CatalogoProductosScreen extends JPanel {
             pnlBotonesCrud.add(btnEliminar);
         }
 
-        // Buscador y Exportación
+        // Buscador y ExportaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n
         JPanel pnlBuscarExportar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         pnlBuscarExportar.setOpaque(false);
 
@@ -132,7 +133,7 @@ public class CatalogoProductosScreen extends JPanel {
         cmbFiltroCategoria.addActionListener(e -> filtrar());
 
         txtBuscar = TemaFarmac.crearCampoTexto(14);
-        txtBuscar.putClientProperty("JTextField.placeholderText", "Nombre o código...");
+        txtBuscar.putClientProperty("JTextField.placeholderText", "Nombre o cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo...");
         txtBuscar.addActionListener(e -> filtrar());
 
         JButton btnBuscar = TemaFarmac.crearBoton("Buscar", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
@@ -141,7 +142,7 @@ public class CatalogoProductosScreen extends JPanel {
         JButton btnExportar = TemaFarmac.crearBoton("Exportar CSV", TemaFarmac.VERDE, Color.WHITE);
         btnExportar.addActionListener(e -> exportarCSV());
 
-        pnlBuscarExportar.add(new JLabel("Categoría:"));
+        pnlBuscarExportar.add(new JLabel("CategorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a:"));
         pnlBuscarExportar.add(cmbFiltroCategoria);
         pnlBuscarExportar.add(new JLabel("Buscar:"));
         pnlBuscarExportar.add(txtBuscar);
@@ -159,8 +160,8 @@ public class CatalogoProductosScreen extends JPanel {
         pnlCard.setLayout(new BorderLayout(8, 8));
 
         String[] columnas = {
-            "ID", "Código Barras", "Nombre del Medicamento", "Categoría",
-            "Proveedor", "Precio Venta", "Tipo Venta", "Stock Mín.", "Existencia Actual", "Caducidad Próx."
+            "ID", "CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo Barras", "Nombre del Medicamento", "CategorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a",
+            "Proveedor", "Precio Venta", "Tipo Venta", "Stock MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­n.", "Existencia Actual", "Caducidad PrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³x."
         };
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
@@ -194,7 +195,7 @@ public class CatalogoProductosScreen extends JPanel {
             listaProductosActual = productoDAO.listarTodos(true); // Solo productos activos (RF04)
             listaLotesActual = loteDAO.listarTodos();
 
-            // Cargar categorías en el combo
+            // Cargar categorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as en el combo
             List<String> categorias = productoDAO.listarCategorias();
             String seleccionPrevia = (String) cmbFiltroCategoria.getSelectedItem();
             cmbFiltroCategoria.removeAllItems();
@@ -208,7 +209,7 @@ public class CatalogoProductosScreen extends JPanel {
 
             llenarTabla(listaProductosActual);
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar medicamentos: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Error al cargar medicamentos: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -241,21 +242,21 @@ public class CatalogoProductosScreen extends JPanel {
             List<Producto> filtrados = productoDAO.buscarPorFiltro(texto, cat, true);
             llenarTabla(filtrados);
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al filtrar: " + e.getMessage());
+DialogoFarmac.mostrar(this, "Error", "Error al filtrar: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
         }
     }
 
     private Producto obtenerProductoSeleccionado() {
         int fila = tblProductos.getSelectedRow();
         if (fila < 0) {
-            JOptionPane.showMessageDialog(this, "Seleccione un medicamento de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Seleccione un medicamento de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return null;
         }
         int id = (int) modeloTabla.getValueAt(fila, 0);
         try {
             return productoDAO.buscarPorId(id);
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al consultar producto: " + e.getMessage());
+DialogoFarmac.mostrar(this, "Error", "Error al consultar producto: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
             return null;
         }
     }
@@ -264,7 +265,7 @@ public class CatalogoProductosScreen extends JPanel {
         try {
             List<Proveedor> proveedores = proveedorDAO.listarTodos(true);
             if (proveedores.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Debe registrar al menos un Proveedor antes de agregar productos.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Debe registrar al menos un Proveedor antes de agregar productos.", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -276,32 +277,32 @@ public class CatalogoProductosScreen extends JPanel {
             cmbCat.setEditable(true);
             JComboBox<Proveedor> cmbProv = new JComboBox<>(proveedores.toArray(new Proveedor[0]));
             JTextField txtPrecio = TemaFarmac.crearCampoTexto("50.00", 10);
-            JCheckBox chkReceta = new JCheckBox("Requiere Receta Médica Obligatoria (Antibiótico / Controlado)");
+            JCheckBox chkReceta = new JCheckBox("Requiere Receta MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dica Obligatoria (AntibiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³tico / Controlado)");
             JTextField txtMin = TemaFarmac.crearCampoTexto("5", 5);
 
             JPanel form = new JPanel(new GridLayout(7, 2, 8, 8));
-            form.add(new JLabel("Código de Barras *:")); form.add(txtCod);
+            form.add(new JLabel("CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo de Barras *:")); form.add(txtCod);
             form.add(new JLabel("Nombre Medicamento *:")); form.add(txtNom);
-            form.add(new JLabel("Categoría:")); form.add(cmbCat);
+            form.add(new JLabel("CategorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a:")); form.add(cmbCat);
             form.add(new JLabel("Proveedor *:")); form.add(cmbProv);
             form.add(new JLabel("Precio Venta ($) *:")); form.add(txtPrecio);
-            form.add(new JLabel("Control Médico:")); form.add(chkReceta);
-            form.add(new JLabel("Stock Mínimo (Seguridad):")); form.add(txtMin);
+            form.add(new JLabel("Control MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dico:")); form.add(chkReceta);
+            form.add(new JLabel("Stock MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nimo (Seguridad):")); form.add(txtMin);
 
-            int res = JOptionPane.showConfirmDialog(this, form, "Alta de Nuevo Medicamento", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-            if (res == JOptionPane.OK_OPTION) {
+            boolean res = DialogoFarmac.confirmar(this, "Alta de Nuevo Medicamento", form);
+            if (res) {
                 String cod = txtCod.getText().trim();
                 String nom = txtNom.getText().trim();
                 String cat = cmbCat.getSelectedItem() != null ? cmbCat.getSelectedItem().toString().trim() : "General";
                 Proveedor prov = (Proveedor) cmbProv.getSelectedItem();
 
                 if (cod.isEmpty() || nom.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Código de barras y nombre son campos obligatorios.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo de barras y nombre son campos obligatorios.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
                 if (productoDAO.existeCodigoBarras(cod, 0)) {
-                    JOptionPane.showMessageDialog(this, "El código de barras '" + cod + "' ya está registrado.", "Código Duplicado", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "El cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo de barras '" + cod + "' ya estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ registrado.", "CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo Duplicado", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -311,7 +312,7 @@ public class CatalogoProductosScreen extends JPanel {
                     precio = Double.parseDouble(txtPrecio.getText().trim());
                     if (precio <= 0) throw new NumberFormatException();
                 } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "El precio de venta debe ser un número mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "El precio de venta debe ser un nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero mayor a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -319,7 +320,7 @@ public class CatalogoProductosScreen extends JPanel {
                     stockMin = Integer.parseInt(txtMin.getText().trim());
                     if (stockMin < 0) throw new NumberFormatException();
                 } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "El stock mínimo debe ser un número mayor o igual a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "El stock mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nimo debe ser un nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero mayor o igual a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -327,10 +328,10 @@ public class CatalogoProductosScreen extends JPanel {
                 productoDAO.insertar(nuevo);
                 BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PRODUCTO_ALTA", "Alta de medicamento: " + nom + " [" + cod + "]");
                 cargarDatos();
-                JOptionPane.showMessageDialog(this, "Medicamento '" + nom + "' agregado exitosamente al catálogo.", "Alta Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Medicamento '" + nom + "' agregado exitosamente al catÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo.", "Alta Exitosa", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Error: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -359,32 +360,32 @@ public class CatalogoProductosScreen extends JPanel {
             }
 
             JTextField txtPrecio = TemaFarmac.crearCampoTexto(String.valueOf(p.getPrecioVenta()), 10);
-            JCheckBox chkReceta = new JCheckBox("Requiere Receta Médica Obligatoria", p.isRequiereReceta());
+            JCheckBox chkReceta = new JCheckBox("Requiere Receta MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dica Obligatoria", p.isRequiereReceta());
             JTextField txtMin = TemaFarmac.crearCampoTexto(String.valueOf(p.getStockMinimo()), 5);
 
             JPanel form = new JPanel(new GridLayout(7, 2, 8, 8));
-            form.add(new JLabel("Código de Barras *:")); form.add(txtCod);
+            form.add(new JLabel("CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo de Barras *:")); form.add(txtCod);
             form.add(new JLabel("Nombre Medicamento *:")); form.add(txtNom);
-            form.add(new JLabel("Categoría:")); form.add(cmbCat);
+            form.add(new JLabel("CategorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a:")); form.add(cmbCat);
             form.add(new JLabel("Proveedor:")); form.add(cmbProv);
             form.add(new JLabel("Precio Venta ($) *:")); form.add(txtPrecio);
-            form.add(new JLabel("Control Médico:")); form.add(chkReceta);
-            form.add(new JLabel("Stock Mínimo:")); form.add(txtMin);
+            form.add(new JLabel("Control MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dico:")); form.add(chkReceta);
+            form.add(new JLabel("Stock MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nimo:")); form.add(txtMin);
 
-            int res = JOptionPane.showConfirmDialog(this, form, "Modificar Medicamento #" + p.getId(), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-            if (res == JOptionPane.OK_OPTION) {
+            boolean res = DialogoFarmac.confirmar(this, "Modificar Medicamento #" + p.getId(), form);
+            if (res) {
                 String cod = txtCod.getText().trim();
                 String nom = txtNom.getText().trim();
                 String cat = cmbCat.getSelectedItem() != null ? cmbCat.getSelectedItem().toString().trim() : "General";
                 Proveedor prov = (Proveedor) cmbProv.getSelectedItem();
 
                 if (cod.isEmpty() || nom.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Código y nombre son obligatorios.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo y nombre son obligatorios.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
                 if (productoDAO.existeCodigoBarras(cod, p.getId())) {
-                    JOptionPane.showMessageDialog(this, "El código '" + cod + "' ya pertenece a otro medicamento.", "Código Duplicado", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "El cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo '" + cod + "' ya pertenece a otro medicamento.", "CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo Duplicado", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -394,7 +395,7 @@ public class CatalogoProductosScreen extends JPanel {
                     precio = Double.parseDouble(txtPrecio.getText().trim());
                     if (precio <= 0) throw new NumberFormatException();
                 } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "El precio debe ser mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "El precio debe ser mayor a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -402,7 +403,7 @@ public class CatalogoProductosScreen extends JPanel {
                     stockMin = Integer.parseInt(txtMin.getText().trim());
                     if (stockMin < 0) throw new NumberFormatException();
                 } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "El stock mínimo debe ser >= 0.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "El stock mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nimo debe ser >= 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -415,12 +416,12 @@ public class CatalogoProductosScreen extends JPanel {
                 p.setStockMinimo(stockMin);
 
                 productoDAO.actualizar(p);
-                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PRODUCTO_EDICION", "Edición de medicamento #" + p.getId() + " [" + cod + "]");
+                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PRODUCTO_EDICION", "EdiciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de medicamento #" + p.getId() + " [" + cod + "]");
                 cargarDatos();
-                JOptionPane.showMessageDialog(this, "Medicamento actualizado correctamente en base de datos.", "Actualización Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Medicamento actualizado correctamente en base de datos.", "ActualizaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Exitosa", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error BD: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Error BD: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -428,19 +429,19 @@ public class CatalogoProductosScreen extends JPanel {
         Producto p = obtenerProductoSeleccionado();
         if (p == null) return;
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Está seguro de desactivar el medicamento '" + p.getNombre() + "' del catálogo activo?\n"
-                + "Se aplicará BAJA LÓGICA (RF04) conservando la trazabilidad de ventas e inventario.",
-                "Confirmar Desactivación", JOptionPane.YES_NO_OPTION);
+        boolean confirm = DialogoFarmac.confirmarJO(this,
+                "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿EstÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ seguro de desactivar el medicamento '" + p.getNombre() + "' del catÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo activo?\n"
+                + "Se aplicarÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ BAJA LÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œGICA (RF04) conservando la trazabilidad de ventas e inventario.",
+                "Confirmar DesactivaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n");
 
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (confirm) {
             try {
                 productoDAO.darDeBajaLogica(p.getId());
-                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PRODUCTO_BAJA", "Baja lógica de producto #" + p.getId() + " (" + p.getNombre() + ")");
+                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PRODUCTO_BAJA", "Baja lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³gica de producto #" + p.getId() + " (" + p.getNombre() + ")");
                 cargarDatos();
-                JOptionPane.showMessageDialog(this, "Medicamento desactivado exitosamente (baja lógica aplicada).", "Baja Completada", JOptionPane.INFORMATION_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Medicamento desactivado exitosamente (baja lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³gica aplicada).", "Baja Completada", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Error al desactivar: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Error al desactivar: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -464,9 +465,9 @@ public class CatalogoProductosScreen extends JPanel {
                             p.getStockMinimo(),
                             stock);
                 }
-                JOptionPane.showMessageDialog(this, "Catálogo exportado exitosamente a:\n" + f.getAbsolutePath(), "Exportación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo exportado exitosamente a:\n" + f.getAbsolutePath(), "ExportaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Exitosa", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error al exportar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Error al exportar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

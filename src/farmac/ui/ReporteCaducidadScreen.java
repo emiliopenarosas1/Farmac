@@ -7,6 +7,7 @@ import farmac.dominio.Lote;
 import farmac.dominio.MovimientoInventario;
 import farmac.dominio.OperacionesInventario;
 import farmac.util.Sesion;
+import farmac.util.DialogoFarmac;
 import farmac.util.TemaFarmac;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -36,7 +37,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Control y Semáforo de Caducidades conectada a PostgreSQL (RF10, RF19).
+ * Pantalla de Control y SemÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡foro de Caducidades conectada a PostgreSQL (RF10, RF19).
  * Accesible exclusivamente para Encargados.
  */
 public class ReporteCaducidadScreen extends JPanel {
@@ -76,7 +77,7 @@ public class ReporteCaducidadScreen extends JPanel {
         pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
         pnlTit.setOpaque(false);
 
-        JLabel lblTitulo = new JLabel("Control de Caducidades y Semáforo Preventivo");
+        JLabel lblTitulo = new JLabel("Control de Caducidades y SemÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡foro Preventivo");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
@@ -92,7 +93,7 @@ public class ReporteCaducidadScreen extends JPanel {
         JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         pnlAcciones.setOpaque(false);
 
-        cmbUmbralDias = new JComboBox<>(new String[]{"30 días", "60 días (Estándar)", "90 días", "180 días"});
+        cmbUmbralDias = new JComboBox<>(new String[]{"30 dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as", "60 dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as (EstÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ndar)", "90 dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as", "180 dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as"});
         cmbUmbralDias.setSelectedIndex(1);
         TemaFarmac.estilizarComboBox(cmbUmbralDias);
         cmbUmbralDias.addActionListener(e -> aplicarUmbral());
@@ -136,7 +137,7 @@ public class ReporteCaducidadScreen extends JPanel {
         JPanel pnlCard = TemaFarmac.crearCard();
         pnlCard.setLayout(new BorderLayout());
 
-        String[] columnas = {"ID", "Número Lote", "Medicamento", "Proveedor", "Fecha Caducidad", "Stock Actual", "Días Restantes", "Estado"};
+        String[] columnas = {"ID", "NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero Lote", "Medicamento", "Proveedor", "Fecha Caducidad", "Stock Actual", "DÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as Restantes", "Estado"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -185,7 +186,7 @@ public class ReporteCaducidadScreen extends JPanel {
             operacionesInventario.setInventario(lotesActuales);
             llenarTabla();
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar lotes: " + e.getMessage());
+DialogoFarmac.mostrar(this, "Error", "Error al cargar lotes: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
         }
     }
 
@@ -225,7 +226,7 @@ public class ReporteCaducidadScreen extends JPanel {
                 l.getProveedor() != null ? l.getProveedor().getRazonSocial() : "-",
                 l.getFechaCaducidad(),
                 l.getCantidadActual() + " pzas",
-                (dias < 0 ? Math.abs(dias) + " días vencido" : dias + " días restantes"),
+                (dias < 0 ? Math.abs(dias) + " dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as vencido" : dias + " dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as restantes"),
                 estado
             });
         }
@@ -238,7 +239,7 @@ public class ReporteCaducidadScreen extends JPanel {
     private void darDeBajaLoteVencido() {
         int fila = tblAlertas.getSelectedRow();
         if (fila < 0) {
-            JOptionPane.showMessageDialog(this, "Seleccione un lote vencido de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Seleccione un lote vencido de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -254,21 +255,21 @@ public class ReporteCaducidadScreen extends JPanel {
         if (l == null) return;
 
         if (!l.estaVencido(LocalDate.now())) {
-            JOptionPane.showMessageDialog(this, "El lote seleccionado todavía no está vencido. Solo se pueden dar de baja por este medio los lotes vencidos.", "Acción No Permitida", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "El lote seleccionado todavÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a no estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ vencido. Solo se pueden dar de baja por este medio los lotes vencidos.", "AcciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n No Permitida", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         if (l.getCantidadActual() <= 0) {
-            JOptionPane.showMessageDialog(this, "El lote ya no cuenta con existencias para dar de baja.", "Sin Existencias", JOptionPane.INFORMATION_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "El lote ya no cuenta con existencias para dar de baja.", "Sin Existencias", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Desea enviar a merma/baja las " + l.getCantidadActual() + " piezas del lote vencido '"
+        boolean confirm = DialogoFarmac.confirmarJO(this,
+                "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿Desea enviar a merma/baja las " + l.getCantidadActual() + " piezas del lote vencido '"
                 + l.getNumeroLote() + "'?\nMotivo: PRODUCTO CADUCADO (RF09, RF10)",
-                "Confirmar Ajuste por Caducidad", JOptionPane.YES_NO_OPTION);
+                "Confirmar Ajuste por Caducidad");
 
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (confirm) {
             try {
                 int cantMerma = l.getCantidadActual();
                 loteDAO.actualizarStock(l.getId(), 0, null);
@@ -283,10 +284,10 @@ public class ReporteCaducidadScreen extends JPanel {
                 BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "INVENTARIO_CADUCADO",
                         "Baja por caducidad de lote " + l.getNumeroLote() + " (-" + cantMerma + " pzas)");
 
-                JOptionPane.showMessageDialog(this, "Lote vencido dado de baja exitosamente del inventario.", "Ajuste Completado", JOptionPane.INFORMATION_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Lote vencido dado de baja exitosamente del inventario.", "Ajuste Completado", JOptionPane.INFORMATION_MESSAGE);
                 cargarDatos();
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Error al registrar baja: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Error al registrar baja: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -309,9 +310,9 @@ public class ReporteCaducidadScreen extends JPanel {
                             modeloTabla.getValueAt(i, 6),
                             modeloTabla.getValueAt(i, 7));
                 }
-                JOptionPane.showMessageDialog(this, "Reporte exportado exitosamente a:\n" + archivo.getAbsolutePath(), "Exportación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Reporte exportado exitosamente a:\n" + archivo.getAbsolutePath(), "ExportaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Exitosa", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error al exportar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Error al exportar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

@@ -86,7 +86,8 @@ public class TemaFarmac {
                 } else {
                     g2.setColor(colorFondo);
                 }
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 6, 6));
+                float inset = getModel().isPressed() ? 1f : 0f;
+                g2.fill(new RoundRectangle2D.Float(inset, inset, getWidth() - 2 * inset, getHeight() - 2 * inset, 6, 6));
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -164,10 +165,15 @@ public class TemaFarmac {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // sombra suave
+                for (int i = 4; i >= 1; i--) {
+                    g2.setColor(new Color(0, 0, 0, 6 * i));
+                    g2.fill(new RoundRectangle2D.Float(i, i + 1, getWidth() - 2 * i, getHeight() - 2 * i, 10, 10));
+                }
                 g2.setColor(BLANCO);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 10, 10));
                 g2.setColor(BORDE);
-                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 10, 10));
                 g2.dispose();
             }
         };

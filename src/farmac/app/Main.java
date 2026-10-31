@@ -1,17 +1,28 @@
 package farmac.app;
 
+import com.formdev.flatlaf.FlatLightLaf;
 import farmac.ui.LoginScreen;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
- * Punto de entrada principal de la aplicación Farmac.
+ * Punto de entrada principal de la aplicacion Farmac.
  */
 public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                // FlatLaf aporta un look moderno (redondeos, sombras, hover) sin perder
+                // la identidad de marca: el acento se reconfigura con los colores Farmac.
+                FlatLightLaf.setup();
+                UIManager.put("Button.arc", 8);
+                UIManager.put("Component.arc", 8);
+                UIManager.put("TextComponent.arc", 8);
+                UIManager.put("ProgressBar.arc", 8);
+                UIManager.put("ScrollBar.thumbArc", 999);
+                UIManager.put("AccentColor", new Color(0x18, 0x7C, 0x93));
+                UIManager.put("defaultFont", new Font("Segoe UI", Font.PLAIN, 12));
             } catch (Exception ignored) {}
             new LoginScreen().setVisible(true);
         });

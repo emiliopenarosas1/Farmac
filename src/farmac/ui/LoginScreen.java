@@ -4,7 +4,10 @@ import farmac.dao.BitacoraDAO;
 import farmac.dao.UsuarioDAO;
 import farmac.dominio.Usuario;
 import farmac.util.Sesion;
+import farmac.util.DialogoFarmac;
 import farmac.util.TemaFarmac;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -30,7 +33,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Pantalla de inicio de sesión con autenticación real en base de datos y BCrypt (RF02, A5).
+ * Pantalla de inicio de sesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n con autenticaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n real en base de datos y BCrypt (RF02, A5).
  */
 public class LoginScreen extends JFrame {
 
@@ -87,7 +90,7 @@ public class LoginScreen extends JFrame {
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new EmptyBorder(24, 28, 24, 28));
 
-        // Título y Marca
+        // TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­tulo y Marca
         JLabel lblTitulo = new JLabel("FARMAC");
         lblTitulo.setFont(TemaFarmac.FUENTE_DISPLAY);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
@@ -123,7 +126,7 @@ public class LoginScreen extends JFrame {
         pnlSwitchContenedor.add(btnRolEmpleado);
         pnlSwitchContenedor.add(btnRolEncargado);
 
-        lblRolDescripcion = new JLabel("Autenticación con permisos de Encargado", SwingConstants.CENTER);
+        lblRolDescripcion = new JLabel("AutenticaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n con permisos de Encargado", SwingConstants.CENTER);
         lblRolDescripcion.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblRolDescripcion.setForeground(TemaFarmac.TEXTO_MUTED);
         lblRolDescripcion.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -138,7 +141,7 @@ public class LoginScreen extends JFrame {
         txtUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         txtUsuario.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblPass = new JLabel("Contraseña");
+        JLabel lblPass = new JLabel("ContraseÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a");
         lblPass.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblPass.setForeground(TemaFarmac.TEXTO_AZUL);
         lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -154,6 +157,8 @@ public class LoginScreen extends JFrame {
         txtPassword.addActionListener(e -> procesarLogin());
 
         btnIngresar = TemaFarmac.crearBoton("Ingresar al Sistema", TemaFarmac.TURQUESA, Color.WHITE);
+        btnIngresar.setIcon(FontIcon.of(FontAwesomeSolid.SIGN_IN_ALT, 16, Color.WHITE));
+        btnIngresar.setIconTextGap(8);
         btnIngresar.setFont(TemaFarmac.FUENTE_SUBTITULO);
         btnIngresar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
         btnIngresar.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -194,6 +199,7 @@ public class LoginScreen extends JFrame {
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
+        btn.setRolloverEnabled(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
@@ -201,9 +207,9 @@ public class LoginScreen extends JFrame {
     private void seleccionarRol(boolean encargado) {
         this.esEncargado = encargado;
         if (encargado) {
-            lblRolDescripcion.setText("Autenticación con permisos de Encargado");
+            lblRolDescripcion.setText("AutenticaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n con permisos de Encargado");
         } else {
-            lblRolDescripcion.setText("Autenticación con permisos de Empleado");
+            lblRolDescripcion.setText("AutenticaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n con permisos de Empleado");
         }
         actualizarEstiloSwitch();
     }
@@ -211,18 +217,22 @@ public class LoginScreen extends JFrame {
     private void actualizarEstiloSwitch() {
         if (esEncargado) {
             btnRolEncargado.setOpaque(true);
+            btnRolEncargado.setContentAreaFilled(true);
             btnRolEncargado.setBackground(TemaFarmac.AZUL_PETROLEO);
             btnRolEncargado.setForeground(Color.WHITE);
 
             btnRolEmpleado.setOpaque(false);
+            btnRolEmpleado.setContentAreaFilled(false);
             btnRolEmpleado.setBackground(new Color(0xE2, 0xE8, 0xF0));
             btnRolEmpleado.setForeground(TemaFarmac.TEXTO_MUTED);
         } else {
             btnRolEmpleado.setOpaque(true);
+            btnRolEmpleado.setContentAreaFilled(true);
             btnRolEmpleado.setBackground(TemaFarmac.TURQUESA);
             btnRolEmpleado.setForeground(Color.WHITE);
 
             btnRolEncargado.setOpaque(false);
+            btnRolEncargado.setContentAreaFilled(false);
             btnRolEncargado.setBackground(new Color(0xE2, 0xE8, 0xF0));
             btnRolEncargado.setForeground(TemaFarmac.TEXTO_MUTED);
         }
@@ -235,28 +245,28 @@ public class LoginScreen extends JFrame {
         String pass = new String(txtPassword.getPassword());
 
         if (user.isEmpty() || pass.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor ingrese usuario y contraseña.", "Validación", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Por favor ingrese usuario y contraseÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
             Usuario u = usuarioDAO.buscarPorNombreUsuario(user);
             if (u == null) {
-                JOptionPane.showMessageDialog(this, "El usuario '" + user + "' no se encuentra registrado.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "El usuario '" + user + "' no se encuentra registrado.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             if (!u.isActivo()) {
-                JOptionPane.showMessageDialog(this, "La cuenta del usuario '" + user + "' está INACTIVA.\nContacte al Encargado para reactivarla.", "Cuenta Inactiva", JOptionPane.WARNING_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "La cuenta del usuario '" + user + "' estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ INACTIVA.\nContacte al Encargado para reactivarla.", "Cuenta Inactiva", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             if (!u.autenticar(pass)) {
-                JOptionPane.showMessageDialog(this, "Contraseña incorrecta. Verifique sus credenciales.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "ContraseÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a incorrecta. Verifique sus credenciales.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Inicio de sesión exitoso
+            // Inicio de sesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n exitoso
             Sesion.setUsuarioActivo(u);
             Sesion.refrescarTurno();
 
@@ -266,13 +276,13 @@ public class LoginScreen extends JFrame {
             principal.setVisible(true);
             dispose();
 
-            BitacoraDAO.registrar(u, "LOGIN", "Inicio de sesión exitoso como " + u.obtenerRol());
+            BitacoraDAO.registrar(u, "LOGIN", "Inicio de sesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n exitoso como " + u.obtenerRol());
 
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "No fue posible iniciar sesión: " + ex.getMessage()
-                    + "\nVerifique que PostgreSQL esté activo en localhost:5432 y la configuración de la base.",
-                    "Error al Iniciar Sesión (RNF03)", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this,
+                    "No fue posible iniciar sesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n: " + ex.getMessage()
+                    + "\nVerifique que PostgreSQL estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© activo en localhost:5432 y la configuraciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de la base.",
+                    "Error al Iniciar SesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n (RNF03)", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
