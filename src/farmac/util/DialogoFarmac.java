@@ -147,11 +147,11 @@ public class DialogoFarmac {
         final boolean[] resultado = {false};
         btnCerrar.addActionListener(e -> {
             dialog.getRootPane().putClientProperty("farmac.accion", Boolean.FALSE);
-            cerrarConFade(dialog);
+            dialog.dispose();
         });
         btnAccion.addActionListener(e -> {
             dialog.getRootPane().putClientProperty("farmac.accion", Boolean.TRUE);
-            cerrarConFade(dialog);
+            dialog.dispose();
         });
         pnlBotones.add(btnCerrar);
         pnlBotones.add(btnAccion);
@@ -171,7 +171,8 @@ public class DialogoFarmac {
 
         dialog.setContentPane(root);
         dialog.pack();
-        dialog.setSize(Math.max(dialog.getWidth(), 460), dialog.getHeight());
+        dialog.setSize(Math.max(dialog.getWidth(), 460), Math.min(dialog.getHeight(), 520));
+        dialog.setResizable(true);
         dialog.setLocationRelativeTo(padre);
 
         try { dialog.setOpacity(0f); } catch (Exception ignored) {}
