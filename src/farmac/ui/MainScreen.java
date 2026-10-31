@@ -299,7 +299,22 @@ public class MainScreen extends JFrame {
                 long porVencer = alertasCad.size() - vencidos;
                 msj.append("ALERTA DE CADUCIDADES (RF10):\n")
                    .append("• ").append(vencidos).append(" lote(s) VENCIDOS.\n")
-                   .append("• ").append(porVencer).append(" lote(s) por vencer en los próximos 60 días.\n\n");
+                   .append("• ").append(porVencer).append(" lote(s) por vencer en los próximos 60 días.\n");
+
+                msj.append("\nDetalle:\n");
+                int max = Math.min(alertasCad.size(), 6);
+                for (int i = 0; i < max; i++) {
+                    Lote l = alertasCad.get(i);
+                    String estado = l.estaVencido(java.time.LocalDate.now()) ? "VENCIDO" : "POR VENCER";
+                    msj.append("   - ").append(l.getNumeroLote())
+                       .append(" (").append(l.getProducto() != null ? l.getProducto().getNombre() : "Producto")
+                       .append(") - ").append(estado)
+                       .append(" - caduca: ").append(l.getFechaCaducidad()).append("\n");
+                }
+                if (alertasCad.size() > max) {
+                    msj.append("   ... y ").append(alertasCad.size() - max).append(" lote(s) más.\n");
+                }
+                msj.append("\n¿Desea abrir el módulo de Alertas de Caducidad para gestionarlos?");
             }
 
             // Alerta de Stock Mínimo para Encargado (RF11)
@@ -308,19 +323,27 @@ public class MainScreen extends JFrame {
                 List<Producto> prods = prodDAO.listarTodos(true);
                 List<Producto> bajos = op.productosBajoStock(prods);
                 if (!bajos.isEmpty()) {
-                    msj.append("ALERTA DE DESABASTO / STOCK MÍNIMO (RF11):\n")
+                    msj.append("\n\nALERTA DE DESABASTO / STOCK MÍNIMO (RF11):\n")
                        .append("• ").append(bajos.size()).append(" producto(s) en o por debajo de su stock de seguridad:\n");
-                    for (int i = 0; i < Math.min(bajos.size(), 4); i++) {
+                    int maxP = Math.min(bajos.size(), 6);
+                    for (int i = 0; i < maxP; i++) {
                         msj.append("   - ").append(bajos.get(i).getNombre()).append("\n");
                     }
-                    if (bajos.size() > 4) {
-                        msj.append("   ... y ").append(bajos.size() - 4).append(" más.\n");
+                    if (bajos.size() > maxP) {
+                        msj.append("   ... y ").append(bajos.size() - maxP).append(" más.\n");
                     }
                 }
             }
 
             if (msj.length() > 0) {
-                DialogoFarmac.mostrarJO(this, msj.toString(), "Avisos del Sistema al Iniciar", JOptionPane.WARNING_MESSAGE);
+                boolean ver = DialogoFarmac.confirmar(this, "Avisos del Sistema al Iniciar", msj.toString());
+                if (ver && !alertasCad.isEmpty()) {
+                    // Abrir directamente el módulo de Alertas de Caducidad
+                    cardLayout.show(pnlContenidoCentral, "CADUCIDAD");
+                    for (JButton b : botonesMenu) {
+                        // marcar visualmente el botón correspondiente
+                    }
+                }
             }
 
         } catch (Exception e) {
