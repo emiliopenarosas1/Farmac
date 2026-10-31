@@ -51,7 +51,7 @@ public class MainScreen extends JFrame {
     private JPanel pnlContenidoCentral;
     private CardLayout cardLayout;
     private List<JButton> botonesMenu;
-    private final Map<String, PanelFade> panelesCreados;
+    private final Map<String, JPanel> panelesCreados;
 
     public MainScreen(Usuario usuario) {
         super("Farmac - Sistema de Gestión Farmacéutica y Punto de Venta");
@@ -238,9 +238,8 @@ public class MainScreen extends JFrame {
             if (!panelesCreados.containsKey(claveCard)) {
                 try {
                     JPanel panelVista = fabricaPanel.get();
-                    PanelFade wrapper = new PanelFade(panelVista);
-                    panelesCreados.put(claveCard, wrapper);
-                    pnlContenidoCentral.add(wrapper, claveCard);
+                    panelesCreados.put(claveCard, null);
+                    pnlContenidoCentral.add(panelVista, claveCard);
                 } catch (RuntimeException ex) {
                     DialogoFarmac.mostrarJO(this,
                             "No se pudo abrir el módulo '" + texto + "': " + ex.getMessage(),
@@ -249,8 +248,6 @@ public class MainScreen extends JFrame {
                 }
             }
             cardLayout.show(pnlContenidoCentral, claveCard);
-            PanelFade pw = panelesCreados.get(claveCard);
-            if (pw != null) pw.fadeIn();
         });
 
         botonesMenu.add(btn);
