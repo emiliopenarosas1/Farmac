@@ -41,6 +41,8 @@ public class LoginScreen extends JFrame {
     private JTextField txtUsuario;
     private JPasswordField txtPassword;
     private JButton btnIngresar;
+    private JButton btnVerPassword;
+    private boolean passwordVisible = false;
     private JButton btnRolEmpleado;
     private JButton btnRolEncargado;
     private JLabel lblRolDescripcion;
@@ -156,6 +158,20 @@ public class LoginScreen extends JFrame {
         txtPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtPassword.addActionListener(e -> procesarLogin());
 
+        btnVerPassword = TemaFarmac.crearBoton("", TemaFarmac.BORDE, TemaFarmac.TEXTO);
+        btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE, 14, TemaFarmac.TEXTO));
+        btnVerPassword.setPreferredSize(new Dimension(40, 36));
+        btnVerPassword.setMinimumSize(new Dimension(40, 36));
+        btnVerPassword.setMaximumSize(new Dimension(40, 36));
+        btnVerPassword.addActionListener(e -> alternarVerPassword());
+
+        JPanel pnlPassword = new JPanel(new BorderLayout(6, 0));
+        pnlPassword.setOpaque(false);
+        pnlPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        pnlPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlPassword.add(txtPassword, BorderLayout.CENTER);
+        pnlPassword.add(btnVerPassword, BorderLayout.EAST);
+
         btnIngresar = TemaFarmac.crearBoton("Ingresar al Sistema", TemaFarmac.TURQUESA, Color.WHITE);
         btnIngresar.setIcon(FontIcon.of(FontAwesomeSolid.SIGN_IN_ALT, 16, Color.WHITE));
         btnIngresar.setIconTextGap(8);
@@ -182,7 +198,7 @@ public class LoginScreen extends JFrame {
 
         card.add(lblPass);
         card.add(Box.createRigidArea(new Dimension(0, 4)));
-        card.add(txtPassword);
+        card.add(pnlPassword);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
 
         card.add(btnIngresar);
@@ -190,7 +206,7 @@ public class LoginScreen extends JFrame {
         pnlFondo.add(card);
 
         // Estado inicial
-        actualizarEstiloSwitch();
+        seleccionarRol(true);
     }
 
     private JButton crearBotonSegmento(String texto) {
@@ -242,6 +258,17 @@ public class LoginScreen extends JFrame {
         }
         btnRolEmpleado.repaint();
         btnRolEncargado.repaint();
+    }
+
+    private void alternarVerPassword() {
+        passwordVisible = !passwordVisible;
+        if (passwordVisible) {
+            txtPassword.setEchoChar((char) 0);
+            btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE_SLASH, 14, TemaFarmac.TEXTO));
+        } else {
+            txtPassword.setEchoChar('\u2022');
+            btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE, 14, TemaFarmac.TEXTO));
+        }
     }
 
     private void procesarLogin() {
