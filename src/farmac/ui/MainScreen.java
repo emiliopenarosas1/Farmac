@@ -74,8 +74,8 @@ public class MainScreen extends JFrame {
 
     private void configurarVentana() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Rectangle limitesPantalla = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-        setBounds(limitesPantalla);
+        setSize(1280, 800);
+        setLocationRelativeTo(null);
         setMinimumSize(new Dimension(1020, 620));
     }
 
