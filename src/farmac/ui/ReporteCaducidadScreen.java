@@ -33,6 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
@@ -54,6 +55,7 @@ public class ReporteCaducidadScreen extends JPanel {
     private JLabel lblKpiPorVencer;
     private JLabel lblKpiVigentes;
     private JComboBox<String> cmbUmbralDias;
+    private JButton btnActualizar;
 
     public ReporteCaducidadScreen() {
         this.loteDAO = new LoteDAO();
@@ -98,7 +100,7 @@ public class ReporteCaducidadScreen extends JPanel {
         TemaFarmac.estilizarComboBox(cmbUmbralDias);
         cmbUmbralDias.addActionListener(e -> aplicarUmbral());
 
-        JButton btnActualizar = TemaFarmac.crearBotonSecundario("Actualizar");
+        btnActualizar = TemaFarmac.crearBotonSecundario("Actualizar");
         btnActualizar.addActionListener(e -> cargarDatos());
 
         JButton btnAjustarCaducado = TemaFarmac.crearBotonPeligro("Dar Baja Lote Vencido");
@@ -181,13 +183,26 @@ public class ReporteCaducidadScreen extends JPanel {
     }
 
     public void cargarDatos() {
-        try {
-            lotesActuales = loteDAO.listarTodos();
-            operacionesInventario.setInventario(lotesActuales);
-            llenarTabla();
-        } catch (SQLException e) {
-DialogoFarmac.mostrar(this, "Error", "Error al cargar lotes: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
-        }
+        btnActualizar.setEnabled(false);
+        SwingWorker<List<Lote>, Void> worker = new SwingWorker<List<Lote>, Void>() {
+            @Override
+            protected List<Lote> doInBackground() throws Exception {
+                return loteDAO.listarTodos();
+            }
+            @Override
+            protected void done() {
+                try {
+                    lotesActuales = get();
+                    operacionesInventario.setInventario(lotesActuales);
+                    llenarTabla();
+                } catch (Exception e) {
+                    DialogoFarmac.mostrar(ReporteCaducidadScreen.this, "Error", "Error al cargar lotes: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
+                } finally {
+                    btnActualizar.setEnabled(true);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void llenarTabla() {
