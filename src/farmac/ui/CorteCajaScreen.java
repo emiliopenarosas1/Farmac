@@ -142,7 +142,7 @@ public class CorteCajaScreen extends JPanel {
         // Cierre y Arqueo
         gbc.gridwidth = 1;
         gbc.gridy = 3; gbc.gridx = 0;
-        JLabel lblContado = new JLabel("Efectivo Contado FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­sico en Caja ($) *:");
+        JLabel lblContado = new JLabel("Efectivo Contado Físico en Caja ($) *:");
         lblContado.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCardForm.add(lblContado, gbc);
 
@@ -215,7 +215,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al consultar turno: " + e.getMessage
             fondo = Double.parseDouble(fondoStr);
             if (fondo < 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            DialogoFarmac.mostrarJO(this, "El fondo inicial debe ser un nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido mayor o igual a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "El fondo inicial debe ser un número válido mayor o igual a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -236,13 +236,13 @@ DialogoFarmac.mostrar(this, "Error", "Error al consultar turno: " + e.getMessage
 
     private void cerrarTurno() {
         if (turnoActual == null || !turnoActual.estaAbierto()) {
-            DialogoFarmac.mostrarJO(this, "No hay ningÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºn turno abierto para cerrar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "No hay ningún turno abierto para cerrar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String contadoStr = txtEfectivoContado.getText().trim();
         if (contadoStr.isEmpty()) {
-            DialogoFarmac.mostrarJO(this, "Debe ingresar el efectivo contado fÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­sico en caja.", "Arqueo Obligatorio", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Debe ingresar el efectivo contado físico en caja.", "Arqueo Obligatorio", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -251,7 +251,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al consultar turno: " + e.getMessage
             contado = Double.parseDouble(contadoStr);
             if (contado < 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            DialogoFarmac.mostrarJO(this, "El efectivo contado debe ser un nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido mayor o igual a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "El efectivo contado debe ser un número válido mayor o igual a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 

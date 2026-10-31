@@ -28,7 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de gestiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n integral de Proveedores (RF20).
+ * Pantalla de gestión integral de Proveedores (RF20).
  * Accesible exclusivamente para Encargados.
  */
 public class ProveedoresScreen extends JPanel {
@@ -54,11 +54,11 @@ public class ProveedoresScreen extends JPanel {
         JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setBackground(TemaFarmac.GRIS_FONDO);
 
-        JLabel lblTitulo = new JLabel("AdministraciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Proveedores");
+        JLabel lblTitulo = new JLabel("Administración de Proveedores");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Alta, ediciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n y control de estado de casas farmacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©uticas y distribuidores (RF20)");
+        JLabel lblSub = new JLabel("Alta, edición y control de estado de casas farmacéuticas y distribuidores (RF20)");
         lblSub.setFont(TemaFarmac.FUENTE_REGULAR);
         lblSub.setForeground(TemaFarmac.GRIS_TEXTO);
 
@@ -73,7 +73,7 @@ public class ProveedoresScreen extends JPanel {
         pnlBarra.setBackground(TemaFarmac.GRIS_FONDO);
 
         txtBuscar = TemaFarmac.crearCampoTexto(15);
-        txtBuscar.putClientProperty("JTextField.placeholderText", "Buscar razÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n social...");
+        txtBuscar.putClientProperty("JTextField.placeholderText", "Buscar razón social...");
         txtBuscar.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
             public void keyReleased(java.awt.event.KeyEvent e) {
@@ -100,7 +100,7 @@ public class ProveedoresScreen extends JPanel {
         add(pnlHeader, BorderLayout.NORTH);
 
         // Tabla
-        String[] columnas = {"ID", "RazÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Social", "Contacto", "TelÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©fono", "Estado"};
+        String[] columnas = {"ID", "Razón Social", "Contacto", "Teléfono", "Estado"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
@@ -128,7 +128,7 @@ public class ProveedoresScreen extends JPanel {
         } catch (SQLException e) {
             DialogoFarmac.mostrarJO(this,
                     "Error al cargar proveedores de la base de datos: " + e.getMessage(),
-                    "Error de ConexiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.ERROR_MESSAGE);
+                    "Error de Conexión", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -189,7 +189,7 @@ public class ProveedoresScreen extends JPanel {
         boolean nuevoEstado = !p.isActivo();
         String accion = nuevoEstado ? "activar" : "desactivar";
         boolean confirm = DialogoFarmac.confirmarJO(this,
-                "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿Desea " + accion + " al proveedor '" + p.getRazonSocial() + "'?",
+                "¿Desea " + accion + " al proveedor '" + p.getRazonSocial() + "'?",
                 "Confirmar Cambio de Estado");
         if (confirm) {
             try {
@@ -232,13 +232,13 @@ public class ProveedoresScreen extends JPanel {
             chkActivo.setSelected(p.isActivo());
         }
 
-        gbc.gridx = 0; gbc.gridy = 0; pnlForm.add(new JLabel("RazÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Social *:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 0; pnlForm.add(new JLabel("Razón Social *:"), gbc);
         gbc.gridx = 1; pnlForm.add(txtRazon, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1; pnlForm.add(new JLabel("Contacto:"), gbc);
         gbc.gridx = 1; pnlForm.add(txtContacto, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2; pnlForm.add(new JLabel("TelÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©fono:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 2; pnlForm.add(new JLabel("Teléfono:"), gbc);
         gbc.gridx = 1; pnlForm.add(txtTelefono, gbc);
 
         gbc.gridx = 1; gbc.gridy = 3; pnlForm.add(chkActivo, gbc);
@@ -251,7 +251,7 @@ public class ProveedoresScreen extends JPanel {
         btnGuardar.addActionListener(e -> {
             String razon = txtRazon.getText().trim();
             if (razon.isEmpty()) {
-                DialogoFarmac.mostrarJO(dlg, "La razÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n social es obligatoria.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+                DialogoFarmac.mostrarJO(dlg, "La razón social es obligatoria.", "Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -266,7 +266,7 @@ public class ProveedoresScreen extends JPanel {
                     p.setTelefono(txtTelefono.getText().trim());
                     p.setActivo(chkActivo.isSelected());
                     proveedorDAO.actualizar(p);
-                    BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PROVEEDOR_EDICION", "EdiciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de proveedor #" + p.getId());
+                    BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "PROVEEDOR_EDICION", "Edición de proveedor #" + p.getId());
                 }
                 dlg.dispose();
                 cargarDatos();

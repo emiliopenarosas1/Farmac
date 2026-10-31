@@ -79,7 +79,7 @@ public class AjusteInventarioScreen extends JPanel {
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulo exclusivo para Encargados: Registro auditable de mermas, caducidades, robos y conteos (RF09)");
+        JLabel lblSub = new JLabel("Módulo exclusivo para Encargados: Registro auditable de mermas, caducidades, robos y conteos (RF09)");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -145,11 +145,11 @@ public class AjusteInventarioScreen extends JPanel {
         pnlCard.add(lblM, gbc);
 
         cmbMotivo = new JComboBox<>(new String[]{
-            "MERMA / PRODUCTO DAÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ADO",
+            "MERMA / PRODUCTO DAÑADO",
             "PRODUCTO CADUCADO",
-            "DISCREPANCIA EN CONTEO FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂSICO",
-            "ROBO O EXTRAVÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂO",
-            "DEVOLUCIÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN A PROVEEDOR",
+            "DISCREPANCIA EN CONTEO FÍSICO",
+            "ROBO O EXTRAVÍO",
+            "DEVOLUCIÓN A PROVEEDOR",
             "OTRO"
         });
         cmbMotivo.setFont(TemaFarmac.FUENTE_REGULAR);
@@ -158,7 +158,7 @@ public class AjusteInventarioScreen extends JPanel {
         gbc.gridx = 1;
         pnlCard.add(cmbMotivo, gbc);
 
-        // BotÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n
+        // Botón
         JButton btnAplicar = TemaFarmac.crearBoton("Autorizar y Aplicar Ajuste", TemaFarmac.ROJO, Color.WHITE);
         btnAplicar.setPreferredSize(new Dimension(340, 42));
         btnAplicar.addActionListener(e -> autorizar());
@@ -192,7 +192,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar lotes: " + e.getMessage(),
     private void actualizarDetalleStock() {
         LoteItem item = (LoteItem) cmbLotes.getSelectedItem();
         if (item != null) {
-            lblStockActual.setText(item.lote.getCantidadActual() + " piezas disponibles en almacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©n");
+            lblStockActual.setText(item.lote.getCantidadActual() + " piezas disponibles en almacén");
         } else {
             lblStockActual.setText("No hay lotes con existencias disponibles.");
         }
@@ -206,13 +206,13 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar lotes: " + e.getMessage(),
 
         LoteItem item = (LoteItem) cmbLotes.getSelectedItem();
         if (item == null) {
-            DialogoFarmac.mostrarJO(this, "Seleccione un lote vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Seleccione un lote válido.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String cantStr = txtCantidadAjuste.getText().trim();
         if (cantStr.isEmpty()) {
-            DialogoFarmac.mostrarJO(this, "Ingrese la cantidad de piezas a descontar.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Ingrese la cantidad de piezas a descontar.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -221,7 +221,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar lotes: " + e.getMessage(),
             cantidad = Integer.parseInt(cantStr);
             if (cantidad <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            DialogoFarmac.mostrarJO(this, "La cantidad a descontar debe ser un nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero entero mayor a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "La cantidad a descontar debe ser un número entero mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -236,13 +236,13 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar lotes: " + e.getMessage(),
         String motivo = (String) cmbMotivo.getSelectedItem();
 
         boolean confirm = DialogoFarmac.confirmarJO(this,
-                "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿Confirma descontar " + cantidad + " piezas del lote '" + lote.getNumeroLote() + "'?\nMotivo: " + motivo,
+                "¿Confirma descontar " + cantidad + " piezas del lote '" + lote.getNumeroLote() + "'?\nMotivo: " + motivo,
                 "Confirmar Ajuste Manual");
 
         if (confirm) {
             Connection conn = null;
             try {
-                // Una sola transacciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n: actualizaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de stock + movimiento de auditorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a.
+                // Una sola transacción: actualización de stock + movimiento de auditoría.
                 conn = ConexionBD.obtenerConexion();
                 conn.setAutoCommit(false);
 

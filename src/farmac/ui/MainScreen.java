@@ -41,7 +41,7 @@ import javax.swing.border.EmptyBorder;
 
 /**
  * Pantalla principal del sistema con control de acceso por roles (RNF02),
- * integraciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de todos los mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulos y alertas al inicio (RF10, RF11).
+ * integración de todos los módulos y alertas al inicio (RF10, RF11).
  */
 public class MainScreen extends JFrame {
 
@@ -52,7 +52,7 @@ public class MainScreen extends JFrame {
     private final Map<String, PanelFade> panelesCreados;
 
     public MainScreen(Usuario usuario) {
-        super("Farmac - Sistema de GestiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n FarmacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©utica y Punto de Venta");
+        super("Farmac - Sistema de Gestión Farmacéutica y Punto de Venta");
         this.usuarioActivo = usuario;
         this.botonesMenu = new ArrayList<>();
         this.panelesCreados = new HashMap<>();
@@ -62,7 +62,7 @@ public class MainScreen extends JFrame {
         configurarVentana();
         inicializarComponentes();
 
-        // Lanzar comprobaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de alertas en segundo plano al arrancar
+        // Lanzar comprobación de alertas en segundo plano al arrancar
         SwingUtilities.invokeLater(this::comprobarAlertasInicio);
     }
 
@@ -101,7 +101,7 @@ public class MainScreen extends JFrame {
         pnlBrand.add(lblSlogan);
         pnlSidebar.add(pnlBrand, BorderLayout.NORTH);
 
-        // MenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº de opciones
+        // Menú de opciones
         JPanel pnlMenu = new JPanel();
         pnlMenu.setBackground(TemaFarmac.AZUL_PETROLEO);
         pnlMenu.setLayout(new BoxLayout(pnlMenu, BoxLayout.Y_AXIS));
@@ -113,22 +113,22 @@ public class MainScreen extends JFrame {
 
         boolean esEncargado = "ENCARGADO".equalsIgnoreCase(usuarioActivo.obtenerRol());
 
-        // MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulos compartidos: se construyen de forma diferida al abrir cada pestaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a
+        // Módulos compartidos: se construyen de forma diferida al abrir cada pestaña
         agregarOpcionMenu(pnlMenu, "Punto de Venta", "POS", () -> new PuntoVentaScreen(usuarioActivo));
         agregarOpcionMenu(pnlMenu, "Control de Caja", "CAJA", () -> new CorteCajaScreen(usuarioActivo));
         agregarOpcionMenu(pnlMenu, "Historial de Ventas", "HISTORIAL", HistorialVentasScreen::new);
 
-        // MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulos exclusivos de Encargado (RNF02)
+        // Módulos exclusivos de Encargado (RNF02)
         if (esEncargado) {
-            agregarOpcionMenu(pnlMenu, "CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo Medicamentos", "CATALOGO", () -> new CatalogoProductosScreen(usuarioActivo));
-            agregarOpcionMenu(pnlMenu, "RecepciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Lotes", "RECEPCION", RecepcionInventarioScreen::new);
+            agregarOpcionMenu(pnlMenu, "Catálogo Medicamentos", "CATALOGO", () -> new CatalogoProductosScreen(usuarioActivo));
+            agregarOpcionMenu(pnlMenu, "Recepción de Lotes", "RECEPCION", RecepcionInventarioScreen::new);
             agregarOpcionMenu(pnlMenu, "Ajustes de Inventario", "AJUSTES", () -> new AjusteInventarioScreen(usuarioActivo));
             agregarOpcionMenu(pnlMenu, "Reporte Existencias", "EXISTENCIAS", ReporteExistenciasScreen::new);
             agregarOpcionMenu(pnlMenu, "Alertas Caducidad", "CADUCIDAD", ReporteCaducidadScreen::new);
             agregarOpcionMenu(pnlMenu, "Proveedores", "PROVEEDORES", ProveedoresScreen::new);
-            agregarOpcionMenu(pnlMenu, "GestiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Usuarios", "USUARIOS", GestionUsuariosScreen::new);
+            agregarOpcionMenu(pnlMenu, "Gestión de Usuarios", "USUARIOS", GestionUsuariosScreen::new);
 
-            // BotÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Respaldo de BD (A6, RNF05)
+            // Botón de Respaldo de BD (A6, RNF05)
             JButton btnRespaldo = new JButton("Respaldar BD (SQL)");
             btnRespaldo.setFont(TemaFarmac.FUENTE_PEQUENA);
             btnRespaldo.setForeground(new Color(0xD0, 0xE2, 0xEC));
@@ -160,7 +160,7 @@ public class MainScreen extends JFrame {
         lblUserRole.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblUserRole.setForeground(new Color(0x94, 0xD2, 0xBD));
 
-        JButton btnSalir = TemaFarmac.crearBoton("Cerrar SesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", TemaFarmac.ROJO, Color.WHITE);
+        JButton btnSalir = TemaFarmac.crearBoton("Cerrar Sesión", TemaFarmac.ROJO, Color.WHITE);
         btnSalir.setFont(TemaFarmac.FUENTE_PEQUENA);
         btnSalir.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
         btnSalir.addActionListener(e -> {
@@ -232,16 +232,17 @@ public class MainScreen extends JFrame {
                 ((FontIcon) btn.getIcon()).setIconColor(Color.WHITE);
             }
 
-            // ConstrucciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n diferida: cada pantalla se crea solo la primera vez que se abre.
+            // Construcción diferida: cada pantalla se crea solo la primera vez que se abre.
             if (!panelesCreados.containsKey(claveCard)) {
                 try {
                     JPanel panelVista = fabricaPanel.get();
                     PanelFade wrapper = new PanelFade(panelVista);
                     panelesCreados.put(claveCard, wrapper);
+                    pnlContenidoCentral.add(wrapper, claveCard);
                 } catch (RuntimeException ex) {
                     DialogoFarmac.mostrarJO(this,
-                            "No se pudo abrir el mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulo '" + texto + "': " + ex.getMessage(),
-                            "Error al abrir mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³dulo", JOptionPane.ERROR_MESSAGE);
+                            "No se pudo abrir el módulo '" + texto + "': " + ex.getMessage(),
+                            "Error al abrir módulo", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             }
@@ -297,23 +298,23 @@ public class MainScreen extends JFrame {
                 long vencidos = alertasCad.stream().filter(l -> l.estaVencido(java.time.LocalDate.now())).count();
                 long porVencer = alertasCad.size() - vencidos;
                 msj.append("ALERTA DE CADUCIDADES (RF10):\n")
-                   .append("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ").append(vencidos).append(" lote(s) VENCIDOS.\n")
-                   .append("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ").append(porVencer).append(" lote(s) por vencer en los prÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ximos 60 dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as.\n\n");
+                   .append("• ").append(vencidos).append(" lote(s) VENCIDOS.\n")
+                   .append("• ").append(porVencer).append(" lote(s) por vencer en los próximos 60 días.\n\n");
             }
 
-            // Alerta de Stock MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nimo para Encargado (RF11)
+            // Alerta de Stock Mínimo para Encargado (RF11)
             if (Sesion.esEncargado()) {
                 ProductoDAO prodDAO = new ProductoDAO();
                 List<Producto> prods = prodDAO.listarTodos(true);
                 List<Producto> bajos = op.productosBajoStock(prods);
                 if (!bajos.isEmpty()) {
-                    msj.append("ALERTA DE DESABASTO / STOCK MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂNIMO (RF11):\n")
-                       .append("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ").append(bajos.size()).append(" producto(s) en o por debajo de su stock de seguridad:\n");
+                    msj.append("ALERTA DE DESABASTO / STOCK MÍNIMO (RF11):\n")
+                       .append("• ").append(bajos.size()).append(" producto(s) en o por debajo de su stock de seguridad:\n");
                     for (int i = 0; i < Math.min(bajos.size(), 4); i++) {
                         msj.append("   - ").append(bajos.get(i).getNombre()).append("\n");
                     }
                     if (bajos.size() > 4) {
-                        msj.append("   ... y ").append(bajos.size() - 4).append(" mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡s.\n");
+                        msj.append("   ... y ").append(bajos.size() - 4).append(" más.\n");
                     }
                 }
             }

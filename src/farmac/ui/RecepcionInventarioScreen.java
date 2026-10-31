@@ -35,7 +35,7 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Pantalla para recepciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n y registro de lotes de medicamentos en PostgreSQL (RF07, RF08).
+ * Pantalla para recepción y registro de lotes de medicamentos en PostgreSQL (RF07, RF08).
  */
 public class RecepcionInventarioScreen extends JPanel {
 
@@ -70,11 +70,11 @@ public class RecepcionInventarioScreen extends JPanel {
         JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setOpaque(false);
 
-        JLabel lblTitulo = new JLabel("RecepciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de MercancÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a por Lote");
+        JLabel lblTitulo = new JLabel("Recepción de Mercancía por Lote");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Registro formal de partidas con validaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de caducidad futura, proveedor y remisiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n (RF07, RF08)");
+        JLabel lblSub = new JLabel("Registro formal de partidas con validación de caducidad futura, proveedor y remisión (RF07, RF08)");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -122,9 +122,9 @@ public class RecepcionInventarioScreen extends JPanel {
         gbc.gridx = 1;
         pnlCard.add(cmbProveedores, gbc);
 
-        // 3. NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero de Lote
+        // 3. Número de Lote
         gbc.gridy = 2; gbc.gridx = 0;
-        JLabel lblLote = new JLabel("NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero de Lote *:");
+        JLabel lblLote = new JLabel("Número de Lote *:");
         lblLote.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblLote, gbc);
 
@@ -163,9 +163,9 @@ public class RecepcionInventarioScreen extends JPanel {
         gbc.gridx = 1;
         pnlCard.add(txtPrecioCompra, gbc);
 
-        // 7. Factura / RemisiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n
+        // 7. Factura / Remisión
         gbc.gridy = 6; gbc.gridx = 0;
-        JLabel lblFact = new JLabel("Factura / RemisiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n:");
+        JLabel lblFact = new JLabel("Factura / Remisión:");
         lblFact.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlCard.add(lblFact, gbc);
 
@@ -173,7 +173,7 @@ public class RecepcionInventarioScreen extends JPanel {
         gbc.gridx = 1;
         pnlCard.add(txtFactura, gbc);
 
-        // BotÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Guardar
+        // Botón Guardar
         JButton btnGuardar = TemaFarmac.crearBoton("Guardar Entrada en Inventario", TemaFarmac.VERDE, Color.WHITE);
         btnGuardar.setPreferredSize(new Dimension(320, 42));
         btnGuardar.addActionListener(e -> registrar());
@@ -203,7 +203,7 @@ public class RecepcionInventarioScreen extends JPanel {
                 cmbProveedores.addItem(pr);
             }
         } catch (SQLException e) {
-DialogoFarmac.mostrar(this, "Error", "Error al cargar catÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logos: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
+DialogoFarmac.mostrar(this, "Error", "Error al cargar catálogos: " + e.getMessage(), DialogoFarmac.Tipo.ERROR);
         }
     }
 
@@ -217,7 +217,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar catÃƒÆ’Ã†â€™�
         String factura = txtFactura.getText().trim();
 
         if (p == null || prov == null || lote.isEmpty() || cadStr.isEmpty() || cantStr.isEmpty() || precioStr.isEmpty()) {
-            DialogoFarmac.mostrarJO(this, "Por favor complete todos los campos obligatorios (*).", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Por favor complete todos los campos obligatorios (*).", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -225,11 +225,11 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar catÃƒÆ’Ã†â€™�
         try {
             caducidad = LocalDate.parse(cadStr);
             if (!caducidad.isAfter(LocalDate.now())) {
-                DialogoFarmac.mostrarJO(this, "La fecha de caducidad debe ser futura a la fecha actual.", "Caducidad InvÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lida", JOptionPane.WARNING_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "La fecha de caducidad debe ser futura a la fecha actual.", "Caducidad Inválida", JOptionPane.WARNING_MESSAGE);
                 return;
             }
         } catch (Exception e) {
-            DialogoFarmac.mostrarJO(this, "Formato de fecha invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido. Utilice el formato AAAA-MM-DD (ej. 2027-10-15).", "Formato InvÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Formato de fecha inválido. Utilice el formato AAAA-MM-DD (ej. 2027-10-15).", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -238,7 +238,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar catÃƒÆ’Ã†â€™�
             cantidad = Integer.parseInt(cantStr);
             if (cantidad <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            DialogoFarmac.mostrarJO(this, "La cantidad de piezas debe ser un nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºmero entero mayor a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "La cantidad de piezas debe ser un número entero mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -247,7 +247,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar catÃƒÆ’Ã†â€™�
             precioCompra = Double.parseDouble(precioStr);
             if (precioCompra <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            DialogoFarmac.mostrarJO(this, "El precio de compra unitario debe ser mayor a 0.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "El precio de compra unitario debe ser mayor a 0.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -255,20 +255,20 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar catÃƒÆ’Ã†â€™�
             Lote nuevoLote = new Lote(0, lote, caducidad, cantidad, cantidad, precioCompra, p, prov, LocalDate.now(), factura);
             loteDAO.insertar(nuevoLote);
 
-            // Registrar movimiento de auditorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a
+            // Registrar movimiento de auditoría
             MovimientoInventario mov = new MovimientoInventario(
-                    0, nuevoLote, "RECEPCION", cantidad, "Entrada de mercancÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a / factura: " + factura,
+                    0, nuevoLote, "RECEPCION", cantidad, "Entrada de mercancía / factura: " + factura,
                     factura.isEmpty() ? "REC-" + nuevoLote.getId() : factura,
                     Sesion.getUsuarioActivo(), LocalDateTime.now()
             );
             movimientoDAO.insertar(mov, null);
 
             BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "INVENTARIO_RECEPCION",
-                    "RecepciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de lote " + lote + " (" + cantidad + " pzas) para " + p.getNombre());
+                    "Recepción de lote " + lote + " (" + cantidad + " pzas) para " + p.getNombre());
 
             DialogoFarmac.mostrarJO(this,
                     "Lote '" + lote + "' registrado exitosamente en el inventario con " + cantidad + " piezas.",
-                    "RecepciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Completada", JOptionPane.INFORMATION_MESSAGE);
+                    "Recepción Completada", JOptionPane.INFORMATION_MESSAGE);
 
             // Limpiar campos
             txtNumLote.setText("");

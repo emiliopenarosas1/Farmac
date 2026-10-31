@@ -28,7 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Reporte de Existencias y ValorizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n Total del Inventario (RF18).
+ * Pantalla de Reporte de Existencias y Valorización Total del Inventario (RF18).
  * Accesible exclusivamente para Encargados.
  */
 public class ReporteExistenciasScreen extends JPanel {
@@ -65,11 +65,11 @@ public class ReporteExistenciasScreen extends JPanel {
         JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setBackground(TemaFarmac.GRIS_FONDO);
 
-        JLabel lblTitulo = new JLabel("Reporte de Existencias y ValorizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n");
+        JLabel lblTitulo = new JLabel("Reporte de Existencias y Valorización");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("ConsolidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de stock por producto, alertas de desabasto y valuaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n total (RF18)");
+        JLabel lblSub = new JLabel("Consolidación de stock por producto, alertas de desabasto y valuación total (RF18)");
         lblSub.setFont(TemaFarmac.FUENTE_REGULAR);
         lblSub.setForeground(TemaFarmac.GRIS_TEXTO);
 
@@ -79,7 +79,7 @@ public class ReporteExistenciasScreen extends JPanel {
         pnlTitulos.add(lblSub, BorderLayout.SOUTH);
         pnlHeader.add(pnlTitulos, BorderLayout.WEST);
 
-        // Barra derecha: BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºsqueda y Exportar
+        // Barra derecha: Búsqueda y Exportar
         JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         pnlAcciones.setBackground(TemaFarmac.GRIS_FONDO);
 
@@ -129,8 +129,8 @@ public class ReporteExistenciasScreen extends JPanel {
 
         // Tabla
         String[] columnas = {
-            "CÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³digo Barras", "Nombre Producto", "CategorÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­a", "Proveedor",
-            "Stock MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­n.", "Stock Actual", "Caducidad PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³x.", "Valor Stock ($)", "Estado"
+            "Código Barras", "Nombre Producto", "Categoría", "Proveedor",
+            "Stock Mín.", "Stock Actual", "Caducidad Próx.", "Valor Stock ($)", "Estado"
         };
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
@@ -187,7 +187,7 @@ public class ReporteExistenciasScreen extends JPanel {
             int stock = p.calcularStockTotal(listaLotes);
             LocalDate cadProxima = p.obtenerCaducidadProxima(listaLotes);
 
-            // Calcular valorizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de este producto sumando sus lotes
+            // Calcular valorización de este producto sumando sus lotes
             double valorProducto = 0.0;
             for (Lote l : listaLotes) {
                 if (l != null && l.getProducto() != null && l.getProducto().getId() == p.getId() && l.getCantidadActual() > 0) {
@@ -196,7 +196,7 @@ public class ReporteExistenciasScreen extends JPanel {
             }
 
             boolean bajo = stock <= p.getStockMinimo();
-            String estado = bajo ? "BAJO STOCK" : "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œPTIMO";
+            String estado = bajo ? "BAJO STOCK" : "ÓPTIMO";
 
             modeloTabla.addRow(new Object[]{
                 p.getCodigoBarras(),
@@ -246,7 +246,7 @@ public class ReporteExistenciasScreen extends JPanel {
                             modeloTabla.getValueAt(i, 7),
                             modeloTabla.getValueAt(i, 8));
                 }
-                DialogoFarmac.mostrarJO(this, "Reporte exportado exitosamente a:\n" + f.getAbsolutePath(), "ExportaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Reporte exportado exitosamente a:\n" + f.getAbsolutePath(), "Exportación Exitosa", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 DialogoFarmac.mostrarJO(this, "Error al exportar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }

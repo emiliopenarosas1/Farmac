@@ -165,7 +165,6 @@ public class TemaFarmac {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // sombra suave
                 for (int i = 4; i >= 1; i--) {
                     g2.setColor(new Color(0, 0, 0, 6 * i));
                     g2.fill(new RoundRectangle2D.Float(i, i + 1, getWidth() - 2 * i, getHeight() - 2 * i, 10, 10));

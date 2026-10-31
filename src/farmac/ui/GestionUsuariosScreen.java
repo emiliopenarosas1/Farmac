@@ -32,8 +32,8 @@ import javax.swing.table.DefaultTableModel;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
- * Pantalla de AdministraciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n y CRUD de Usuarios con persistencia en PostgreSQL (RF01).
- * Aplica restricciones de seguridad para no eliminar al ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimo encargado ni a sÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ mismo.
+ * Pantalla de Administración y CRUD de Usuarios con persistencia en PostgreSQL (RF01).
+ * Aplica restricciones de seguridad para no eliminar al último encargado ni a sí mismo.
  */
 public class GestionUsuariosScreen extends JPanel {
 
@@ -64,11 +64,11 @@ public class GestionUsuariosScreen extends JPanel {
         pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
         pnlTit.setOpaque(false);
 
-        JLabel lblTitulo = new JLabel("AdministraciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n y CRUD de Usuarios");
+        JLabel lblTitulo = new JLabel("Administración y CRUD de Usuarios");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Alta, ediciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de credenciales (BCrypt), asignaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de roles y control de acceso (RF01)");
+        JLabel lblSub = new JLabel("Alta, edición de credenciales (BCrypt), asignación de roles y control de acceso (RF01)");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -115,7 +115,7 @@ public class GestionUsuariosScreen extends JPanel {
         scroll.getViewport().setBackground(Color.WHITE);
         pnlCard.add(scroll, BorderLayout.CENTER);
 
-        JLabel lblAyuda = new JLabel("Nota de seguridad: No estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ permitido desactivar al ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimo Encargado ni modificar el estado de su propia cuenta activa.");
+        JLabel lblAyuda = new JLabel("Nota de seguridad: No está permitido desactivar al último Encargado ni modificar el estado de su propia cuenta activa.");
         lblAyuda.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblAyuda.setForeground(TemaFarmac.TEXTO_MUTED);
         pnlCard.add(lblAyuda, BorderLayout.SOUTH);
@@ -172,10 +172,10 @@ public class GestionUsuariosScreen extends JPanel {
         JPanel form = new JPanel(new GridLayout(4, 2, 8, 8));
         form.add(new JLabel("Nombre de Usuario (Login) *:")); form.add(txtUser);
         form.add(new JLabel("Nombre Completo *:")); form.add(txtNombre);
-        form.add(new JLabel("ContraseÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a Inicial *:")); form.add(txtPass);
+        form.add(new JLabel("Contraseña Inicial *:")); form.add(txtPass);
         form.add(new JLabel("Rol en el Sistema:")); form.add(cmbRol);
 
-        boolean res = DialogoFarmac.confirmar(this, "Registrar Nuevo Usuario", form);
+boolean res = DialogoFarmac.confirmar(this, "Registrar Nuevo Usuario", form);
         if (res) {
             String u = txtUser.getText().trim();
             String n = txtNombre.getText().trim();
@@ -183,13 +183,13 @@ public class GestionUsuariosScreen extends JPanel {
             String r = (String) cmbRol.getSelectedItem();
 
             if (u.isEmpty() || n.isEmpty() || p.isEmpty()) {
-                DialogoFarmac.mostrarJO(this, "Todos los campos marcados con (*) son obligatorios.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Todos los campos marcados con (*) son obligatorios.", "Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             try {
                 if (usuarioDAO.existeLogin(u, 0)) {
-                    DialogoFarmac.mostrarJO(this, "El nombre de usuario '" + u + "' ya estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ en uso. Elija otro.", "Login Duplicado", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "El nombre de usuario '" + u + "' ya está en uso. Elija otro.", "Login Duplicado", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -229,10 +229,10 @@ public class GestionUsuariosScreen extends JPanel {
         JPanel form = new JPanel(new GridLayout(4, 2, 8, 8));
         form.add(new JLabel("Usuario (Login) *:")); form.add(txtUser);
         form.add(new JLabel("Nombre Completo *:")); form.add(txtNombre);
-        form.add(new JLabel("Nueva ContraseÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a (vacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­o = no cambiar):")); form.add(txtPass);
+        form.add(new JLabel("Nueva Contraseña (vacío = no cambiar):")); form.add(txtPass);
         form.add(new JLabel("Rol Asignado:")); form.add(cmbRol);
 
-        boolean res = DialogoFarmac.confirmar(this, "Modificar Usuario #" + u.getId(), form);
+boolean res = DialogoFarmac.confirmar(this, "Modificar Usuario #" + u.getId(), form);
         if (res) {
             String nuevoLogin = txtUser.getText().trim();
             String nuevoNombre = txtNombre.getText().trim();
@@ -240,7 +240,7 @@ public class GestionUsuariosScreen extends JPanel {
             String nuevoRol = (String) cmbRol.getSelectedItem();
 
             if (nuevoLogin.isEmpty() || nuevoNombre.isEmpty()) {
-                DialogoFarmac.mostrarJO(this, "El login y el nombre no pueden quedar vacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­os.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "El login y el nombre no pueden quedar vacíos.", "Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -250,10 +250,10 @@ public class GestionUsuariosScreen extends JPanel {
                     return;
                 }
 
-                // RestricciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n: No degradar al ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºltimo Encargado
+                // Restricción: No degradar al último Encargado
                 if ("ENCARGADO".equalsIgnoreCase(u.obtenerRol()) && "EMPLEADO".equalsIgnoreCase(nuevoRol)) {
                     if (usuarioDAO.contarEncargadosActivos() <= 1) {
-                        DialogoFarmac.mostrarJO(this, "No es posible cambiar el rol: es el ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºnico Encargado activo del sistema.", "RestricciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Seguridad", JOptionPane.WARNING_MESSAGE);
+                        DialogoFarmac.mostrarJO(this, "No es posible cambiar el rol: es el único Encargado activo del sistema.", "Restricción de Seguridad", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
                 }
@@ -275,9 +275,9 @@ public class GestionUsuariosScreen extends JPanel {
                 }
 
                 usuarioDAO.actualizar(actualizado, actualizaPass);
-                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "USUARIO_EDICION", "EdiciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de cuenta #" + u.getId() + " (" + nuevoLogin + ")");
+                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "USUARIO_EDICION", "Edición de cuenta #" + u.getId() + " (" + nuevoLogin + ")");
                 cargarDatos();
-                DialogoFarmac.mostrarJO(this, "Datos de usuario actualizados correctamente.", "ActualizaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Datos de usuario actualizados correctamente.", "Actualización Exitosa", JOptionPane.INFORMATION_MESSAGE);
 
             } catch (SQLException ex) {
                 DialogoFarmac.mostrarJO(this, "Error al actualizar usuario: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
@@ -292,14 +292,14 @@ public class GestionUsuariosScreen extends JPanel {
         // Validaciones de seguridad
         Usuario sesionActual = Sesion.getUsuarioActivo();
         if (sesionActual != null && sesionActual.getId() == u.getId()) {
-            DialogoFarmac.mostrarJO(this, "No puede desactivar su propia cuenta de sesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n activa.", "AcciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Denegada", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "No puede desactivar su propia cuenta de sesión activa.", "Acción Denegada", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
             if (u.isActivo() && "ENCARGADO".equalsIgnoreCase(u.obtenerRol())) {
                 if (usuarioDAO.contarEncargadosActivos() <= 1) {
-                    DialogoFarmac.mostrarJO(this, "No puede desactivar al ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºnico Encargado activo del sistema.", "RestricciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de Seguridad", JOptionPane.WARNING_MESSAGE);
+                    DialogoFarmac.mostrarJO(this, "No puede desactivar al único Encargado activo del sistema.", "Restricción de Seguridad", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
             }
@@ -307,7 +307,7 @@ public class GestionUsuariosScreen extends JPanel {
             boolean nuevoEstado = !u.isActivo();
             String accionStr = nuevoEstado ? "activar" : "desactivar";
             boolean conf = DialogoFarmac.confirmarJO(this,
-                    "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿EstÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ seguro de " + accionStr + " la cuenta de '" + u.getNombreUsuario() + "'?",
+                    "¿Está seguro de " + accionStr + " la cuenta de '" + u.getNombreUsuario() + "'?",
                     "Confirmar");
             if (conf) {
                 usuarioDAO.cambiarEstado(u.getId(), nuevoEstado);

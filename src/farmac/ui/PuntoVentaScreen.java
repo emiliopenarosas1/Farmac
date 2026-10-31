@@ -50,7 +50,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Punto de Venta con validaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de caja obligatoria (RF12),
+ * Pantalla de Punto de Venta con validación de caja obligatoria (RF12),
  * descuento transaccional ACID (A4, RF13), regla FEFO estricta, recetas (RF14) y tickets PDF.
  */
 public class PuntoVentaScreen extends JPanel {
@@ -103,7 +103,7 @@ public class PuntoVentaScreen extends JPanel {
         setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(new EmptyBorder(10, 12, 10, 12));
 
-        // 1. Cabecera con Buscador / EscÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ner y Banner de Caja
+        // 1. Cabecera con Buscador / Escáner y Banner de Caja
         JPanel pnlNorte = new JPanel();
         pnlNorte.setLayout(new BoxLayout(pnlNorte, BoxLayout.Y_AXIS));
         pnlNorte.setOpaque(false);
@@ -127,11 +127,11 @@ public class PuntoVentaScreen extends JPanel {
         pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
         pnlTit.setOpaque(false);
 
-        JLabel lblTitulo = new JLabel("Punto de Venta y FacturaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n");
+        JLabel lblTitulo = new JLabel("Punto de Venta y Facturación");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Escanee el cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo de barras o agregue productos desde el catÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo con regla FEFO");
+        JLabel lblSub = new JLabel("Escanee el código de barras o agregue productos desde el catálogo con regla FEFO");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -141,7 +141,7 @@ public class PuntoVentaScreen extends JPanel {
         JPanel pnlEscaner = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         pnlEscaner.setOpaque(false);
 
-        JLabel lblLector = new JLabel("Lector / CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo:");
+        JLabel lblLector = new JLabel("Lector / Código:");
         lblLector.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblLector.setForeground(TemaFarmac.TEXTO_AZUL);
 
@@ -152,7 +152,7 @@ public class PuntoVentaScreen extends JPanel {
         JButton btnBuscar = TemaFarmac.crearBoton("Buscar", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
         btnBuscar.setIcon(FontIcon.of(FontAwesomeSolid.SEARCH, 12, Color.WHITE));
 
-        JButton btnRefrescar = TemaFarmac.crearBotonSecundario("Actualizar CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo");
+        JButton btnRefrescar = TemaFarmac.crearBotonSecundario("Actualizar Catálogo");
         btnRefrescar.addActionListener(e -> cargarDatosCatalogo());
 
         pnlEscaner.add(lblLector);
@@ -166,23 +166,23 @@ public class PuntoVentaScreen extends JPanel {
 
         add(pnlNorte, BorderLayout.NORTH);
 
-        // 2. DivisiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Central (CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo a la izquierda, Carrito a la derecha)
+        // 2. División Central (Catálogo a la izquierda, Carrito a la derecha)
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setDividerLocation(580);
         splitPane.setResizeWeight(0.55);
         splitPane.setOpaque(false);
         splitPane.setBorder(null);
 
-        // LADO IZQUIERDO: CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo
+        // LADO IZQUIERDO: Catálogo
         JPanel pnlCardCatalogo = TemaFarmac.crearCard();
         pnlCardCatalogo.setLayout(new BorderLayout(4, 4));
 
-        JLabel lblTitCat = new JLabel("CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo de Medicamentos Disponibles");
+        JLabel lblTitCat = new JLabel("Catálogo de Medicamentos Disponibles");
         lblTitCat.setFont(TemaFarmac.FUENTE_SUBTITULO);
         lblTitCat.setForeground(TemaFarmac.AZUL_PETROLEO);
         pnlCardCatalogo.add(lblTitCat, BorderLayout.NORTH);
 
-        String[] colsCat = {"CÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo", "Medicamento", "Precio", "Stock Total", "Control", "AcciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n"};
+        String[] colsCat = {"Código", "Medicamento", "Precio", "Stock Total", "Control", "Acción"};
         modeloCatalogo = new DefaultTableModel(colsCat, 0) {
             @Override
             public boolean isCellEditable(int row, int col) { return col == 5; }
@@ -342,7 +342,7 @@ public class PuntoVentaScreen extends JPanel {
 
             llenarTablaCatalogo();
         } catch (SQLException e) {
-            DialogoFarmac.mostrarJO(this, "Error al cargar catÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Error al cargar catálogo: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -350,7 +350,7 @@ public class PuntoVentaScreen extends JPanel {
         modeloCatalogo.setRowCount(0);
         if (catalogoProductos == null) return;
         for (Producto p : catalogoProductos) {
-            // Calcular existencias ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºnicamente en lotes vigentes (no vencidos)
+            // Calcular existencias únicamente en lotes vigentes (no vencidos)
             int stockDisponible = operacionesInventario.calcularStockDisponible(p);
 
             modeloCatalogo.addRow(new Object[]{
@@ -388,7 +388,7 @@ public class PuntoVentaScreen extends JPanel {
             txtEscaner.setText("");
             txtEscaner.requestFocusInWindow();
         } else {
-            DialogoFarmac.mostrarJO(this, "Medicamento no encontrado para el cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³digo/tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rmino: " + texto, "Aviso", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "Medicamento no encontrado para el código/término: " + texto, "Aviso", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -409,7 +409,7 @@ public class PuntoVentaScreen extends JPanel {
 
         if (stockTotalDisponible <= 0) {
             DialogoFarmac.mostrarJO(this,
-                    "Sin existencias disponibles en almacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©n para '" + prod.getNombre() + "'.\n"
+                    "Sin existencias disponibles en almacén para '" + prod.getNombre() + "'.\n"
                     + "(No se permite despachar lotes vencidos ni sin stock)",
                     "Producto Agotado", JOptionPane.WARNING_MESSAGE);
             return;
@@ -423,7 +423,7 @@ public class PuntoVentaScreen extends JPanel {
                     "Existencias insuficientes para '" + prod.getNombre() + "'.\n"
                     + "Stock total vigente: " + stockTotalDisponible + " pzas.\n"
                     + "Cantidad solicitada en carrito: " + nuevaCantidad + " pzas.",
-                    "LÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­mite de Stock Superado", JOptionPane.WARNING_MESSAGE);
+                    "Límite de Stock Superado", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -505,7 +505,7 @@ public class PuntoVentaScreen extends JPanel {
         }
 
         if (cantidadesCarrito.isEmpty()) {
-            DialogoFarmac.mostrarJO(this, "El carrito de ventas estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ vacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­o. Agregue medicamentos.", "Carrito VacÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­o", JOptionPane.WARNING_MESSAGE);
+            DialogoFarmac.mostrarJO(this, "El carrito de ventas está vacío. Agregue medicamentos.", "Carrito Vacío", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -538,12 +538,12 @@ public class PuntoVentaScreen extends JPanel {
                 }
                 cambio = Math.round((efectivoRecibido - totalVenta) * 100.0) / 100.0;
             } catch (NumberFormatException ex) {
-                DialogoFarmac.mostrarJO(this, "Monto recibido invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido.", "ValidaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n", JOptionPane.WARNING_MESSAGE);
+                DialogoFarmac.mostrarJO(this, "Monto recibido inválido.", "Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
         }
 
-        // 1. Detectar productos controlados que requieran receta mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dica (RF14)
+        // 1. Detectar productos controlados que requieran receta médica (RF14)
         List<RecetaMedica> recetasCapturadas = new ArrayList<>();
         Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(this);
 
@@ -555,7 +555,7 @@ public class PuntoVentaScreen extends JPanel {
 
                 if (!dialog.isConfirmado() || dialog.getRecetaRegistrada() == null) {
                     DialogoFarmac.mostrarJO(this,
-                            "Cobro cancelado: No se completÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ el registro de receta mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©dica obligatoria para:\n" + p.getNombre(),
+                            "Cobro cancelado: No se completó el registro de receta médica obligatoria para:\n" + p.getNombre(),
                             "Venta Interrumpida (RF14)", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
@@ -571,7 +571,7 @@ public class PuntoVentaScreen extends JPanel {
         }
 
         try {
-            // Recargar lotes frescos para garantizar precisiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n en la asignaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n FEFO
+            // Recargar lotes frescos para garantizar precisión en la asignación FEFO
             List<Lote> lotesFrescos = loteDAO.listarTodos();
             operacionesInventario.setInventario(lotesFrescos);
 
@@ -591,7 +591,7 @@ public class PuntoVentaScreen extends JPanel {
                 }
             }
 
-            // 3. Ejecutar TransacciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n ACID en Base de Datos (A4)
+            // 3. Ejecutar Transacción ACID en Base de Datos (A4)
             ventaDAO.registrarVentaTransaccional(venta);
 
             // 4. Generar Ticket PDF oficial (RNF08)
@@ -601,22 +601,22 @@ public class PuntoVentaScreen extends JPanel {
             BitacoraDAO.registrar(usuario, "VENTA_REGISTRADA",
                     "Venta #" + venta.getId() + " - Total: $" + venta.getTotal() + " [" + formaPago + "]");
 
-            String mensajeCobro = "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ Venta #" + String.format("%05d", venta.getId()) + " registrada con ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©xito.\n"
+            String mensajeCobro = "✓ Venta #" + String.format("%05d", venta.getId()) + " registrada con éxito.\n"
                     + "Total: $" + String.format("%.2f", venta.getTotal()) + "\n"
                     + ("EFECTIVO".equalsIgnoreCase(formaPago) ? "Efectivo Recibido: $" + String.format("%.2f", efectivoRecibido) + "\nCAMBIO A ENTREGAR: $" + String.format("%.2f", cambio) + "\n" : "")
                     + rutaMsg;
 
-            DialogoFarmac.mostrarJO(this, mensajeCobro, "Cobro Completado con ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°xito", JOptionPane.INFORMATION_MESSAGE);
+            DialogoFarmac.mostrarJO(this, mensajeCobro, "Cobro Completado con Éxito", JOptionPane.INFORMATION_MESSAGE);
 
-            // Limpiar y refrescar catÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo
+            // Limpiar y refrescar catálogo
             limpiarCarrito();
             cargarDatosCatalogo();
             txtEscaner.requestFocusInWindow();
 
         } catch (SQLException ex) {
             DialogoFarmac.mostrarJO(this,
-                    "Error transaccional en la venta (Se ejecutÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ Rollback): " + ex.getMessage(),
-                    "Error de TransacciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n (A4)", JOptionPane.ERROR_MESSAGE);
+                    "Error transaccional en la venta (Se ejecutó Rollback): " + ex.getMessage(),
+                    "Error de Transacción (A4)", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
