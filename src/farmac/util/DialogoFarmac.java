@@ -65,7 +65,6 @@ public class DialogoFarmac {
 
         JDialog dialog = new JDialog(owner, titulo, Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
-        try { dialog.setBackground(new Color(0, 0, 0, 0)); } catch (Exception ignored) {}
 
         Color colorTipo = TemaFarmac.AMBAR;
 
@@ -175,15 +174,6 @@ public class DialogoFarmac {
         dialog.setResizable(true);
         dialog.setLocationRelativeTo(padre);
 
-        try { dialog.setOpacity(0f); } catch (Exception ignored) {}
-        final float[] alpha = {0f};
-        Timer timer = new Timer(16, e -> {
-            alpha[0] = Math.min(1f, alpha[0] + 0.12f);
-            try { dialog.setOpacity(alpha[0]); } catch (Exception ignored) {}
-            if (alpha[0] >= 1f) ((Timer) e.getSource()).stop();
-        });
-        timer.start();
-
         dialog.setVisible(true);
         Object r = dialog.getRootPane().getClientProperty("farmac.accion");
         return Boolean.TRUE.equals(r);
@@ -201,7 +191,6 @@ public class DialogoFarmac {
 
         JDialog dialog = new JDialog(owner, titulo, Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
-        try { dialog.setBackground(new Color(0, 0, 0, 0)); } catch (Exception ignored) {}
 
         Color colorTipo = colorPorTipo(tipo);
 
@@ -221,8 +210,8 @@ public class DialogoFarmac {
                 g2.dispose();
             }
         };
-        root.setOpaque(false);
-        root.setLayout(new BorderLayout());
+        root.setOpaque(true);
+        root.setBackground(TemaFarmac.BLANCO);
         root.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         // Cabecera
@@ -322,15 +311,6 @@ public class DialogoFarmac {
         dialog.setLocationRelativeTo(padre);
 
         // animacion de aparicion (fade-in): arrancar timer antes de mostrar
-        try { dialog.setOpacity(0f); } catch (Exception ignored) {}
-        final float[] alpha = {0f};
-        Timer timer = new Timer(16, e -> {
-            alpha[0] = Math.min(1f, alpha[0] + 0.12f);
-            try { dialog.setOpacity(alpha[0]); } catch (Exception ignored) {}
-            if (alpha[0] >= 1f) ((Timer) e.getSource()).stop();
-        });
-        timer.start();
-
         return dialog;
     }
 
