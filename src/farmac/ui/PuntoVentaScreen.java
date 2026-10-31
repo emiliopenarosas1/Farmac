@@ -94,8 +94,8 @@ public class PuntoVentaScreen extends JPanel {
         cargarDatosCatalogo();
 
         // Escuchar cambios de estado en el turno de caja
-        Sesion.agregarListenerTurno(this::verificarEstadoCaja);
         verificarEstadoCaja();
+        Sesion.agregarListenerTurno(this::verificarEstadoCaja);
     }
 
     private void inicializarUI() {

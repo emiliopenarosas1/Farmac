@@ -58,7 +58,6 @@ public class MainScreen extends JFrame {
         this.panelesCreados = new HashMap<>();
         Sesion.setUsuarioActivo(usuario);
         Sesion.refrescarTurno();
-
         configurarVentana();
         inicializarComponentes();
 
@@ -160,7 +159,8 @@ public class MainScreen extends JFrame {
         lblUserRole.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblUserRole.setForeground(new Color(0x94, 0xD2, 0xBD));
 
-        JButton btnSalir = TemaFarmac.crearBoton("Cerrar Sesión", TemaFarmac.ROJO, Color.WHITE);
+        JButton btnSalir = TemaFarmac.crearBoton(
+"Cerrar Sesión", TemaFarmac.ROJO, Color.WHITE);
         btnSalir.setFont(TemaFarmac.FUENTE_PEQUENA);
         btnSalir.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
         btnSalir.addActionListener(e -> {
