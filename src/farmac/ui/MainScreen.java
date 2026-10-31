@@ -36,6 +36,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
@@ -335,9 +337,17 @@ public class MainScreen extends JFrame {
             }
 
             if (msj.length() > 0) {
-                boolean solucionar = DialogoFarmac.alertaDesplazable(this, "Avisos del Sistema al Iniciar",
-                        msj.toString(), "Estoy enterado", "Solucionar");
-                if (solucionar && !alertasCad.isEmpty()) {
+                JTextArea area = new JTextArea(msj.toString());
+                area.setEditable(false);
+                area.setLineWrap(true);
+                area.setWrapStyleWord(true);
+                area.setFont(TemaFarmac.FUENTE_REGULAR);
+                JScrollPane scroll = new JScrollPane(area);
+                scroll.setPreferredSize(new Dimension(460, 240));
+                int opcion = JOptionPane.showOptionDialog(this, scroll, "Avisos del Sistema al Iniciar",
+                        JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                        new Object[]{"Estoy enterado", "Solucionar"}, "Estoy enterado");
+                if (opcion == 1 && !alertasCad.isEmpty()) {
                     cardLayout.show(pnlContenidoCentral, "CADUCIDAD");
                 }
             }
