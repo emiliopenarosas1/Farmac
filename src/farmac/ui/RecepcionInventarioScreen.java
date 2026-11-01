@@ -59,7 +59,8 @@ public class RecepcionInventarioScreen extends JPanel {
         this.movimientoDAO = new MovimientoDAO();
 
         inicializarUI();
-        cargarCombos();
+        // Cargar después de pintar la pantalla, sin bloquear la navegación
+        javax.swing.SwingUtilities.invokeLater(this::cargarCombos);
     }
 
     private void inicializarUI() {

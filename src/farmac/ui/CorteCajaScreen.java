@@ -229,6 +229,7 @@ public class CorteCajaScreen extends JPanel {
         };
         worker.execute();
     }
+
     private void abrirTurno() {
         String fondoStr = txtMontoInicial.getText().trim();
         double fondo;
@@ -240,19 +241,33 @@ public class CorteCajaScreen extends JPanel {
             return;
         }
 
-        try {
-            TurnoCaja nuevoTurno = new TurnoCaja(0, Sesion.getUsuarioActivo() != null ? Sesion.getUsuarioActivo() : usuario, fondo);
-            turnoCajaDAO.abrirTurno(nuevoTurno);
-            BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "CAJA_APERTURA", "Apertura de Turno #" + nuevoTurno.getId() + " con fondo de $" + fondo);
+        final double fondoInicial = fondo;
+        new SwingWorker<TurnoCaja, Void>() {
+            @Override
+            protected TurnoCaja doInBackground() throws Exception {
+                TurnoCaja nuevoTurno = new TurnoCaja(0, Sesion.getUsuarioActivo() != null ? Sesion.getUsuarioActivo() : usuario, fondoInicial);
+                turnoCajaDAO.abrirTurno(nuevoTurno);
+                BitacoraDAO.registrar(Sesion.getUsuarioActivo(), "CAJA_APERTURA",
+                        "Apertura de Turno #" + nuevoTurno.getId() + " con fondo de $" + fondoInicial);
+                return nuevoTurno;
+            }
 
-            DialogoFarmac.mostrarJO(this,
-                    "Turno de caja #" + nuevoTurno.getId() + " abierto exitosamente con $" + String.format("%.2f", fondo),
-                    "Apertura Exitosa", JOptionPane.INFORMATION_MESSAGE);
-
-            refrescarDatosTurno();
-        } catch (SQLException ex) {
-            DialogoFarmac.mostrarJO(this, "No se pudo abrir el turno: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            @Override
+            protected void done() {
+                try {
+                    TurnoCaja creado = get();
+                    DialogoFarmac.mostrarJO(CorteCajaScreen.this,
+                            "Turno de caja #" + creado.getId() + " abierto exitosamente con $" + String.format("%.2f", fondoInicial),
+                            "Apertura Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                    refrescarDatosTurno();
+                } catch (Exception ex) {
+                    Throwable causa = ex.getCause() != null ? ex.getCause() : ex;
+                    DialogoFarmac.mostrarJO(CorteCajaScreen.this,
+                            "No se pudo abrir el turno: " + causa.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     private void cerrarTurno() {

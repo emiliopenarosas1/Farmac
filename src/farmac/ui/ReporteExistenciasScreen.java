@@ -53,7 +53,8 @@ public class ReporteExistenciasScreen extends JPanel {
         this.loteDAO = new LoteDAO();
         this.operacionesInventario = new OperacionesInventario();
         initComponents();
-        cargarDatos();
+        // Cargar después de pintar la pantalla, sin bloquear la navegación
+        javax.swing.SwingUtilities.invokeLater(this::cargarDatos);
     }
 
     private void initComponents() {

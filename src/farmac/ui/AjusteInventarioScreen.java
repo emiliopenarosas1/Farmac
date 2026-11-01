@@ -64,7 +64,8 @@ public class AjusteInventarioScreen extends JPanel {
         this.movimientoDAO = new MovimientoDAO();
 
         inicializarUI();
-        cargarLotes();
+        // Cargar después de pintar la pantalla, sin bloquear la navegación
+        javax.swing.SwingUtilities.invokeLater(this::cargarLotes);
     }
 
     private void inicializarUI() {

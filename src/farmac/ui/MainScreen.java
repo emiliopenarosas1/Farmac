@@ -9,7 +9,6 @@ import farmac.dominio.Usuario;
 import farmac.util.RespaldoUtil;
 import farmac.util.Sesion;
 import farmac.util.DialogoFarmac;
-import farmac.util.PanelFade;
 import farmac.util.TemaFarmac;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.swing.FontIcon;
@@ -18,8 +17,6 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,14 +49,15 @@ public class MainScreen extends JFrame {
     private CardLayout cardLayout;
     private List<JButton> botonesMenu;
     private final Map<String, JPanel> panelesCreados;
+    private boolean alertasCaducidadPendientes;
 
     public MainScreen(Usuario usuario) {
         super("Farmac - Sistema de Gestión Farmacéutica y Punto de Venta");
         this.usuarioActivo = usuario;
         this.botonesMenu = new ArrayList<>();
         this.panelesCreados = new HashMap<>();
+
         Sesion.setUsuarioActivo(usuario);
-        Sesion.refrescarTurno();
         configurarVentana();
         inicializarComponentes();
 
@@ -69,8 +67,7 @@ public class MainScreen extends JFrame {
 
     private void configurarVentana() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Rectangle limitesPantalla = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-        setBounds(limitesPantalla);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setMinimumSize(new Dimension(1020, 620));
     }
 
@@ -282,6 +279,33 @@ public class MainScreen extends JFrame {
     }
 
     private void comprobarAlertasInicio() {
+        // Consulta la BD en segundo plano y muestra el diálogo en el EDT
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() {
+                return construirMensajeAlertas();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    String msj = get();
+                    if (msj != null && !msj.isEmpty()) {
+                        mostrarDialogoAlertas(msj);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error al comprobar alertas: " + e.getMessage());
+                }
+            }
+        }.execute();
+    }
+
+    /**
+     * Consulta la base de datos y arma el texto de alertas. No toca componentes
+     * Swing: se ejecuta fuera del EDT.
+     */
+    private String construirMensajeAlertas() {
+        alertasCaducidadPendientes = false;
         try {
             LoteDAO loteDAO = new LoteDAO();
             List<Lote> lotes = loteDAO.listarTodos();
@@ -294,8 +318,16 @@ public class MainScreen extends JFrame {
 
             // Alerta de Caducidad (RF10)
             if (!alertasCad.isEmpty()) {
-                long vencidos = alertasCad.stream().filter(l -> l.estaVencido(java.time.LocalDate.now())).count();
-                long porVencer = alertasCad.size() - vencidos;
+                alertasCaducidadPendientes = true;
+                long vencidos = 0;
+                long porVencer = 0;
+                for (Lote l : alertasCad) {
+                    if (l.estaVencido(java.time.LocalDate.now())) {
+                        vencidos++;
+                    } else {
+                        porVencer++;
+                    }
+                }
                 msj.append("ALERTA DE CADUCIDADES (RF10):\n")
                    .append("• ").append(vencidos).append(" lote(s) VENCIDOS.\n")
                    .append("• ").append(porVencer).append(" lote(s) por vencer en los próximos 60 días.\n");
@@ -333,24 +365,27 @@ public class MainScreen extends JFrame {
                 }
             }
 
-            if (msj.length() > 0) {
-                JTextArea area = new JTextArea(msj.toString());
-                area.setEditable(false);
-                area.setLineWrap(true);
-                area.setWrapStyleWord(true);
-                area.setFont(TemaFarmac.FUENTE_REGULAR);
-                JScrollPane scroll = new JScrollPane(area);
-                scroll.setPreferredSize(new Dimension(460, 240));
-                int opcion = JOptionPane.showOptionDialog(this, scroll, "Avisos del Sistema al Iniciar",
-                        JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
-                        new Object[]{"Estoy enterado", "Solucionar"}, "Estoy enterado");
-                if (opcion == 1 && !alertasCad.isEmpty()) {
-                    cardLayout.show(pnlContenidoCentral, "CADUCIDAD");
-                }
-            }
-
+            return msj.toString();
         } catch (Exception e) {
             System.err.println("Error al comprobar alertas: " + e.getMessage());
+            return "";
+        }
+    }
+
+    /** Muestra el aviso al usuario. Se invoca siempre desde el EDT. */
+    private void mostrarDialogoAlertas(String mensaje) {
+        JTextArea area = new JTextArea(mensaje);
+        area.setEditable(false);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setFont(TemaFarmac.FUENTE_REGULAR);
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setPreferredSize(new Dimension(460, 240));
+        int opcion = JOptionPane.showOptionDialog(this, scroll, "Avisos del Sistema al Iniciar",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                new Object[]{"Estoy enterado", "Solucionar"}, "Estoy enterado");
+        if (opcion == 1 && alertasCaducidadPendientes) {
+            cardLayout.show(pnlContenidoCentral, "CADUCIDAD");
         }
     }
 }

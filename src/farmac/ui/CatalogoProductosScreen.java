@@ -66,7 +66,8 @@ public class CatalogoProductosScreen extends JPanel {
         this.listaLotesActual = new ArrayList<>();
 
         inicializarUI();
-        cargarDatos();
+        // Cargar después de pintar la pantalla, sin bloquear la navegación
+        javax.swing.SwingUtilities.invokeLater(this::cargarDatos);
     }
 
     private void inicializarUI() {

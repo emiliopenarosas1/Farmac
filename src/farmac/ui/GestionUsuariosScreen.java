@@ -48,7 +48,8 @@ public class GestionUsuariosScreen extends JPanel {
     public GestionUsuariosScreen() {
         this.usuarioDAO = new UsuarioDAO();
         inicializarUI();
-        cargarDatos();
+        // Cargar después de pintar la pantalla, sin bloquear la navegación
+        javax.swing.SwingUtilities.invokeLater(this::cargarDatos);
     }
 
     private void inicializarUI() {

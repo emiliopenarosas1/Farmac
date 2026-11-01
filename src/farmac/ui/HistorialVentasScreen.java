@@ -60,7 +60,8 @@ public class HistorialVentasScreen extends JPanel {
         this.recetaDAO = new RecetaDAO();
         this.turnoCajaDAO = new TurnoCajaDAO();
         initComponents();
-        cargarDatos();
+        // Cargar después de pintar la pantalla, sin bloquear la navegación
+        javax.swing.SwingUtilities.invokeLater(this::cargarDatos);
     }
 
     private void initComponents() {

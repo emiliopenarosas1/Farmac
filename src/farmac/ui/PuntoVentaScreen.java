@@ -78,6 +78,8 @@ public class PuntoVentaScreen extends JPanel {
 
     private List<Producto> catalogoProductos;
     private List<Lote> inventarioLotes;
+    private boolean catalogoCargando;
+    private volatile boolean cajaAbierta;
     private final Map<Integer, Integer> cantidadesCarrito; // productoId -> cantidad solicitada
     private final Map<Integer, Producto> productosCarrito; // productoId -> Producto
 
@@ -91,11 +93,20 @@ public class PuntoVentaScreen extends JPanel {
         this.productosCarrito = new HashMap<>();
 
         inicializarUI();
-        cargarDatosCatalogo();
 
         // Escuchar cambios de estado en el turno de caja
         verificarEstadoCaja();
         Sesion.agregarListenerTurno(this::verificarEstadoCaja);
+
+        // Cargar el catálogo en segundo plano para no bloquear el EDT
+        cargarDatosCatalogo();
+    }
+
+    // Método para cargar catálogo de forma perezosa (lazy) al primer acceso
+    private void asegurarCatalogoCargado() {
+        if (catalogoProductos == null) {
+            cargarDatosCatalogo();
+        }
     }
 
     private void inicializarUI() {
@@ -323,27 +334,64 @@ public class PuntoVentaScreen extends JPanel {
     }
 
     public void verificarEstadoCaja() {
-        boolean abierta = Sesion.hayTurnoAbierto();
-        lblBannerCajaCerrada.setVisible(!abierta);
-        txtEscaner.setEnabled(abierta);
-        tblCatalogo.setEnabled(abierta);
-        btnCobrar.setEnabled(abierta);
-        btnVaciar.setEnabled(abierta);
-        btnSumar.setEnabled(abierta);
-        btnRestar.setEnabled(abierta);
-        btnQuitar.setEnabled(abierta);
+        new javax.swing.SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() {
+                return Sesion.hayTurnoAbierto();
+            }
+
+            @Override
+            protected void done() {
+                boolean abierta;
+                try {
+                    abierta = get();
+                } catch (Exception e) {
+                    abierta = false;
+                }
+                cajaAbierta = abierta;
+                lblBannerCajaCerrada.setVisible(!abierta);
+                txtEscaner.setEnabled(abierta);
+                tblCatalogo.setEnabled(abierta);
+                btnCobrar.setEnabled(abierta);
+                btnVaciar.setEnabled(abierta);
+                btnSumar.setEnabled(abierta);
+                btnRestar.setEnabled(abierta);
+                btnQuitar.setEnabled(abierta);
+            }
+        }.execute();
     }
 
     public void cargarDatosCatalogo() {
-        try {
-            catalogoProductos = productoDAO.listarTodos(true);
-            inventarioLotes = loteDAO.listarTodos();
-            operacionesInventario.setInventario(inventarioLotes);
+        if (catalogoCargando) return;
+        catalogoCargando = true;
 
-            llenarTablaCatalogo();
-        } catch (SQLException e) {
-            DialogoFarmac.mostrarJO(this, "Error al cargar catálogo: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
-        }
+        new javax.swing.SwingWorker<Object[], Void>() {
+            @Override
+            protected Object[] doInBackground() throws Exception {
+                List<Producto> productos = productoDAO.listarTodos(true);
+                List<Lote> lotes = loteDAO.listarTodos();
+                return new Object[]{productos, lotes};
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            protected void done() {
+                try {
+                    Object[] datos = get();
+                    catalogoProductos = (List<Producto>) datos[0];
+                    inventarioLotes = (List<Lote>) datos[1];
+                    operacionesInventario.setInventario(inventarioLotes);
+                    llenarTablaCatalogo();
+                } catch (Exception e) {
+                    Throwable causa = e.getCause() != null ? e.getCause() : e;
+                    DialogoFarmac.mostrarJO(PuntoVentaScreen.this,
+                            "Error al cargar catálogo: " + causa.getMessage(),
+                            "Error BD", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    catalogoCargando = false;
+                }
+            }
+        }.execute();
     }
 
     private void llenarTablaCatalogo() {
@@ -365,13 +413,20 @@ public class PuntoVentaScreen extends JPanel {
     }
 
     private void procesarDisparoEscaner() {
-        if (!Sesion.hayTurnoAbierto()) {
+        if (!cajaAbierta) {
             DialogoFarmac.mostrarJO(this, "Debe abrir un turno de caja para procesar ventas.", "Caja Cerrada", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String texto = txtEscaner.getText().trim();
         if (texto.isEmpty()) return;
+
+        // Asegurar que el catálogo esté cargado
+        if (catalogoProductos == null) {
+            asegurarCatalogoCargado();
+            DialogoFarmac.mostrarJO(this, "El catálogo se está cargando, intente de nuevo en un momento.", "Espere", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
 
         Producto encontrado = null;
         if (catalogoProductos != null) {
@@ -393,11 +448,15 @@ public class PuntoVentaScreen extends JPanel {
     }
 
     private void agregarProductoPorIndice(int fila) {
-        if (!Sesion.hayTurnoAbierto()) {
+        if (!cajaAbierta) {
             DialogoFarmac.mostrarJO(this, "Debe abrir un turno de caja para vender.", "Caja Cerrada", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if (catalogoProductos != null && fila >= 0 && fila < catalogoProductos.size()) {
+        if (catalogoProductos == null) {
+            asegurarCatalogoCargado();
+            return;
+        }
+        if (fila >= 0 && fila < catalogoProductos.size()) {
             Producto p = catalogoProductos.get(fila);
             agregarProductoAlCarrito(p, 1);
         }

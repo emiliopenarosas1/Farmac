@@ -64,7 +64,8 @@ public class ReporteCaducidadScreen extends JPanel {
         this.lotesActuales = new ArrayList<>();
 
         inicializarUI();
-        cargarDatos();
+        // Cargar después de pintar la pantalla, sin bloquear la navegación
+        javax.swing.SwingUtilities.invokeLater(this::cargarDatos);
     }
 
     private void inicializarUI() {

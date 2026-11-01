@@ -42,7 +42,8 @@ public class ProveedoresScreen extends JPanel {
     public ProveedoresScreen() {
         this.proveedorDAO = new ProveedorDAO();
         initComponents();
-        cargarDatos();
+        // Cargar después de pintar la pantalla, sin bloquear la navegación
+        javax.swing.SwingUtilities.invokeLater(this::cargarDatos);
     }
 
     private void initComponents() {
