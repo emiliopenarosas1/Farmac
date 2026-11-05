@@ -53,6 +53,8 @@ public class HistorialVentasScreen extends JPanel {
     private DefaultTableModel modeloVentasConReceta;
     private JTable tablaTurnos;
     private DefaultTableModel modeloTurnos;
+    private JTabbedPane tabbed;
+    private List<TurnoCaja> listaTurnosActual;
     private JComboBox<String> cmbDiaDesde;
     private JComboBox<String> cmbMesDesde;
     private JComboBox<String> cmbAnioDesde;
@@ -129,7 +131,7 @@ public class HistorialVentasScreen extends JPanel {
         btnFiltrar.addActionListener(e -> cargarDatos());
 
         JButton btnDetalles = TemaFarmac.crearBotonSecundario("Ver Detalles");
-        btnDetalles.addActionListener(e -> verDetallesSeleccionada());
+        btnDetalles.addActionListener(e -> verDetallesActivo());
 
         JButton btnCancelar = TemaFarmac.crearBotonPeligro("Cancelar Venta");
         btnCancelar.addActionListener(e -> cancelarVentaSeleccionada());
@@ -161,7 +163,7 @@ public class HistorialVentasScreen extends JPanel {
         add(pnlHeader, BorderLayout.NORTH);
 
         // Pestañas (Ventas vs Rotación)
-        JTabbedPane tabbed = new JTabbedPane();
+        tabbed = new JTabbedPane();
 
         // Pestaña 1: Ventas
         String[] colsVentas = {"Ticket", "Fecha y Hora", "Cajero", "Turno", "Forma Pago", "Total", "Estado", "Motivo Canc."};
@@ -257,6 +259,7 @@ public class HistorialVentasScreen extends JPanel {
                         ? ventaDAO.obtenerRankingRotacion(desde, hasta) : null;
                 List<TurnoCaja> turnos = esEncargado
                         ? turnoCajaDAO.listarHistorial(200) : null;
+                listaTurnosActual = turnos;
 
                 return new Object[]{ventas, recetas, rotacion, turnos};
             }
@@ -439,7 +442,134 @@ public class HistorialVentasScreen extends JPanel {
     private void verDetallesSeleccionada() {
         Venta v = obtenerSeleccionada();
         if (v == null) return;
+        mostrarDetalleVenta(v);
+    }
 
+    private void verDetallesActivo() {
+        if (tabbed == null) { verDetallesSeleccionada(); return; }
+        int idx = tabbed.getSelectedIndex();
+        if (idx == 2) {
+            verDetalleVentaReceta();
+        } else if (idx == 3) {
+            verDetalleTurno();
+        } else {
+            verDetallesSeleccionada();
+        }
+    }
+
+    private void verDetalleVentaReceta() {
+        int fila = tablaVentasConReceta.getSelectedRow();
+        if (fila < 0) {
+            DialogoFarmac.mostrarJO(this, "Seleccione una venta con receta de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        Object val = tablaVentasConReceta.getValueAt(fila, 0);
+        int ventaId;
+        try {
+            ventaId = Integer.parseInt(val.toString().replace("#", "").trim());
+        } catch (NumberFormatException ex) {
+            DialogoFarmac.mostrarJO(this, "No se pudo identificar la venta seleccionada.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        Venta v = null;
+        if (listaVentasActual != null) {
+            for (Venta x : listaVentasActual) {
+                if (x.getId() == ventaId) { v = x; break; }
+            }
+        }
+        if (v == null) {
+            v = new Venta();
+            v.setId(ventaId);
+        }
+        mostrarDetalleVenta(v);
+    }
+
+    private void verDetalleTurno() {
+        int fila = tablaTurnos.getSelectedRow();
+        if (fila < 0) {
+            DialogoFarmac.mostrarJO(this, "Seleccione un turno de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        Object val = tablaTurnos.getValueAt(fila, 0);
+        int turnoId;
+        try {
+            turnoId = Integer.parseInt(val.toString().trim());
+        } catch (NumberFormatException ex) {
+            DialogoFarmac.mostrarJO(this, "No se pudo identificar el turno seleccionado.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        TurnoCaja t = null;
+        if (listaTurnosActual != null) {
+            for (TurnoCaja x : listaTurnosActual) {
+                if (x.getId() == turnoId) { t = x; break; }
+            }
+        }
+        if (t == null) {
+            DialogoFarmac.mostrarJO(this, "No se encontró el turno seleccionado.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JDialog dlg = new JDialog((java.awt.Frame) null, "Detalles de Turno #" + t.getId(), true);
+        dlg.setLayout(new BorderLayout(10, 10));
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        JPanel pnlInfo = new JPanel(new GridLayout(0, 2, 8, 4));
+        pnlInfo.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        pnlInfo.add(new JLabel("Usuario:"));
+        pnlInfo.add(new JLabel(t.getUsuario() != null ? t.getUsuario().getNombreCompleto() : "N/A"));
+        pnlInfo.add(new JLabel("Estado:"));
+        pnlInfo.add(new JLabel(t.getEstado()));
+        pnlInfo.add(new JLabel("Apertura:"));
+        pnlInfo.add(new JLabel(t.getFechaApertura() != null ? t.getFechaApertura().format(dtf) : "-"));
+        pnlInfo.add(new JLabel("Cierre:"));
+        pnlInfo.add(new JLabel(t.getFechaCierre() != null ? t.getFechaCierre().format(dtf) : "Abierto"));
+        pnlInfo.add(new JLabel("Fondo Inicial:"));
+        pnlInfo.add(new JLabel(String.format("$%.2f", t.getMontoInicial())));
+        pnlInfo.add(new JLabel("Monto Esperado:"));
+        pnlInfo.add(new JLabel(String.format("$%.2f", t.getMontoEsperado())));
+        pnlInfo.add(new JLabel("Efectivo Contado:"));
+        pnlInfo.add(new JLabel(String.format("$%.2f", t.getEfectivoContado())));
+        pnlInfo.add(new JLabel("Diferencia:"));
+        pnlInfo.add(new JLabel(String.format("$%.2f", t.getDiferencia())));
+        dlg.add(pnlInfo, BorderLayout.NORTH);
+
+        // Desglose por forma de pago
+        JPanel pnlDesglose = new JPanel(new GridLayout(0, 2, 8, 4));
+        pnlDesglose.setBorder(BorderFactory.createTitledBorder("Ventas del turno por forma de pago"));
+        try {
+            double efectivo = turnoCajaDAO.obtenerTotalVentasTurnoPorFormaPago(t.getId(), "EFECTIVO");
+            double tarjeta = turnoCajaDAO.obtenerTotalVentasTurnoPorFormaPago(t.getId(), "TARJETA");
+            double transferencia = turnoCajaDAO.obtenerTotalVentasTurnoPorFormaPago(t.getId(), "TRANSFERENCIA");
+            pnlDesglose.add(new JLabel("Efectivo:"));
+            pnlDesglose.add(new JLabel(String.format("$%.2f", efectivo)));
+            pnlDesglose.add(new JLabel("Tarjeta:"));
+            pnlDesglose.add(new JLabel(String.format("$%.2f", tarjeta)));
+            pnlDesglose.add(new JLabel("Transferencia:"));
+            pnlDesglose.add(new JLabel(String.format("$%.2f", transferencia)));
+            pnlDesglose.add(new JLabel("Total ventas:"));
+            pnlDesglose.add(new JLabel(String.format("$%.2f", efectivo + tarjeta + transferencia)));
+        } catch (SQLException ex) {
+            pnlDesglose.add(new JLabel("No se pudo cargar el desglose: " + ex.getMessage()));
+        }
+        dlg.add(pnlDesglose, BorderLayout.CENTER);
+
+        JButton btnCerrar = TemaFarmac.crearBotonSecundario("Cerrar");
+        btnCerrar.addActionListener(e -> dlg.dispose());
+        JPanel pnlSur = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnlSur.add(btnCerrar);
+        dlg.add(pnlSur, BorderLayout.SOUTH);
+
+        dlg.pack();
+        java.awt.Dimension pantalla = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        dlg.setSize(
+                Math.min(Math.max(dlg.getWidth(), 420), pantalla.width - 40),
+                Math.min(Math.max(dlg.getHeight(), 360), pantalla.height - 80));
+        dlg.setMinimumSize(new java.awt.Dimension(400, 320));
+        dlg.setLocationRelativeTo(this);
+        dlg.setVisible(true);
+    }
+
+    private void mostrarDetalleVenta(Venta v) {
         JDialog dlg = new JDialog((java.awt.Frame) null, "Detalles de Venta #" + v.getId(), true);
         dlg.setLayout(new BorderLayout(10, 10));
 
