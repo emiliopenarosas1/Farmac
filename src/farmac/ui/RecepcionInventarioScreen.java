@@ -35,7 +35,7 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Pantalla para recepción y registro de lotes de medicamentos en PostgreSQL (RF07, RF08).
+ * Pantalla para recepción y registro de lotes de medicamentos en PostgreSQL.
  */
 public class RecepcionInventarioScreen extends JPanel {
 
@@ -68,14 +68,14 @@ public class RecepcionInventarioScreen extends JPanel {
         setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(new EmptyBorder(18, 20, 18, 20));
 
-        JPanel pnlHeader = new JPanel(new BorderLayout());
+        JPanel pnlHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         pnlHeader.setOpaque(false);
 
         JLabel lblTitulo = new JLabel("Recepción de Mercancía por Lote");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Registro formal de partidas con validación de caducidad futura, proveedor y remisión (RF07, RF08)");
+        JLabel lblSub = new JLabel("Registro formal de partidas con validación de caducidad futura, proveedor y remisión");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -86,108 +86,54 @@ public class RecepcionInventarioScreen extends JPanel {
         pnlTit.add(Box.createRigidArea(new Dimension(0, 2)));
         pnlTit.add(lblSub);
 
-        pnlHeader.add(pnlTit, BorderLayout.WEST);
+        pnlHeader.add(pnlTit);
         add(pnlHeader, BorderLayout.NORTH);
 
         JPanel pnlCard = TemaFarmac.crearCard();
-        pnlCard.setLayout(new GridBagLayout());
-        pnlCard.setPreferredSize(new Dimension(680, 480));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 12, 8, 12);
-
-        // 1. Producto
-        gbc.gridx = 0; gbc.gridy = 0;
-        JLabel lblProd = new JLabel("Medicamento / Producto *:");
-        lblProd.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblProd, gbc);
+        pnlCard.setLayout(new BorderLayout(0, 12));
 
         cmbProductos = new JComboBox<>();
         cmbProductos.setFont(TemaFarmac.FUENTE_REGULAR);
         cmbProductos.setBackground(Color.WHITE);
-        cmbProductos.setPreferredSize(new Dimension(320, 36));
-        gbc.gridx = 1;
-        pnlCard.add(cmbProductos, gbc);
-
-        // 2. Proveedor
-        gbc.gridy = 1; gbc.gridx = 0;
-        JLabel lblProv = new JLabel("Proveedor / Distribuidor *:");
-        lblProv.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblProv, gbc);
 
         cmbProveedores = new JComboBox<>();
         cmbProveedores.setFont(TemaFarmac.FUENTE_REGULAR);
         cmbProveedores.setBackground(Color.WHITE);
-        cmbProveedores.setPreferredSize(new Dimension(320, 36));
-        gbc.gridx = 1;
-        pnlCard.add(cmbProveedores, gbc);
-
-        // 3. Número de Lote
-        gbc.gridy = 2; gbc.gridx = 0;
-        JLabel lblLote = new JLabel("Número de Lote *:");
-        lblLote.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblLote, gbc);
 
         txtNumLote = TemaFarmac.crearCampoTexto(18);
-        gbc.gridx = 1;
-        pnlCard.add(txtNumLote, gbc);
-
-        // 4. Caducidad
-        gbc.gridy = 3; gbc.gridx = 0;
-        JLabel lblCad = new JLabel("Fecha de Caducidad (AAAA-MM-DD) *:");
-        lblCad.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblCad, gbc);
-
         txtCaducidad = TemaFarmac.crearCampoTexto(18);
         txtCaducidad.putClientProperty("JTextField.placeholderText", "Ej. 2027-12-31");
-        gbc.gridx = 1;
-        pnlCard.add(txtCaducidad, gbc);
-
-        // 5. Cantidad
-        gbc.gridy = 4; gbc.gridx = 0;
-        JLabel lblCant = new JLabel("Piezas Recibidas *:");
-        lblCant.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblCant, gbc);
-
         txtCantidad = TemaFarmac.crearCampoTexto(18);
-        gbc.gridx = 1;
-        pnlCard.add(txtCantidad, gbc);
-
-        // 6. Precio Compra
-        gbc.gridy = 5; gbc.gridx = 0;
-        JLabel lblPrec = new JLabel("Precio Unitario Compra ($) *:");
-        lblPrec.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblPrec, gbc);
-
         txtPrecioCompra = TemaFarmac.crearCampoTexto(18);
-        gbc.gridx = 1;
-        pnlCard.add(txtPrecioCompra, gbc);
-
-        // 7. Factura / Remisión
-        gbc.gridy = 6; gbc.gridx = 0;
-        JLabel lblFact = new JLabel("Factura / Remisión:");
-        lblFact.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblFact, gbc);
-
         txtFactura = TemaFarmac.crearCampoTexto(18);
-        gbc.gridx = 1;
-        pnlCard.add(txtFactura, gbc);
 
-        // Botón Guardar
+        JPanel form = TemaFarmac.crearFormulario(
+                new String[]{
+                    "Medicamento / Producto *:",
+                    "Proveedor / Distribuidor *:",
+                    "Número de Lote *:",
+                    "Fecha de Caducidad (AAAA-MM-DD) *:",
+                    "Piezas Recibidas *:",
+                    "Precio Unitario Compra ($) *:",
+                    "Factura / Remisión:"
+                },
+                new javax.swing.JComponent[]{
+                    cmbProductos, cmbProveedores, txtNumLote, txtCaducidad,
+                    txtCantidad, txtPrecioCompra, txtFactura
+                });
+        pnlCard.add(form, BorderLayout.CENTER);
+
         JButton btnGuardar = TemaFarmac.crearBoton("Guardar Entrada en Inventario", TemaFarmac.VERDE, Color.WHITE);
-        btnGuardar.setPreferredSize(new Dimension(320, 42));
+        btnGuardar.setMinimumSize(new Dimension(0, 42));
         btnGuardar.addActionListener(e -> registrar());
 
-        gbc.gridy = 7; gbc.gridx = 0; gbc.gridwidth = 2;
-        gbc.insets = new Insets(18, 12, 8, 12);
-        pnlCard.add(btnGuardar, gbc);
+        JPanel pnlBoton = new JPanel(new BorderLayout());
+        pnlBoton.setOpaque(false);
+        pnlBoton.setBorder(new EmptyBorder(6, 6, 0, 6));
+        pnlBoton.add(btnGuardar, BorderLayout.CENTER);
+        pnlCard.add(pnlBoton, BorderLayout.SOUTH);
 
-        JPanel pnlContenedor = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 16));
-        pnlContenedor.setOpaque(false);
-        pnlContenedor.add(pnlCard);
-
-        add(pnlContenedor, BorderLayout.CENTER);
+        add(TemaFarmac.crearScrollFormulario(pnlCard), BorderLayout.CENTER);
     }
 
     public void cargarCombos() {

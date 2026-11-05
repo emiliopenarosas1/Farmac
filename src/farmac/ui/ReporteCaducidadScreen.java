@@ -38,7 +38,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Control y Semáforo de Caducidades conectada a PostgreSQL (RF10, RF19).
+ * Pantalla de Control y Semáforo de Caducidades conectada a PostgreSQL.
  * Accesible exclusivamente para Encargados.
  */
 public class ReporteCaducidadScreen extends JPanel {
@@ -73,7 +73,8 @@ public class ReporteCaducidadScreen extends JPanel {
         setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(new EmptyBorder(18, 20, 18, 20));
 
-        JPanel pnlHeader = new JPanel(new BorderLayout(12, 12));
+        // Cabecera reacomodable: título y acciones se acomodan en varias filas
+        JPanel pnlHeader = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 10, 4));
         pnlHeader.setOpaque(false);
 
         JPanel pnlTit = new JPanel();
@@ -84,7 +85,7 @@ public class ReporteCaducidadScreen extends JPanel {
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Monitoreo de lotes vencidos, partidas en riesgo de caducidad y bajas por merma (RF10, RF19)");
+        JLabel lblSub = new JLabel("Monitoreo de lotes vencidos, partidas en riesgo de caducidad y bajas por merma");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -93,7 +94,7 @@ public class ReporteCaducidadScreen extends JPanel {
         pnlTit.add(lblSub);
 
         // Barra de acciones derecha
-        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         pnlAcciones.setOpaque(false);
 
         cmbUmbralDias = new JComboBox<>(new String[]{"30 días", "60 días (Estándar)", "90 días", "180 días"});
@@ -116,8 +117,8 @@ public class ReporteCaducidadScreen extends JPanel {
         pnlAcciones.add(btnAjustarCaducado);
         pnlAcciones.add(btnExportar);
 
-        pnlHeader.add(pnlTit, BorderLayout.WEST);
-        pnlHeader.add(pnlAcciones, BorderLayout.EAST);
+        pnlHeader.add(pnlTit);
+        pnlHeader.add(pnlAcciones);
         add(pnlHeader, BorderLayout.NORTH);
 
         JPanel pnlCentro = new JPanel(new BorderLayout(0, 16));
@@ -140,7 +141,7 @@ public class ReporteCaducidadScreen extends JPanel {
         JPanel pnlCard = TemaFarmac.crearCard();
         pnlCard.setLayout(new BorderLayout());
 
-        String[] columnas = {"ID", "Número Lote", "Medicamento", "Proveedor", "Fecha Caducidad", "Stock Actual", "Días Restantes", "Estado"};
+        String[] columnas = {"ID", "Lote", "Medicamento", "Proveedor", "Caducidad", "Stock", "Días Rest.", "Estado"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -148,13 +149,13 @@ public class ReporteCaducidadScreen extends JPanel {
         tblAlertas = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tblAlertas);
         tblAlertas.getColumnModel().getColumn(0).setPreferredWidth(45);
-        tblAlertas.getColumnModel().getColumn(1).setPreferredWidth(130);
-        tblAlertas.getColumnModel().getColumn(2).setPreferredWidth(210);
-        tblAlertas.getColumnModel().getColumn(3).setPreferredWidth(150);
-        tblAlertas.getColumnModel().getColumn(4).setPreferredWidth(110);
-        tblAlertas.getColumnModel().getColumn(5).setPreferredWidth(90);
-        tblAlertas.getColumnModel().getColumn(6).setPreferredWidth(130);
-        tblAlertas.getColumnModel().getColumn(7).setPreferredWidth(120);
+        tblAlertas.getColumnModel().getColumn(1).setPreferredWidth(125);
+        tblAlertas.getColumnModel().getColumn(2).setPreferredWidth(200);
+        tblAlertas.getColumnModel().getColumn(3).setPreferredWidth(145);
+        tblAlertas.getColumnModel().getColumn(4).setPreferredWidth(115);
+        tblAlertas.getColumnModel().getColumn(5).setPreferredWidth(92);
+        tblAlertas.getColumnModel().getColumn(6).setPreferredWidth(120);
+        tblAlertas.getColumnModel().getColumn(7).setPreferredWidth(115);
 
         tblAlertas.getColumnModel().getColumn(7).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
 
@@ -282,7 +283,7 @@ public class ReporteCaducidadScreen extends JPanel {
 
         boolean confirm = DialogoFarmac.confirmarJO(this,
                 "¿Desea enviar a merma/baja las " + l.getCantidadActual() + " piezas del lote vencido '"
-                + l.getNumeroLote() + "'?\nMotivo: PRODUCTO CADUCADO (RF09, RF10)",
+                + l.getNumeroLote() + "'?\nMotivo: PRODUCTO CADUCADO",
                 "Confirmar Ajuste por Caducidad");
 
         if (confirm) {

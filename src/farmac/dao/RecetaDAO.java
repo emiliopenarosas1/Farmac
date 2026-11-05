@@ -10,7 +10,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Acceso a datos para recetas médicas asociadas a ventas (RF14, RNF09).
@@ -82,5 +84,39 @@ public class RecetaDAO {
             }
         }
         return lista;
+    }
+
+    /**
+     * Lista todas las recetas agrupadas por venta en una sola consulta.
+     * Evita ejecutar una consulta por cada venta al llenar el historial.
+     */
+    public Map<Integer, List<RecetaMedica>> listarTodasPorVenta() throws SQLException {
+        Map<Integer, List<RecetaMedica>> mapa = new HashMap<>();
+        String sql = "SELECT rv.venta_id, rv.id, rv.nombre_medico, rv.cedula_profesional, rv.fecha_expedicion, rv.folio_receta, "
+                   + "p.id AS prod_id, p.nombre AS prod_nombre, p.codigo_barras "
+                   + "FROM receta_venta rv "
+                   + "JOIN producto p ON rv.producto_id = p.id "
+                   + "ORDER BY rv.venta_id, rv.id";
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Producto p = new Producto();
+                p.setId(rs.getInt("prod_id"));
+                p.setNombre(rs.getString("prod_nombre"));
+                p.setCodigoBarras(rs.getString("codigo_barras"));
+
+                RecetaMedica r = new RecetaMedica(
+                        rs.getInt("id"),
+                        p,
+                        rs.getString("nombre_medico"),
+                        rs.getString("cedula_profesional"),
+                        rs.getDate("fecha_expedicion").toLocalDate(),
+                        rs.getString("folio_receta")
+                );
+                mapa.computeIfAbsent(rs.getInt("venta_id"), k -> new ArrayList<>()).add(r);
+            }
+        }
+        return mapa;
     }
 }

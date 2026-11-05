@@ -4,12 +4,18 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,12 +25,16 @@ import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -61,14 +71,224 @@ public class TemaFarmac {
     public static final Color GRIS_BORDE     = BORDE;
     public static final Color GRIS_TEXTO     = TEXTO_MUTED;
 
-    // Tipografías escalables
-    public static final Font FUENTE_DISPLAY   = new Font("Segoe UI", Font.BOLD, 22);
-    public static final Font FUENTE_TITULO    = new Font("Segoe UI", Font.BOLD, 17);
-    public static final Font FUENTE_SUBTITULO = new Font("Segoe UI", Font.BOLD, 13);
-    public static final Font FUENTE_REGULAR   = new Font("Segoe UI", Font.PLAIN, 12);
-    public static final Font FUENTE_NEGRITA   = new Font("Segoe UI", Font.BOLD, 12);
-    public static final Font FUENTE_PEQUENA   = new Font("Segoe UI", Font.PLAIN, 11);
-    public static final Font FUENTE_BADGE     = new Font("Segoe UI", Font.BOLD, 10);
+    // Tipografías escalables. Se usa Segoe UI si el sistema la tiene; en caso
+    // contrario se cae a la fuente lógica SansSerif para que el layout no se
+    // rompa en equipos con otros sistemas operativos.
+    private static final String FAMILIA_BASE = resolverFamiliaBase();
+    public static final Font FUENTE_DISPLAY   = fuente(Font.BOLD, 22);
+    public static final Font FUENTE_TITULO    = fuente(Font.BOLD, 17);
+    public static final Font FUENTE_SUBTITULO = fuente(Font.BOLD, 13);
+    public static final Font FUENTE_REGULAR   = fuente(Font.PLAIN, 12);
+    public static final Font FUENTE_NEGRITA   = fuente(Font.BOLD, 12);
+    public static final Font FUENTE_PEQUENA   = fuente(Font.PLAIN, 11);
+    public static final Font FUENTE_BADGE     = fuente(Font.BOLD, 10);
+
+    /** Altura estándar de controles para que botones y campos queden alineados. */
+    public static final int ALTO_CONTROL = 34;
+
+    public static Font fuente(int estilo, int tamano) {
+        return new Font(FAMILIA_BASE, estilo, tamano);
+    }
+
+    private static String resolverFamiliaBase() {
+        try {
+            String[] disponibles = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                    .getAvailableFontFamilyNames();
+            for (String nombre : disponibles) {
+                if ("Segoe UI".equalsIgnoreCase(nombre)) {
+                    return nombre;
+                }
+            }
+        } catch (Exception ignored) {
+            // Sin acceso a las fuentes del sistema: se usa la lógica.
+        }
+        return Font.SANS_SERIF;
+    }
+
+    /**
+     * Crea un JScrollPane vertical reutilizable. El contenido se adapta al
+     * ancho del viewport (nunca aparece scroll horizontal) y solo se desplaza
+     * en vertical cuando no cabe en alto.
+     */
+    public static JScrollPane crearScrollResponsivo(Component contenido) {
+        PanelScrollable wrapper = new PanelScrollable(new BorderLayout());
+        wrapper.add(contenido, BorderLayout.NORTH);
+
+        JScrollPane scroll = new JScrollPane(wrapper,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.getVerticalScrollBar().setBlockIncrement(96);
+        return scroll;
+    }
+
+    /**
+     * Envuelve una tarjeta de formulario para que se estire a lo ancho, se
+     * mantenga arriba y tenga scroll vertical si la pantalla es baja.
+     */
+    public static JScrollPane crearScrollFormulario(JComponent tarjeta) {
+        JPanel centrador = new JPanel(new GridBagLayout());
+        centrador.setOpaque(false);
+        centrador.setBorder(new EmptyBorder(4, 0, 18, 0));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.NORTH;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        centrador.add(tarjeta, gbc);
+
+        return crearScrollResponsivo(centrador);
+    }
+
+    /**
+     * Construye un formulario de dos columnas con pesos: las etiquetas
+     * conservan su ancho y los campos absorben el espacio disponible.
+     */
+    public static JPanel crearFormulario(String[] etiquetas, JComponent[] campos) {
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        for (int i = 0; i < etiquetas.length; i++) {
+            gbc.gridx = 0;
+            gbc.gridy = i;
+            gbc.weightx = 0;
+            gbc.fill = GridBagConstraints.NONE;
+            JLabel lbl = new JLabel(etiquetas[i]);
+            lbl.setForeground(TEXTO_AZUL);
+            form.add(lbl, gbc);
+
+            gbc.gridx = 1;
+            gbc.weightx = 1;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            form.add(campos[i], gbc);
+        }
+        return form;
+    }
+
+    /**
+     * FlowLayout que calcula su altura preferida considerando el ancho real
+     * disponible. Así, cuando los botones no caben en una fila, el contenedor
+     * crece en alto en lugar de recortar la segunda fila.
+     */
+    public static class WrapLayout extends FlowLayout {
+
+        public WrapLayout(int align, int hgap, int vgap) {
+            super(align, hgap, vgap);
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container target) {
+            return layoutSize(target, true);
+        }
+
+        @Override
+        public Dimension minimumLayoutSize(Container target) {
+            Dimension minimum = layoutSize(target, false);
+            minimum.width -= (getHgap() + 1);
+            return minimum;
+        }
+
+        private Dimension layoutSize(Container target, boolean preferred) {
+            synchronized (target.getTreeLock()) {
+                Container container = target;
+                while (container.getSize().width == 0 && container.getParent() != null) {
+                    container = container.getParent();
+                }
+                int targetWidth = container.getSize().width;
+                if (targetWidth == 0) {
+                    targetWidth = Integer.MAX_VALUE;
+                }
+
+                int hgap = getHgap();
+                int vgap = getVgap();
+                Insets insets = target.getInsets();
+                int horizontalInsetsAndGap = insets.left + insets.right + (hgap * 2);
+                int maxWidth = targetWidth - horizontalInsetsAndGap;
+
+                Dimension dim = new Dimension(0, 0);
+                int rowWidth = 0;
+                int rowHeight = 0;
+                int miembros = target.getComponentCount();
+
+                for (int i = 0; i < miembros; i++) {
+                    Component m = target.getComponent(i);
+                    if (m.isVisible()) {
+                        Dimension d = preferred ? m.getPreferredSize() : m.getMinimumSize();
+                        if (rowWidth + d.width > maxWidth) {
+                            addRow(dim, rowWidth, rowHeight);
+                            rowWidth = 0;
+                            rowHeight = 0;
+                        }
+                        if (rowWidth != 0) {
+                            rowWidth += hgap;
+                        }
+                        rowWidth += d.width;
+                        rowHeight = Math.max(rowHeight, d.height);
+                    }
+                }
+                addRow(dim, rowWidth, rowHeight);
+
+                dim.width += horizontalInsetsAndGap;
+                dim.height += insets.top + insets.bottom + vgap * 2;
+
+                Container scrollPane = SwingUtilities.getAncestorOfClass(JScrollPane.class, target);
+                if (scrollPane != null && target.isValid()) {
+                    dim.width -= (hgap + 1);
+                }
+                return dim;
+            }
+        }
+
+        private void addRow(Dimension dim, int rowWidth, int rowHeight) {
+            dim.width = Math.max(dim.width, rowWidth);
+            if (dim.height > 0) {
+                dim.height += getVgap();
+            }
+            dim.height += rowHeight;
+        }
+    }
+
+    /** Panel interno que hace que el contenido siga el ancho del viewport. */
+    private static class PanelScrollable extends JPanel implements Scrollable {        PanelScrollable(java.awt.LayoutManager layout) {
+            super(layout);
+            setOpaque(false);
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 96;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+    }
 
     /**
      * Crea un botón estilizado con color personalizado.
@@ -100,6 +320,9 @@ public class TemaFarmac {
         btn.setOpaque(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBorder(new EmptyBorder(7, 14, 7, 14));
+        // Altura mínima común: todos los botones conservan el mismo alto aunque
+        // cambie el texto, el icono o el tamaño de la ventana.
+        btn.setMinimumSize(new Dimension(0, ALTO_CONTROL));
         return btn;
     }
 
@@ -125,6 +348,9 @@ public class TemaFarmac {
                 new BordeRedondeado(BORDE, 6, 1),
                 new EmptyBorder(5, 8, 5, 8)
         ));
+        Dimension pref = txt.getPreferredSize();
+        txt.setPreferredSize(new Dimension(pref.width, ALTO_CONTROL));
+        txt.setMinimumSize(new Dimension(0, ALTO_CONTROL));
         return txt;
     }
 
@@ -142,6 +368,9 @@ public class TemaFarmac {
                 new BordeRedondeado(BORDE, 6, 1),
                 new EmptyBorder(5, 8, 5, 8)
         ));
+        Dimension pref = txt.getPreferredSize();
+        txt.setPreferredSize(new Dimension(pref.width, ALTO_CONTROL));
+        txt.setMinimumSize(new Dimension(0, ALTO_CONTROL));
         return txt;
     }
 
@@ -157,6 +386,7 @@ public class TemaFarmac {
                 new BordeRedondeado(BORDE, 6, 1),
                 new EmptyBorder(3, 6, 3, 6)
         ));
+        cmb.setMinimumSize(new Dimension(120, ALTO_CONTROL));
     }
 
     public static JPanel crearCard() {
@@ -227,7 +457,9 @@ public class TemaFarmac {
         tabla.setSelectionForeground(TEXTO_AZUL);
 
         JTableHeader header = tabla.getTableHeader();
-        header.setFont(FUENTE_NEGRITA);
+        // Encabezados ligeramente más compactos para que quepan en pantallas
+        // angostas sin recortar el texto.
+        header.setFont(fuente(Font.BOLD, 11));
         header.setBackground(TABLA_HEADER_BG);
         header.setForeground(Color.WHITE);
         header.setPreferredSize(new Dimension(0, 32));
@@ -240,7 +472,7 @@ public class TemaFarmac {
                 JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 lbl.setBackground(TABLA_HEADER_BG);
                 lbl.setForeground(Color.WHITE);
-                lbl.setFont(FUENTE_NEGRITA);
+                lbl.setFont(fuente(Font.BOLD, 11));
                 lbl.setBorder(new EmptyBorder(0, 8, 0, 8));
                 lbl.setHorizontalAlignment(SwingConstants.LEFT);
                 lbl.setOpaque(true);
@@ -264,6 +496,7 @@ public class TemaFarmac {
             setFocusPainted(false);
             setBorderPainted(false);
             setOpaque(true);
+            setMargin(new Insets(0, 0, 0, 0));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
         }
 
@@ -287,6 +520,7 @@ public class TemaFarmac {
             this.button.setFocusPainted(false);
             this.button.setBorderPainted(false);
             this.button.setOpaque(true);
+            this.button.setMargin(new Insets(0, 0, 0, 0));
             this.button.setCursor(new Cursor(Cursor.HAND_CURSOR));
             this.button.addActionListener(this);
         }

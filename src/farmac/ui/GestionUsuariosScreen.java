@@ -32,7 +32,7 @@ import javax.swing.table.DefaultTableModel;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
- * Pantalla de Administración y CRUD de Usuarios con persistencia en PostgreSQL (RF01).
+ * Pantalla de Administración y CRUD de Usuarios con persistencia en PostgreSQL.
  * Aplica restricciones de seguridad para no eliminar al último encargado ni a sí mismo.
  */
 public class GestionUsuariosScreen extends JPanel {
@@ -57,8 +57,8 @@ public class GestionUsuariosScreen extends JPanel {
         setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(new EmptyBorder(18, 20, 18, 20));
 
-        // Cabecera
-        JPanel pnlHeader = new JPanel(new BorderLayout(12, 12));
+        // Cabecera (se reacomoda si el ancho no alcanza)
+        JPanel pnlHeader = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 10, 0));
         pnlHeader.setOpaque(false);
 
         JPanel pnlTit = new JPanel();
@@ -69,7 +69,7 @@ public class GestionUsuariosScreen extends JPanel {
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Alta, edición de credenciales (BCrypt), asignación de roles y control de acceso (RF01)");
+        JLabel lblSub = new JLabel("Alta, edición de credenciales (BCrypt), asignación de roles y control de acceso");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -94,8 +94,8 @@ public class GestionUsuariosScreen extends JPanel {
         pnlAcciones.add(btnEditar);
         pnlAcciones.add(btnCambiarEstado);
 
-        pnlHeader.add(pnlTit, BorderLayout.WEST);
-        pnlHeader.add(pnlAcciones, BorderLayout.EAST);
+        pnlHeader.add(pnlTit);
+        pnlHeader.add(pnlAcciones);
         add(pnlHeader, BorderLayout.NORTH);
 
         // Tabla Principal
@@ -109,6 +109,11 @@ public class GestionUsuariosScreen extends JPanel {
         };
         tblUsuarios = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tblUsuarios);
+        tblUsuarios.getColumnModel().getColumn(0).setPreferredWidth(55);
+        tblUsuarios.getColumnModel().getColumn(1).setPreferredWidth(140);
+        tblUsuarios.getColumnModel().getColumn(2).setPreferredWidth(230);
+        tblUsuarios.getColumnModel().getColumn(3).setPreferredWidth(130);
+        tblUsuarios.getColumnModel().getColumn(4).setPreferredWidth(150);
         tblUsuarios.getColumnModel().getColumn(4).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
 
         JScrollPane scroll = new JScrollPane(tblUsuarios);
@@ -170,11 +175,14 @@ public class GestionUsuariosScreen extends JPanel {
         cmbRol.setFont(TemaFarmac.FUENTE_REGULAR);
         cmbRol.setBackground(Color.WHITE);
 
-        JPanel form = new JPanel(new GridLayout(4, 2, 8, 8));
-        form.add(new JLabel("Nombre de Usuario (Login) *:")); form.add(txtUser);
-        form.add(new JLabel("Nombre Completo *:")); form.add(txtNombre);
-        form.add(new JLabel("Contraseña Inicial *:")); form.add(txtPass);
-        form.add(new JLabel("Rol en el Sistema:")); form.add(cmbRol);
+        JPanel form = TemaFarmac.crearFormulario(
+                new String[]{
+                    "Nombre de Usuario (Login) *:",
+                    "Nombre Completo *:",
+                    "Contraseña Inicial *:",
+                    "Rol en el Sistema:"
+                },
+                new javax.swing.JComponent[]{txtUser, txtNombre, txtPass, cmbRol});
 
 boolean res = DialogoFarmac.confirmar(this, "Registrar Nuevo Usuario", form);
         if (res) {
@@ -227,11 +235,14 @@ boolean res = DialogoFarmac.confirmar(this, "Registrar Nuevo Usuario", form);
         cmbRol.setFont(TemaFarmac.FUENTE_REGULAR);
         cmbRol.setBackground(Color.WHITE);
 
-        JPanel form = new JPanel(new GridLayout(4, 2, 8, 8));
-        form.add(new JLabel("Usuario (Login) *:")); form.add(txtUser);
-        form.add(new JLabel("Nombre Completo *:")); form.add(txtNombre);
-        form.add(new JLabel("Nueva Contraseña (vacío = no cambiar):")); form.add(txtPass);
-        form.add(new JLabel("Rol Asignado:")); form.add(cmbRol);
+        JPanel form = TemaFarmac.crearFormulario(
+                new String[]{
+                    "Usuario (Login) *:",
+                    "Nombre Completo *:",
+                    "Nueva Contraseña (vacío = no cambiar):",
+                    "Rol Asignado:"
+                },
+                new javax.swing.JComponent[]{txtUser, txtNombre, txtPass, cmbRol});
 
 boolean res = DialogoFarmac.confirmar(this, "Modificar Usuario #" + u.getId(), form);
         if (res) {

@@ -28,7 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de gestión integral de Proveedores (RF20).
+ * Pantalla de gestión integral de Proveedores.
  * Accesible exclusivamente para Encargados.
  */
 public class ProveedoresScreen extends JPanel {
@@ -51,15 +51,15 @@ public class ProveedoresScreen extends JPanel {
         setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Encabezado
-        JPanel pnlHeader = new JPanel(new BorderLayout());
+        // Encabezado (se reacomoda en varias filas si hace falta)
+        JPanel pnlHeader = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 10, 0));
         pnlHeader.setBackground(TemaFarmac.GRIS_FONDO);
 
         JLabel lblTitulo = new JLabel("Administración de Proveedores");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Alta, edición y control de estado de casas farmacéuticas y distribuidores (RF20)");
+        JLabel lblSub = new JLabel("Alta, edición y control de estado de casas farmacéuticas y distribuidores");
         lblSub.setFont(TemaFarmac.FUENTE_REGULAR);
         lblSub.setForeground(TemaFarmac.GRIS_TEXTO);
 
@@ -67,7 +67,6 @@ public class ProveedoresScreen extends JPanel {
         pnlTitulos.setBackground(TemaFarmac.GRIS_FONDO);
         pnlTitulos.add(lblTitulo, BorderLayout.NORTH);
         pnlTitulos.add(lblSub, BorderLayout.SOUTH);
-        pnlHeader.add(pnlTitulos, BorderLayout.WEST);
 
         // Barra de acciones
         JPanel pnlBarra = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
@@ -97,7 +96,8 @@ public class ProveedoresScreen extends JPanel {
         pnlBarra.add(btnEditar);
         pnlBarra.add(btnToggle);
 
-        pnlHeader.add(pnlBarra, BorderLayout.EAST);
+        pnlHeader.add(pnlTitulos);
+        pnlHeader.add(pnlBarra);
         add(pnlHeader, BorderLayout.NORTH);
 
         // Tabla
@@ -208,23 +208,12 @@ public class ProveedoresScreen extends JPanel {
         boolean esNuevo = (p == null);
         JDialog dlg = new JDialog((java.awt.Frame) null, esNuevo ? "Nuevo Proveedor" : "Editar Proveedor", true);
         dlg.setLayout(new BorderLayout());
-        dlg.setSize(420, 320);
-        dlg.setLocationRelativeTo(this);
-
-        JPanel pnlForm = new JPanel(new GridBagLayout());
-        pnlForm.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        pnlForm.setBackground(java.awt.Color.WHITE);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 6, 6, 6);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
 
         JTextField txtRazon = TemaFarmac.crearCampoTexto(18);
         JTextField txtContacto = TemaFarmac.crearCampoTexto(18);
         JTextField txtTelefono = TemaFarmac.crearCampoTexto(18);
         JCheckBox chkActivo = new JCheckBox("Proveedor Activo", true);
-        chkActivo.setBackground(java.awt.Color.WHITE);
+        chkActivo.setOpaque(false);
 
         if (!esNuevo) {
             txtRazon.setText(p.getRazonSocial());
@@ -233,16 +222,12 @@ public class ProveedoresScreen extends JPanel {
             chkActivo.setSelected(p.isActivo());
         }
 
-        gbc.gridx = 0; gbc.gridy = 0; pnlForm.add(new JLabel("Razón Social *:"), gbc);
-        gbc.gridx = 1; pnlForm.add(txtRazon, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1; pnlForm.add(new JLabel("Contacto:"), gbc);
-        gbc.gridx = 1; pnlForm.add(txtContacto, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2; pnlForm.add(new JLabel("Teléfono:"), gbc);
-        gbc.gridx = 1; pnlForm.add(txtTelefono, gbc);
-
-        gbc.gridx = 1; gbc.gridy = 3; pnlForm.add(chkActivo, gbc);
+        JPanel pnlForm = TemaFarmac.crearFormulario(
+                new String[]{"Razón Social *:", "Contacto:", "Teléfono:", "Estado:"},
+                new javax.swing.JComponent[]{txtRazon, txtContacto, txtTelefono, chkActivo});
+        pnlForm.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        pnlForm.setBackground(java.awt.Color.WHITE);
+        pnlForm.setOpaque(true);
 
         JPanel pnlBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnGuardar = TemaFarmac.crearBotonPrimario("Guardar");
@@ -281,6 +266,13 @@ public class ProveedoresScreen extends JPanel {
 
         dlg.add(pnlForm, BorderLayout.CENTER);
         dlg.add(pnlBotones, BorderLayout.SOUTH);
+        dlg.pack();
+        Dimension pantalla = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        dlg.setSize(
+                Math.min(Math.max(dlg.getWidth(), 420), pantalla.width - 40),
+                Math.min(Math.max(dlg.getHeight(), 280), pantalla.height - 80));
+        dlg.setMinimumSize(new Dimension(380, 260));
+        dlg.setLocationRelativeTo(this);
         dlg.setVisible(true);
     }
 }

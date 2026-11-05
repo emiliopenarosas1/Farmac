@@ -17,6 +17,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,8 +40,8 @@ import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Pantalla principal del sistema con control de acceso por roles (RNF02),
- * integración de todos los módulos y alertas al inicio (RF10, RF11).
+ * Pantalla principal del sistema con control de acceso por roles,
+ * integración de todos los módulos y alertas al inicio.
  */
 public class MainScreen extends JFrame {
 
@@ -67,8 +68,16 @@ public class MainScreen extends JFrame {
 
     private void configurarVentana() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Tamaño mínimo seguro: si la pantalla física es más pequeña, el mínimo
+        // se ajusta para que la ventana nunca quede fuera del escritorio.
+        Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
+        int minAncho = Math.min(1024, Math.max(720, pantalla.width - 40));
+        int minAlto = Math.min(640, Math.max(520, pantalla.height - 80));
+        setMinimumSize(new Dimension(minAncho, minAlto));
+
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setMinimumSize(new Dimension(1020, 620));
+        setLocationRelativeTo(null);
     }
 
     private void inicializarComponentes() {
@@ -99,7 +108,7 @@ public class MainScreen extends JFrame {
         pnlBrand.add(lblSlogan);
         pnlSidebar.add(pnlBrand, BorderLayout.NORTH);
 
-        // Menú de opciones
+        // Menú de opciones (con scroll vertical por si la pantalla es baja)
         JPanel pnlMenu = new JPanel();
         pnlMenu.setBackground(TemaFarmac.AZUL_PETROLEO);
         pnlMenu.setLayout(new BoxLayout(pnlMenu, BoxLayout.Y_AXIS));
@@ -116,7 +125,7 @@ public class MainScreen extends JFrame {
         agregarOpcionMenu(pnlMenu, "Control de Caja", "CAJA", () -> new CorteCajaScreen(usuarioActivo));
         agregarOpcionMenu(pnlMenu, "Historial de Ventas", "HISTORIAL", HistorialVentasScreen::new);
 
-        // Módulos exclusivos de Encargado (RNF02)
+        // Módulos exclusivos de Encargado
         if (esEncargado) {
             agregarOpcionMenu(pnlMenu, "Catálogo Medicamentos", "CATALOGO", () -> new CatalogoProductosScreen(usuarioActivo));
             agregarOpcionMenu(pnlMenu, "Recepción de Lotes", "RECEPCION", RecepcionInventarioScreen::new);
@@ -126,7 +135,7 @@ public class MainScreen extends JFrame {
             agregarOpcionMenu(pnlMenu, "Proveedores", "PROVEEDORES", ProveedoresScreen::new);
             agregarOpcionMenu(pnlMenu, "Gestión de Usuarios", "USUARIOS", GestionUsuariosScreen::new);
 
-            // Botón de Respaldo de BD (A6, RNF05)
+            // Botón de Respaldo de BD
             JButton btnRespaldo = new JButton("Respaldar BD (SQL)");
             btnRespaldo.setFont(TemaFarmac.FUENTE_PEQUENA);
             btnRespaldo.setForeground(new Color(0xD0, 0xE2, 0xEC));
@@ -135,14 +144,21 @@ public class MainScreen extends JFrame {
             btnRespaldo.setBorderPainted(false);
             btnRespaldo.setFocusPainted(false);
             btnRespaldo.setHorizontalAlignment(SwingConstants.LEFT);
-            btnRespaldo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+            btnRespaldo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
             btnRespaldo.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnRespaldo.addActionListener(e -> ejecutarRespaldoBD());
             pnlMenu.add(Box.createRigidArea(new Dimension(0, 8)));
             pnlMenu.add(btnRespaldo);
         }
 
-        pnlSidebar.add(pnlMenu, BorderLayout.CENTER);
+        JScrollPane scrollMenu = new JScrollPane(pnlMenu,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollMenu.setBorder(null);
+        scrollMenu.setOpaque(false);
+        scrollMenu.getViewport().setOpaque(false);
+        scrollMenu.getVerticalScrollBar().setUnitIncrement(16);
+        pnlSidebar.add(scrollMenu, BorderLayout.CENTER);
 
         // Pie de usuario
         JPanel pnlUserFooter = new JPanel();
@@ -161,7 +177,7 @@ public class MainScreen extends JFrame {
         JButton btnSalir = TemaFarmac.crearBoton(
 "Cerrar Sesión", TemaFarmac.ROJO, Color.WHITE);
         btnSalir.setFont(TemaFarmac.FUENTE_PEQUENA);
-        btnSalir.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        btnSalir.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         btnSalir.addActionListener(e -> {
             Sesion.cerrarSesion();
             dispose();
@@ -209,7 +225,7 @@ public class MainScreen extends JFrame {
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBorder(new EmptyBorder(5, 8, 5, 8));
         btn.setIcon(FontIcon.of(iconoPorClave(claveCard), 13, new Color(0xD0, 0xE2, 0xEC)));
@@ -266,7 +282,7 @@ public class MainScreen extends JFrame {
                     File f = get();
                     DialogoFarmac.mostrarJO(MainScreen.this,
                             "Respaldo de Base de Datos generado exitosamente:\n" + f.getAbsolutePath(),
-                            "Respaldo Exitoso (RNF05)", JOptionPane.INFORMATION_MESSAGE);
+                            "Respaldo Exitoso", JOptionPane.INFORMATION_MESSAGE);
                 } catch (Exception ex) {
                     Throwable causa = ex.getCause() != null ? ex.getCause() : ex;
                     DialogoFarmac.mostrarJO(MainScreen.this,
@@ -316,7 +332,7 @@ public class MainScreen extends JFrame {
 
             StringBuilder msj = new StringBuilder();
 
-            // Alerta de Caducidad (RF10)
+            // Alerta de Caducidad
             if (!alertasCad.isEmpty()) {
                 alertasCaducidadPendientes = true;
                 long vencidos = 0;
@@ -328,7 +344,7 @@ public class MainScreen extends JFrame {
                         porVencer++;
                     }
                 }
-                msj.append("ALERTA DE CADUCIDADES (RF10):\n")
+                msj.append("ALERTA DE CADUCIDADES:\n")
                    .append("• ").append(vencidos).append(" lote(s) VENCIDOS.\n")
                    .append("• ").append(porVencer).append(" lote(s) por vencer en los próximos 60 días.\n");
 
@@ -347,13 +363,13 @@ public class MainScreen extends JFrame {
                 }
             }
 
-            // Alerta de Stock Mínimo para Encargado (RF11)
+            // Alerta de Stock Mínimo para Encargado
             if (Sesion.esEncargado()) {
                 ProductoDAO prodDAO = new ProductoDAO();
                 List<Producto> prods = prodDAO.listarTodos(true);
                 List<Producto> bajos = op.productosBajoStock(prods);
                 if (!bajos.isEmpty()) {
-                    msj.append("\n\nALERTA DE DESABASTO / STOCK MÍNIMO (RF11):\n")
+                    msj.append("\n\nALERTA DE DESABASTO / STOCK MÍNIMO:\n")
                        .append("• ").append(bajos.size()).append(" producto(s) en o por debajo de su stock de seguridad:\n");
                     int maxP = Math.min(bajos.size(), 6);
                     for (int i = 0; i < maxP; i++) {

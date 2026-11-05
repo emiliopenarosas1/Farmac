@@ -132,7 +132,9 @@ public class DialogoFarmac {
         txt.setBorder(new EmptyBorder(6, 6, 6, 6));
         JScrollPane scroll = new JScrollPane(txt);
         scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.BORDE));
-        scroll.setPreferredSize(new Dimension(420, 220));
+        int altoMensaje = Math.min(220,
+                Math.max(120, Toolkit.getDefaultToolkit().getScreenSize().height / 3));
+        scroll.setPreferredSize(new Dimension(420, altoMensaje));
         JPanel cuerpo = new JPanel(new BorderLayout());
         cuerpo.setOpaque(false);
         cuerpo.setBorder(new EmptyBorder(6, 6, 6, 6));
@@ -170,7 +172,10 @@ public class DialogoFarmac {
 
         dialog.setContentPane(root);
         dialog.pack();
-        dialog.setSize(Math.max(dialog.getWidth(), 460), Math.min(dialog.getHeight(), 520));
+        Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
+        int ancho = Math.min(Math.max(dialog.getWidth(), 460), pantalla.width - 60);
+        int alto = Math.min(dialog.getHeight(), pantalla.height - 80);
+        dialog.setSize(ancho, alto);
         dialog.setResizable(true);
         dialog.setLocationRelativeTo(padre);
 
@@ -255,7 +260,9 @@ public class DialogoFarmac {
         cuerpo.setBorder(new EmptyBorder(6, 6, 6, 6));
 
         if (mensaje instanceof Component) {
-            cuerpo.add((Component) mensaje, BorderLayout.CENTER);
+            // Los formularios se envuelven en scroll para que nunca se recorten
+            // en pantallas bajas; el ancho se adapta al del diálogo.
+            cuerpo.add(TemaFarmac.crearScrollResponsivo((Component) mensaje), BorderLayout.CENTER);
         } else {
             JTextArea txt = new JTextArea(String.valueOf(mensaje));
             txt.setFont(TemaFarmac.FUENTE_REGULAR);
@@ -307,7 +314,10 @@ public class DialogoFarmac {
 
         dialog.setContentPane(root);
         dialog.pack();
-        dialog.setSize(Math.max(dialog.getWidth(), 360), dialog.getHeight());
+        Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
+        int ancho = Math.min(Math.max(dialog.getWidth(), 360), pantalla.width - 60);
+        int alto = Math.min(Math.max(dialog.getHeight(), 160), pantalla.height - 80);
+        dialog.setSize(ancho, alto);
         dialog.setLocationRelativeTo(padre);
 
         // animacion de aparicion (fade-in): arrancar timer antes de mostrar

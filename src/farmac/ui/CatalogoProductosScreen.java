@@ -40,7 +40,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Catálogo y Mantenimiento de Medicamentos (RF03 a RF06).
+ * Pantalla de Catálogo y Mantenimiento de Medicamentos.
  * Persistencia en PostgreSQL, baja lógica, proveedores dinámicos y stock/caducidad calculados.
  */
 public class CatalogoProductosScreen extends JPanel {
@@ -86,7 +86,7 @@ public class CatalogoProductosScreen extends JPanel {
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Administración de catálogo, baja lógica, control médico y trazabilidad de lotes (RF03 a RF06)");
+        JLabel lblSub = new JLabel("Administración de catálogo, baja lógica, control médico y trazabilidad de lotes");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -101,8 +101,9 @@ public class CatalogoProductosScreen extends JPanel {
         pnlNorte.add(pnlTit);
         pnlNorte.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Barra de Herramientas
-        JPanel pnlBarraHerramientas = new JPanel(new BorderLayout(10, 0));
+        // Barra de Herramientas (FlowLayout: se reacomoda en varias filas
+        // cuando el ancho de la ventana no alcanza para una sola)
+        JPanel pnlBarraHerramientas = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 8, 4));
         pnlBarraHerramientas.setOpaque(false);
 
         // Botones CRUD (Exclusivo Encargado)
@@ -150,8 +151,8 @@ public class CatalogoProductosScreen extends JPanel {
         pnlBuscarExportar.add(btnBuscar);
         pnlBuscarExportar.add(btnExportar);
 
-        pnlBarraHerramientas.add(pnlBotonesCrud, BorderLayout.WEST);
-        pnlBarraHerramientas.add(pnlBuscarExportar, BorderLayout.EAST);
+        pnlBarraHerramientas.add(pnlBotonesCrud);
+        pnlBarraHerramientas.add(pnlBuscarExportar);
         pnlNorte.add(pnlBarraHerramientas);
 
         add(pnlNorte, BorderLayout.NORTH);
@@ -161,8 +162,8 @@ public class CatalogoProductosScreen extends JPanel {
         pnlCard.setLayout(new BorderLayout(8, 8));
 
         String[] columnas = {
-            "ID", "Código Barras", "Nombre del Medicamento", "Categoría",
-            "Proveedor", "Precio Venta", "Tipo Venta", "Stock Mín.", "Existencia Actual", "Caducidad Próx."
+            "ID", "Código", "Medicamento", "Categoría",
+            "Proveedor", "P. Venta", "Tipo", "Mín.", "Existencia", "Caduc."
         };
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
@@ -170,16 +171,16 @@ public class CatalogoProductosScreen extends JPanel {
         };
         tblProductos = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tblProductos);
-        tblProductos.getColumnModel().getColumn(0).setPreferredWidth(45);
-        tblProductos.getColumnModel().getColumn(1).setPreferredWidth(110);
-        tblProductos.getColumnModel().getColumn(2).setPreferredWidth(210);
-        tblProductos.getColumnModel().getColumn(3).setPreferredWidth(120);
-        tblProductos.getColumnModel().getColumn(4).setPreferredWidth(140);
-        tblProductos.getColumnModel().getColumn(5).setPreferredWidth(85);
-        tblProductos.getColumnModel().getColumn(6).setPreferredWidth(120);
+        tblProductos.getColumnModel().getColumn(0).setPreferredWidth(40);
+        tblProductos.getColumnModel().getColumn(1).setPreferredWidth(100);
+        tblProductos.getColumnModel().getColumn(2).setPreferredWidth(170);
+        tblProductos.getColumnModel().getColumn(3).setPreferredWidth(90);
+        tblProductos.getColumnModel().getColumn(4).setPreferredWidth(95);
+        tblProductos.getColumnModel().getColumn(5).setPreferredWidth(75);
+        tblProductos.getColumnModel().getColumn(6).setPreferredWidth(75);
         tblProductos.getColumnModel().getColumn(7).setPreferredWidth(75);
-        tblProductos.getColumnModel().getColumn(8).setPreferredWidth(95);
-        tblProductos.getColumnModel().getColumn(9).setPreferredWidth(105);
+        tblProductos.getColumnModel().getColumn(8).setPreferredWidth(85);
+        tblProductos.getColumnModel().getColumn(9).setPreferredWidth(85);
 
         tblProductos.getColumnModel().getColumn(6).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
 
@@ -193,7 +194,7 @@ public class CatalogoProductosScreen extends JPanel {
 
     public void cargarDatos() {
         try {
-            listaProductosActual = productoDAO.listarTodos(true); // Solo productos activos (RF04)
+            listaProductosActual = productoDAO.listarTodos(true); // Solo productos activos
             listaLotesActual = loteDAO.listarTodos();
 
             // Cargar categorías en el combo
@@ -281,14 +282,19 @@ DialogoFarmac.mostrar(this, "Error", "Error al consultar producto: " + e.getMess
             JCheckBox chkReceta = new JCheckBox("Requiere Receta Médica Obligatoria (Antibiótico / Controlado)");
             JTextField txtMin = TemaFarmac.crearCampoTexto("5", 5);
 
-            JPanel form = new JPanel(new GridLayout(7, 2, 8, 8));
-            form.add(new JLabel("Código de Barras *:")); form.add(txtCod);
-            form.add(new JLabel("Nombre Medicamento *:")); form.add(txtNom);
-            form.add(new JLabel("Categoría:")); form.add(cmbCat);
-            form.add(new JLabel("Proveedor *:")); form.add(cmbProv);
-            form.add(new JLabel("Precio Venta ($) *:")); form.add(txtPrecio);
-            form.add(new JLabel("Control Médico:")); form.add(chkReceta);
-            form.add(new JLabel("Stock Mínimo (Seguridad):")); form.add(txtMin);
+            JPanel form = TemaFarmac.crearFormulario(
+                    new String[]{
+                        "Código de Barras *:",
+                        "Nombre Medicamento *:",
+                        "Categoría:",
+                        "Proveedor *:",
+                        "Precio Venta ($) *:",
+                        "Control Médico:",
+                        "Stock Mínimo (Seguridad):"
+                    },
+                    new javax.swing.JComponent[]{
+                        txtCod, txtNom, cmbCat, cmbProv, txtPrecio, chkReceta, txtMin
+                    });
 
 boolean res = DialogoFarmac.confirmar(this, "Alta de Nuevo Medicamento", form);
             if (res) {
@@ -364,14 +370,19 @@ boolean res = DialogoFarmac.confirmar(this, "Alta de Nuevo Medicamento", form);
             JCheckBox chkReceta = new JCheckBox("Requiere Receta Médica Obligatoria", p.isRequiereReceta());
             JTextField txtMin = TemaFarmac.crearCampoTexto(String.valueOf(p.getStockMinimo()), 5);
 
-            JPanel form = new JPanel(new GridLayout(7, 2, 8, 8));
-            form.add(new JLabel("Código de Barras *:")); form.add(txtCod);
-            form.add(new JLabel("Nombre Medicamento *:")); form.add(txtNom);
-            form.add(new JLabel("Categoría:")); form.add(cmbCat);
-            form.add(new JLabel("Proveedor:")); form.add(cmbProv);
-            form.add(new JLabel("Precio Venta ($) *:")); form.add(txtPrecio);
-            form.add(new JLabel("Control Médico:")); form.add(chkReceta);
-            form.add(new JLabel("Stock Mínimo:")); form.add(txtMin);
+            JPanel form = TemaFarmac.crearFormulario(
+                    new String[]{
+                        "Código de Barras *:",
+                        "Nombre Medicamento *:",
+                        "Categoría:",
+                        "Proveedor:",
+                        "Precio Venta ($) *:",
+                        "Control Médico:",
+                        "Stock Mínimo:"
+                    },
+                    new javax.swing.JComponent[]{
+                        txtCod, txtNom, cmbCat, cmbProv, txtPrecio, chkReceta, txtMin
+                    });
 
 boolean res = DialogoFarmac.confirmar(this, "Modificar Medicamento #" + p.getId(), form);
             if (res) {
@@ -432,7 +443,7 @@ boolean res = DialogoFarmac.confirmar(this, "Modificar Medicamento #" + p.getId(
 
         boolean confirm = DialogoFarmac.confirmarJO(this,
                 "¿Está seguro de desactivar el medicamento '" + p.getNombre() + "' del catálogo activo?\n"
-                + "Se aplicará BAJA LÓGICA (RF04) conservando la trazabilidad de ventas e inventario.",
+                + "Se aplicará BAJA LÓGICA conservando la trazabilidad de ventas e inventario.",
                 "Confirmar Desactivación");
 
         if (confirm) {

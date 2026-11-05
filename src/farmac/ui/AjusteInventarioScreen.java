@@ -34,7 +34,7 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Pantalla para ajuste manual de inventario con lotes reales de la BD (RF09).
+ * Pantalla para ajuste manual de inventario con lotes reales de la BD.
  * Exclusiva para Encargados.
  */
 public class AjusteInventarioScreen extends JPanel {
@@ -73,14 +73,14 @@ public class AjusteInventarioScreen extends JPanel {
         setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(new EmptyBorder(18, 20, 18, 20));
 
-        JPanel pnlHeader = new JPanel(new BorderLayout());
+        JPanel pnlHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         pnlHeader.setOpaque(false);
 
         JLabel lblTitulo = new JLabel("Ajuste Manual de Inventario");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Módulo exclusivo para Encargados: Registro auditable de mermas, caducidades, robos y conteos (RF09)");
+        JLabel lblSub = new JLabel("Módulo exclusivo para Encargados: Registro auditable de mermas, caducidades, robos y conteos");
         lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
         lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
 
@@ -91,59 +91,23 @@ public class AjusteInventarioScreen extends JPanel {
         pnlTit.add(Box.createRigidArea(new Dimension(0, 2)));
         pnlTit.add(lblSub);
 
-        pnlHeader.add(pnlTit, BorderLayout.WEST);
+        pnlHeader.add(pnlTit);
         add(pnlHeader, BorderLayout.NORTH);
 
         JPanel pnlCard = TemaFarmac.crearCard();
-        pnlCard.setLayout(new GridBagLayout());
-        pnlCard.setPreferredSize(new Dimension(680, 440));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 12, 8, 12);
-
-        // 1. Selector de Lote real
-        gbc.gridx = 0; gbc.gridy = 0;
-        JLabel lblL = new JLabel("Lote a Ajustar *:");
-        lblL.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblL, gbc);
+        pnlCard.setLayout(new BorderLayout(0, 12));
 
         cmbLotes = new JComboBox<>();
         cmbLotes.setFont(TemaFarmac.FUENTE_REGULAR);
         cmbLotes.setBackground(Color.WHITE);
-        cmbLotes.setPreferredSize(new Dimension(340, 36));
         cmbLotes.addActionListener(e -> actualizarDetalleStock());
-        gbc.gridx = 1;
-        pnlCard.add(cmbLotes, gbc);
-
-        // 2. Stock Disponible actual
-        gbc.gridy = 1; gbc.gridx = 0;
-        JLabel lblS = new JLabel("Existencia Disponible:");
-        lblS.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblS, gbc);
 
         lblStockActual = new JLabel("0 piezas");
         lblStockActual.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblStockActual.setForeground(TemaFarmac.TURQUESA);
-        gbc.gridx = 1;
-        pnlCard.add(lblStockActual, gbc);
-
-        // 3. Cantidad a descontar
-        gbc.gridy = 2; gbc.gridx = 0;
-        JLabel lblQ = new JLabel("Piezas a Descontar *:");
-        lblQ.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblQ, gbc);
 
         txtCantidadAjuste = TemaFarmac.crearCampoTexto(15);
         txtCantidadAjuste.putClientProperty("JTextField.placeholderText", "Ej. 5");
-        gbc.gridx = 1;
-        pnlCard.add(txtCantidadAjuste, gbc);
-
-        // 4. Motivo
-        gbc.gridy = 3; gbc.gridx = 0;
-        JLabel lblM = new JLabel("Motivo Justificado *:");
-        lblM.setForeground(TemaFarmac.TEXTO_AZUL);
-        pnlCard.add(lblM, gbc);
 
         cmbMotivo = new JComboBox<>(new String[]{
             "MERMA / PRODUCTO DAÑADO",
@@ -155,24 +119,30 @@ public class AjusteInventarioScreen extends JPanel {
         });
         cmbMotivo.setFont(TemaFarmac.FUENTE_REGULAR);
         cmbMotivo.setBackground(Color.WHITE);
-        cmbMotivo.setPreferredSize(new Dimension(340, 36));
-        gbc.gridx = 1;
-        pnlCard.add(cmbMotivo, gbc);
 
-        // Botón
+        JPanel form = TemaFarmac.crearFormulario(
+                new String[]{
+                    "Lote a Ajustar *:",
+                    "Existencia Disponible:",
+                    "Piezas a Descontar *:",
+                    "Motivo Justificado *:"
+                },
+                new javax.swing.JComponent[]{
+                    cmbLotes, lblStockActual, txtCantidadAjuste, cmbMotivo
+                });
+        pnlCard.add(form, BorderLayout.CENTER);
+
         JButton btnAplicar = TemaFarmac.crearBoton("Autorizar y Aplicar Ajuste", TemaFarmac.ROJO, Color.WHITE);
-        btnAplicar.setPreferredSize(new Dimension(340, 42));
+        btnAplicar.setMinimumSize(new Dimension(0, 42));
         btnAplicar.addActionListener(e -> autorizar());
 
-        gbc.gridy = 4; gbc.gridx = 0; gbc.gridwidth = 2;
-        gbc.insets = new Insets(18, 12, 8, 12);
-        pnlCard.add(btnAplicar, gbc);
+        JPanel pnlBoton = new JPanel(new BorderLayout());
+        pnlBoton.setOpaque(false);
+        pnlBoton.setBorder(new EmptyBorder(6, 6, 0, 6));
+        pnlBoton.add(btnAplicar, BorderLayout.CENTER);
+        pnlCard.add(pnlBoton, BorderLayout.SOUTH);
 
-        JPanel pnlContenedor = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 16));
-        pnlContenedor.setOpaque(false);
-        pnlContenedor.add(pnlCard);
-
-        add(pnlContenedor, BorderLayout.CENTER);
+        add(TemaFarmac.crearScrollFormulario(pnlCard), BorderLayout.CENTER);
     }
 
     public void cargarLotes() {

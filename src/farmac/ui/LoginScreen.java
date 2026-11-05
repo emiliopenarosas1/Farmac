@@ -18,6 +18,7 @@ import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -33,7 +34,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Pantalla de inicio de sesión con autenticación real en base de datos y BCrypt (RF02, A5).
+ * Pantalla de inicio de sesión con autenticación real en base de datos y BCrypt.
  */
 public class LoginScreen extends JFrame {
 
@@ -53,13 +54,30 @@ public class LoginScreen extends JFrame {
         this.usuarioDAO = new UsuarioDAO();
         configurarVentana();
         inicializarComponentes();
+        finalizarVentana();
     }
 
     private void configurarVentana() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(480, 580);
+        setResizable(true);
+        Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
+        setMinimumSize(new Dimension(
+                Math.min(400, Math.max(320, pantalla.width - 40)),
+                Math.min(540, Math.max(420, pantalla.height - 80))
+        ));
+    }
+
+    /**
+     * Empaqueta la ventana con su tamaño preferido y la limita al área útil
+     * de la pantalla, para que también funcione en equipos pequeños.
+     */
+    private void finalizarVentana() {
+        pack();
+        Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
+        int ancho = Math.min(Math.max(getWidth(), 400), pantalla.width - 40);
+        int alto = Math.min(Math.max(getHeight(), 540), pantalla.height - 80);
+        setSize(ancho, alto);
         setLocationRelativeTo(null);
-        setResizable(false);
     }
 
     private void inicializarComponentes() {
@@ -88,7 +106,12 @@ public class LoginScreen extends JFrame {
             }
         };
         card.setOpaque(false);
-        card.setPreferredSize(new Dimension(380, 480));
+        // La tarjeta se adapta al alto útil de la pantalla para no recortarse
+        // en equipos con resoluciones pequeñas.
+        Dimension pantallaLogin = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        card.setPreferredSize(new Dimension(
+                Math.min(380, Math.max(320, pantallaLogin.width - 80)),
+                Math.min(480, Math.max(380, pantallaLogin.height - 140))));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new EmptyBorder(24, 28, 24, 28));
 
@@ -313,7 +336,7 @@ public class LoginScreen extends JFrame {
             DialogoFarmac.mostrarJO(this,
                     "No fue posible iniciar sesión: " + ex.getMessage()
                     + "\nVerifique que PostgreSQL esté activo en localhost:5432 y la configuración de la base.",
-                    "Error al Iniciar Sesión (RNF03)", JOptionPane.ERROR_MESSAGE);
+                    "Error al Iniciar Sesión", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

@@ -12,14 +12,18 @@ import farmac.util.Sesion;
 import farmac.util.DialogoFarmac;
 import farmac.util.TemaFarmac;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -30,11 +34,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Historial de Ventas, Cancelaciones y Rotación de Productos (RF15, RF17).
+ * Pantalla de Historial de Ventas, Cancelaciones y Rotación de Productos.
  */
 public class HistorialVentasScreen extends JPanel {
 
@@ -49,11 +53,16 @@ public class HistorialVentasScreen extends JPanel {
     private DefaultTableModel modeloVentasConReceta;
     private JTable tablaTurnos;
     private DefaultTableModel modeloTurnos;
-    private JTextField txtFechaDesde;
-    private JTextField txtFechaHasta;
+    private JComboBox<String> cmbDiaDesde;
+    private JComboBox<String> cmbMesDesde;
+    private JComboBox<String> cmbAnioDesde;
+    private JComboBox<String> cmbDiaHasta;
+    private JComboBox<String> cmbMesHasta;
+    private JComboBox<String> cmbAnioHasta;
     private JComboBox<String> cmbEstado;
     private JCheckBox chkSoloRecetas;
     private List<Venta> listaVentasActual;
+    private boolean cargando;
 
     public HistorialVentasScreen() {
         this.ventaDAO = new VentaDAO();
@@ -69,15 +78,15 @@ public class HistorialVentasScreen extends JPanel {
         setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Encabezado
-        JPanel pnlHeader = new JPanel(new BorderLayout());
+        // Encabezado (título arriba y filtros abajo para que no se encimen)
+        JPanel pnlHeader = new JPanel(new BorderLayout(0, 8));
         pnlHeader.setBackground(TemaFarmac.GRIS_FONDO);
 
         JLabel lblTitulo = new JLabel("Historial de Ventas y Rotación");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Auditoría de tickets, cancelaciones controladas y análisis de rotación (RF15, RF17)");
+        JLabel lblSub = new JLabel("Auditoría de tickets, cancelaciones controladas y análisis de rotación");
         lblSub.setFont(TemaFarmac.FUENTE_REGULAR);
         lblSub.setForeground(TemaFarmac.GRIS_TEXTO);
 
@@ -85,19 +94,33 @@ public class HistorialVentasScreen extends JPanel {
         pnlTitulos.setBackground(TemaFarmac.GRIS_FONDO);
         pnlTitulos.add(lblTitulo, BorderLayout.NORTH);
         pnlTitulos.add(lblSub, BorderLayout.SOUTH);
-        pnlHeader.add(pnlTitulos, BorderLayout.WEST);
+        pnlHeader.add(pnlTitulos, BorderLayout.NORTH);
 
-        // Barra de filtros
-        JPanel pnlFiltros = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        pnlFiltros.setBackground(TemaFarmac.GRIS_FONDO);
+        // Barra de filtros (dos filas: fechas con combos y acciones)
+        JPanel pnlFiltros = new JPanel();
+        pnlFiltros.setLayout(new BoxLayout(pnlFiltros, BoxLayout.Y_AXIS));
+        pnlFiltros.setOpaque(false);
+
+        JPanel filaFechas = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.RIGHT, 6, 2));
+        filaFechas.setOpaque(false);
+        filaFechas.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        JPanel filaAcciones = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.RIGHT, 8, 2));
+        filaAcciones.setOpaque(false);
+        filaAcciones.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
         LocalDate hoy = LocalDate.now();
         LocalDate haceUnMes = hoy.minusDays(30);
 
-        txtFechaDesde = TemaFarmac.crearCampoTexto(8);
-        txtFechaDesde.setText(haceUnMes.toString());
-        txtFechaHasta = TemaFarmac.crearCampoTexto(8);
-        txtFechaHasta.setText(hoy.toString());
+        cmbDiaDesde = crearComboDias();
+        cmbMesDesde = crearComboMeses();
+        cmbAnioDesde = crearComboAnios();
+        cmbDiaHasta = crearComboDias();
+        cmbMesHasta = crearComboMeses();
+        cmbAnioHasta = crearComboAnios();
+
+        seleccionarFecha(cmbDiaDesde, cmbMesDesde, cmbAnioDesde, haceUnMes);
+        seleccionarFecha(cmbDiaHasta, cmbMesHasta, cmbAnioHasta, hoy);
 
         cmbEstado = new JComboBox<>(new String[]{"TODAS", "COMPLETADA", "CANCELADA"});
         TemaFarmac.estilizarComboBox(cmbEstado);
@@ -112,26 +135,36 @@ public class HistorialVentasScreen extends JPanel {
         btnCancelar.addActionListener(e -> cancelarVentaSeleccionada());
 
         chkSoloRecetas = new JCheckBox("Solo ventas con receta");
-        pnlFiltros.add(chkSoloRecetas);
+        chkSoloRecetas.setOpaque(false);
+        chkSoloRecetas.addActionListener(e -> cargarDatos());
 
-        pnlFiltros.add(new JLabel("Desde:"));
-        pnlFiltros.add(txtFechaDesde);
-        pnlFiltros.add(new JLabel("Hasta:"));
-        pnlFiltros.add(txtFechaHasta);
-        pnlFiltros.add(new JLabel("Estado:"));
-        pnlFiltros.add(cmbEstado);
-        pnlFiltros.add(btnFiltrar);
-        pnlFiltros.add(btnDetalles);
-        pnlFiltros.add(btnCancelar);
+        filaFechas.add(chkSoloRecetas);
+        filaFechas.add(new JLabel("Desde:"));
+        filaFechas.add(cmbDiaDesde);
+        filaFechas.add(cmbMesDesde);
+        filaFechas.add(cmbAnioDesde);
+        filaFechas.add(new JLabel("Hasta:"));
+        filaFechas.add(cmbDiaHasta);
+        filaFechas.add(cmbMesHasta);
+        filaFechas.add(cmbAnioHasta);
+        filaFechas.add(new JLabel("Estado:"));
+        filaFechas.add(cmbEstado);
 
-        pnlHeader.add(pnlFiltros, BorderLayout.EAST);
+        filaAcciones.add(btnFiltrar);
+        filaAcciones.add(btnDetalles);
+        filaAcciones.add(btnCancelar);
+
+        pnlFiltros.add(filaFechas);
+        pnlFiltros.add(filaAcciones);
+
+        pnlHeader.add(pnlFiltros, BorderLayout.SOUTH);
         add(pnlHeader, BorderLayout.NORTH);
 
         // Pestañas (Ventas vs Rotación)
         JTabbedPane tabbed = new JTabbedPane();
 
         // Pestaña 1: Ventas
-        String[] colsVentas = {"ID / Ticket", "Fecha y Hora", "Cajero", "Turno", "Forma Pago", "Total", "Estado", "Motivo Canc."};
+        String[] colsVentas = {"Ticket", "Fecha y Hora", "Cajero", "Turno", "Forma Pago", "Total", "Estado", "Motivo Canc."};
         modeloVentas = new DefaultTableModel(colsVentas, 0) {
             @Override
             public boolean isCellEditable(int r, int c) { return false; }
@@ -150,7 +183,7 @@ public class HistorialVentasScreen extends JPanel {
         JScrollPane scrollVentas = new JScrollPane(tablaVentas);
         tabbed.addTab("Ventas Registradas", scrollVentas);
 
-        // Pestaña 2: Rotación de Productos (RF17)
+        // Pestaña 2: Rotación de Productos
         if (Sesion.esEncargado()) {
             String[] colsRot = {"Código Barras", "Producto", "Unidades Vendidas", "Importe Generado ($)"};
             modeloRotacion = new DefaultTableModel(colsRot, 0) {
@@ -162,8 +195,8 @@ public class HistorialVentasScreen extends JPanel {
             JScrollPane scrollRot = new JScrollPane(tablaRotacion);
             tabbed.addTab("Ranking de Rotación (Más / Menos Vendidos)", scrollRot);
 
-            // Pestaña 3: Ventas con Receta Médica asociada (RF14, auditoría)
-            String[] colsRec = {"Venta", "Fecha", "Cajero", "Producto", "Folio Receta", "Médico", "Estado"};
+            // Pestaña 3: Ventas con Receta Médica asociada
+            String[] colsRec = {"Venta", "Fecha", "Cajero", "Producto", "Folio Receta", "Médico", "Estado Venta", "Receta"};
             modeloVentasConReceta = new DefaultTableModel(colsRec, 0) {
                 @Override
                 public boolean isCellEditable(int r, int c) { return false; }
@@ -172,8 +205,8 @@ public class HistorialVentasScreen extends JPanel {
             TemaFarmac.estilizarTabla(tablaVentasConReceta);
             tabbed.addTab("Ventas con Receta", new JScrollPane(tablaVentasConReceta));
 
-            // Pestaña 4: Historial de Turnos de Caja (apertura / cierre) (RF12, RF16)
-            String[] colsTurnos = {"ID", "Usuario", "Apertura", "Cierre", "Estado", "Fondo Inicial", "Monto Esperado", "Contado", "Diferencia"};
+            // Pestaña 4: Historial de Turnos de Caja (apertura / cierre)
+            String[] colsTurnos = {"ID", "Usuario", "Apertura", "Cierre", "Estado", "Fondo", "Esperado", "Contado", "Diferencia"};
             modeloTurnos = new DefaultTableModel(colsTurnos, 0) {
                 @Override
                 public boolean isCellEditable(int r, int c) { return false; }
@@ -187,148 +220,208 @@ public class HistorialVentasScreen extends JPanel {
     }
 
     public void cargarDatos() {
-        LocalDate desde = null;
-        LocalDate hasta = null;
-        try {
-            if (!txtFechaDesde.getText().trim().isEmpty()) {
-                desde = LocalDate.parse(txtFechaDesde.getText().trim());
-            }
-            if (!txtFechaHasta.getText().trim().isEmpty()) {
-                hasta = LocalDate.parse(txtFechaHasta.getText().trim());
-            }
-        } catch (Exception ex) {
-            DialogoFarmac.mostrarJO(this, "Formato de fecha inválido. Utilice YYYY-MM-DD.", "Validación", JOptionPane.WARNING_MESSAGE);
+        if (cargando) return;
+
+        final LocalDate desde = leerFecha(cmbDiaDesde, cmbMesDesde, cmbAnioDesde);
+        final LocalDate hasta = leerFecha(cmbDiaHasta, cmbMesHasta, cmbAnioHasta);
+        if (desde.isAfter(hasta)) {
+            DialogoFarmac.mostrarJO(this,
+                    "La fecha 'Desde' (" + desde + ") no puede ser posterior a 'Hasta' (" + hasta + ").",
+                    "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String estado = (String) cmbEstado.getSelectedItem();
+        final String estado = (String) cmbEstado.getSelectedItem();
+        final boolean soloRecetas = chkSoloRecetas.isSelected();
+        final boolean esEncargado = Sesion.esEncargado();
 
-        try {
-            listaVentasActual = ventaDAO.listarVentas(desde, hasta, estado);
-            modeloVentas.setRowCount(0);
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        cargando = true;
+        new SwingWorker<Object[], Void>() {
+            @Override
+            protected Object[] doInBackground() throws Exception {
+                List<Venta> ventas = ventaDAO.listarVentas(desde, hasta, estado);
+                Map<Integer, List<RecetaMedica>> recetas = recetaDAO.listarTodasPorVenta();
 
-            for (Venta v : listaVentasActual) {
-                modeloVentas.addRow(new Object[]{
+                if (soloRecetas) {
+                    List<Venta> filtradas = new ArrayList<>();
+                    for (Venta v : ventas) {
+                        List<RecetaMedica> rs = recetas.get(v.getId());
+                        if (rs != null && !rs.isEmpty()) {
+                            filtradas.add(v);
+                        }
+                    }
+                    ventas = filtradas;
+                }
+
+                List<VentaDAO.RotacionProducto> rotacion = esEncargado
+                        ? ventaDAO.obtenerRankingRotacion(desde, hasta) : null;
+                List<TurnoCaja> turnos = esEncargado
+                        ? turnoCajaDAO.listarHistorial(200) : null;
+
+                return new Object[]{ventas, recetas, rotacion, turnos};
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            protected void done() {
+                cargando = false;
+                try {
+                    Object[] datos = get();
+                    listaVentasActual = (List<Venta>) datos[0];
+                    Map<Integer, List<RecetaMedica>> recetas = (Map<Integer, List<RecetaMedica>>) datos[1];
+                    List<VentaDAO.RotacionProducto> rotacion = (List<VentaDAO.RotacionProducto>) datos[2];
+                    List<TurnoCaja> turnos = (List<TurnoCaja>) datos[3];
+
+                    llenarTablaVentas(listaVentasActual);
+                    if (modeloRotacion != null && rotacion != null) {
+                        llenarTablaRotacion(rotacion);
+                    }
+                    if (modeloVentasConReceta != null) {
+                        llenarTablaVentasConReceta(listaVentasActual, recetas);
+                    }
+                    if (modeloTurnos != null && turnos != null) {
+                        llenarTablaTurnos(turnos);
+                    }
+                } catch (Exception e) {
+                    Throwable causa = e.getCause() != null ? e.getCause() : e;
+                    DialogoFarmac.mostrarJO(HistorialVentasScreen.this,
+                            "Error al cargar historial: " + causa.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
+    }
+
+    private void llenarTablaVentas(List<Venta> ventas) {
+        modeloVentas.setRowCount(0);
+        if (ventas == null) return;
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        for (Venta v : ventas) {
+            modeloVentas.addRow(new Object[]{
+                "#" + v.getId(),
+                v.getFechaHora() != null ? v.getFechaHora().format(dtf) : "-",
+                v.getUsuario() != null ? v.getUsuario().getNombreCompleto() : "N/A",
+                v.getTurnoCaja() != null ? "Turno #" + v.getTurnoCaja().getId() : "-",
+                v.getFormaPago(),
+                String.format("$%.2f", v.getTotal()),
+                v.getEstado(),
+                v.getMotivoCancelacion() != null ? v.getMotivoCancelacion() : "-"
+            });
+        }
+    }
+
+    private void llenarTablaRotacion(List<VentaDAO.RotacionProducto> rotacion) {
+        modeloRotacion.setRowCount(0);
+        for (VentaDAO.RotacionProducto r : rotacion) {
+            modeloRotacion.addRow(new Object[]{
+                r.getCodigoBarras(),
+                r.getNombreProducto(),
+                r.getUnidadesVendidas() + " pzas",
+                String.format("$%.2f", r.getTotalImporte())
+            });
+        }
+    }
+
+    /**
+     * Llena la pestaña de ventas con receta médica asociada.
+     * Cada fila corresponde a una receta, con el producto realmente recetado.
+     */
+    private void llenarTablaVentasConReceta(List<Venta> ventas, Map<Integer, List<RecetaMedica>> recetasPorVenta) {
+        modeloVentasConReceta.setRowCount(0);
+        if (ventas == null || recetasPorVenta == null) return;
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        for (Venta v : ventas) {
+            List<RecetaMedica> recetas = recetasPorVenta.get(v.getId());
+            if (recetas == null || recetas.isEmpty()) continue;
+
+            for (RecetaMedica r : recetas) {
+                modeloVentasConReceta.addRow(new Object[]{
                     "#" + v.getId(),
                     v.getFechaHora() != null ? v.getFechaHora().format(dtf) : "-",
                     v.getUsuario() != null ? v.getUsuario().getNombreCompleto() : "N/A",
-                    v.getTurnoCaja() != null ? "Turno #" + v.getTurnoCaja().getId() : "-",
-                    v.getFormaPago(),
-                    String.format("$%.2f", v.getTotal()),
+                    r.getProducto() != null ? r.getProducto().getNombre() : "-",
+                    r.getFolioReceta() != null ? r.getFolioReceta() : "-",
+                    r.getNombreMedico() != null ? r.getNombreMedico() : "-",
                     v.getEstado(),
-                    v.getMotivoCancelacion() != null ? v.getMotivoCancelacion() : "-"
+                    r.estaVigente() ? "VIGENTE" : "VENCIDA"
                 });
             }
-
-            // Cargar rotación si existe modelo
-            if (modeloRotacion != null) {
-                modeloRotacion.setRowCount(0);
-                List<VentaDAO.RotacionProducto> rotacion = ventaDAO.obtenerRankingRotacion(desde, hasta);
-                for (VentaDAO.RotacionProducto r : rotacion) {
-                    modeloRotacion.addRow(new Object[]{
-                        r.getCodigoBarras(),
-                        r.getNombreProducto(),
-                        r.getUnidadesVendidas() + " pzas",
-                        String.format("$%.2f", r.getTotalImporte())
-                    });
-                }
-            }
-
-            // Filtro opcional: solo ventas con receta médica capturada (RF14)
-            if (chkSoloRecetas.isSelected() && listaVentasActual != null) {
-                List<Venta> ventasConReceta = new ArrayList<>();
-                for (Venta v : listaVentasActual) {
-                    if (v == null) continue;
-                    List<RecetaMedica> recetas = recetaDAO.listarPorVenta(v.getId());
-                    if (recetas != null && !recetas.isEmpty()) {
-                        ventasConReceta.add(v);
-                    }
-                }
-                listaVentasActual = ventasConReceta;
-            }
-
-            // Historial de ventas con receta asociada
-            if (modeloVentasConReceta != null) {
-                cargarVentasConReceta();
-            }
-
-            // Historial de turnos de caja (apertura / cierre)
-            if (modeloTurnos != null) {
-                cargarTurnos();
-            }
-        } catch (SQLException e) {
-            DialogoFarmac.mostrarJO(this, "Error al cargar historial: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     /**
-     * Carga en la pestaña las ventas del periodo/estado que tengan receta médica asociada.
+     * Llena el historial de turnos de caja con sus datos de apertura y cierre.
      */
-    private void cargarVentasConReceta() {
-        modeloVentasConReceta.setRowCount(0);
-        LocalDate desde = null;
-        LocalDate hasta = null;
-        try {
-            if (!txtFechaDesde.getText().trim().isEmpty()) {
-                desde = LocalDate.parse(txtFechaDesde.getText().trim());
-            }
-            if (!txtFechaHasta.getText().trim().isEmpty()) {
-                hasta = LocalDate.parse(txtFechaHasta.getText().trim());
-            }
-        } catch (Exception ex) {
-            return;
-        }
-        String estado = (String) cmbEstado.getSelectedItem();
-
-        try {
-            List<Venta> ventas = ventaDAO.listarVentas(desde, hasta, estado);
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            for (Venta v : ventas) {
-                if (v == null) continue;
-                List<RecetaMedica> recetas = recetaDAO.listarPorVenta(v.getId());
-                if (recetas == null || recetas.isEmpty()) continue;
-                for (RecetaMedica r : recetas) {
-                    modeloVentasConReceta.addRow(new Object[]{
-                        "#" + v.getId(),
-                        v.getFechaHora() != null ? v.getFechaHora().format(dtf) : "-",
-                        v.getUsuario() != null ? v.getUsuario().getNombreCompleto() : "N/A",
-                        v.getTurnoCaja() != null ? "Turno #" + v.getTurnoCaja().getId() : "-",
-                        String.format("$%.2f", v.getTotal()),
-                        r.getFolioReceta(),
-                        r.getNombreMedico()
-                    });
-                }
-            }
-        } catch (SQLException e) {
-            DialogoFarmac.mostrarJO(this, "Error al cargar ventas con receta: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * Carga el historial de turnos de caja con sus datos de apertura y cierre.
-     */
-    private void cargarTurnos() {
+    private void llenarTablaTurnos(List<TurnoCaja> turnos) {
         modeloTurnos.setRowCount(0);
-        try {
-            List<TurnoCaja> turnos = turnoCajaDAO.listarHistorial(200);
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            for (TurnoCaja t : turnos) {
-                modeloTurnos.addRow(new Object[]{
-                    t.getId(),
-                    t.getUsuario() != null ? t.getUsuario().getNombreCompleto() : "N/A",
-                    t.getFechaApertura() != null ? t.getFechaApertura().format(dtf) : "-",
-                    t.getFechaCierre() != null ? t.getFechaCierre().format(dtf) : "Abierto",
-                    t.getEstado(),
-                    String.format("$%.2f", t.getMontoInicial()),
-                    String.format("$%.2f", t.getMontoEsperado()),
-                    String.format("$%.2f", t.getEfectivoContado()),
-                    String.format("$%.2f", t.getDiferencia())
-                });
-            }
-        } catch (SQLException e) {
-            DialogoFarmac.mostrarJO(this, "Error al cargar historial de turnos: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        for (TurnoCaja t : turnos) {
+            modeloTurnos.addRow(new Object[]{
+                t.getId(),
+                t.getUsuario() != null ? t.getUsuario().getNombreCompleto() : "N/A",
+                t.getFechaApertura() != null ? t.getFechaApertura().format(dtf) : "-",
+                t.getFechaCierre() != null ? t.getFechaCierre().format(dtf) : "Abierto",
+                t.getEstado(),
+                String.format("$%.2f", t.getMontoInicial()),
+                String.format("$%.2f", t.getMontoEsperado()),
+                String.format("$%.2f", t.getEfectivoContado()),
+                String.format("$%.2f", t.getDiferencia())
+            });
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Selectores de fecha (día / mes / año)
+    // ------------------------------------------------------------------
+
+    private JComboBox<String> crearComboDias() {
+        String[] dias = new String[31];
+        for (int i = 1; i <= 31; i++) {
+            dias[i - 1] = String.format("%02d", i);
+        }
+        JComboBox<String> cmb = new JComboBox<>(dias);
+        TemaFarmac.estilizarComboBox(cmb);
+        cmb.setPreferredSize(new java.awt.Dimension(62, TemaFarmac.ALTO_CONTROL));
+        return cmb;
+    }
+
+    private JComboBox<String> crearComboMeses() {
+        String[] meses = {"Ene", "Feb", "Mar", "Abr", "May", "Jun",
+                          "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
+        JComboBox<String> cmb = new JComboBox<>(meses);
+        TemaFarmac.estilizarComboBox(cmb);
+        cmb.setPreferredSize(new java.awt.Dimension(72, TemaFarmac.ALTO_CONTROL));
+        return cmb;
+    }
+
+    private JComboBox<String> crearComboAnios() {
+        int actual = LocalDate.now().getYear();
+        String[] anios = new String[6];
+        for (int i = 0; i < 6; i++) {
+            anios[i] = String.valueOf(actual - 5 + i);
+        }
+        JComboBox<String> cmb = new JComboBox<>(anios);
+        TemaFarmac.estilizarComboBox(cmb);
+        cmb.setPreferredSize(new java.awt.Dimension(82, TemaFarmac.ALTO_CONTROL));
+        cmb.setSelectedItem(String.valueOf(actual));
+        return cmb;
+    }
+
+    private void seleccionarFecha(JComboBox<String> dia, JComboBox<String> mes,
+                                  JComboBox<String> anio, LocalDate fecha) {
+        dia.setSelectedIndex(fecha.getDayOfMonth() - 1);
+        mes.setSelectedIndex(fecha.getMonthValue() - 1);
+        anio.setSelectedItem(String.valueOf(fecha.getYear()));
+    }
+
+    private LocalDate leerFecha(JComboBox<String> dia, JComboBox<String> mes, JComboBox<String> anio) {
+        int d = dia.getSelectedIndex() + 1;
+        int m = mes.getSelectedIndex() + 1;
+        int y = Integer.parseInt((String) anio.getSelectedItem());
+        // Ajusta el día si el mes elegido tiene menos días (ej. 31 de febrero)
+        int ultimoDia = YearMonth.of(y, m).lengthOfMonth();
+        return LocalDate.of(y, m, Math.min(d, ultimoDia));
     }
 
     private Venta obtenerSeleccionada() {
@@ -348,8 +441,6 @@ public class HistorialVentasScreen extends JPanel {
         if (v == null) return;
 
         JDialog dlg = new JDialog((java.awt.Frame) null, "Detalles de Venta #" + v.getId(), true);
-        dlg.setSize(600, 450);
-        dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout(10, 10));
 
         JPanel pnlInfo = new JPanel(new GridLayout(2, 2, 8, 4));
@@ -406,6 +497,13 @@ DialogoFarmac.mostrar(dlg, "Error", "Error al cargar detalles: " + ex.getMessage
         pnlSur.add(btnCerrar);
         dlg.add(pnlSur, BorderLayout.SOUTH);
 
+        dlg.pack();
+        java.awt.Dimension pantalla = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        dlg.setSize(
+                Math.min(Math.max(dlg.getWidth(), 560), pantalla.width - 40),
+                Math.min(Math.max(dlg.getHeight(), 400), pantalla.height - 80));
+        dlg.setMinimumSize(new java.awt.Dimension(480, 340));
+        dlg.setLocationRelativeTo(this);
         dlg.setVisible(true);
     }
 
@@ -419,7 +517,7 @@ DialogoFarmac.mostrar(dlg, "Error", "Error al cargar detalles: " + ex.getMessage
         }
 
         String motivo = JOptionPane.showInputDialog(this,
-                "Ingrese el motivo de cancelación para la Venta #" + v.getId() + " (Obligatorio - RF15):",
+                "Ingrese el motivo de cancelación para la Venta #" + v.getId() + " (Obligatorio):",
                 "Cancelar Venta", JOptionPane.QUESTION_MESSAGE);
 
         if (motivo == null || motivo.trim().isEmpty()) {

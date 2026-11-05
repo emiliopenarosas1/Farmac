@@ -15,7 +15,6 @@ nbactions.xml
 
 # Compilados
 *.class
-*.jar
 *.war
 
 # Logs y temporales
@@ -28,3 +27,10 @@ Thumbs.db
 
 # Zips de entrega
 *.zip
+
+# Las librerias de lib/ y los scripts de sql/ SI se versionan:
+# son necesarios para compilar y para recrear la base en otro equipo.
+!lib/
+!lib/*.jar
+!sql/
+!sql/*.sql

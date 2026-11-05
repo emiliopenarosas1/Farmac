@@ -28,7 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 /**
- * Pantalla de Reporte de Existencias y Valorización Total del Inventario (RF18).
+ * Pantalla de Reporte de Existencias y Valorización Total del Inventario.
  * Accesible exclusivamente para Encargados.
  */
 public class ReporteExistenciasScreen extends JPanel {
@@ -62,15 +62,15 @@ public class ReporteExistenciasScreen extends JPanel {
         setBackground(TemaFarmac.GRIS_FONDO);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Encabezado
-        JPanel pnlHeader = new JPanel(new BorderLayout());
+        // Encabezado reacomodable (título y acciones pasan a varias filas si hace falta)
+        JPanel pnlHeader = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 10, 0));
         pnlHeader.setBackground(TemaFarmac.GRIS_FONDO);
 
         JLabel lblTitulo = new JLabel("Reporte de Existencias y Valorización");
         lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
         lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
 
-        JLabel lblSub = new JLabel("Consolidación de stock por producto, alertas de desabasto y valuación total (RF18)");
+        JLabel lblSub = new JLabel("Consolidación de stock por producto, alertas de desabasto y valuación total");
         lblSub.setFont(TemaFarmac.FUENTE_REGULAR);
         lblSub.setForeground(TemaFarmac.GRIS_TEXTO);
 
@@ -78,10 +78,9 @@ public class ReporteExistenciasScreen extends JPanel {
         pnlTitulos.setBackground(TemaFarmac.GRIS_FONDO);
         pnlTitulos.add(lblTitulo, BorderLayout.NORTH);
         pnlTitulos.add(lblSub, BorderLayout.SOUTH);
-        pnlHeader.add(pnlTitulos, BorderLayout.WEST);
 
         // Barra derecha: Búsqueda y Exportar
-        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         pnlAcciones.setBackground(TemaFarmac.GRIS_FONDO);
 
         txtBuscar = TemaFarmac.crearCampoTexto(14);
@@ -104,7 +103,8 @@ public class ReporteExistenciasScreen extends JPanel {
         pnlAcciones.add(btnRefrescar);
         pnlAcciones.add(btnExportar);
 
-        pnlHeader.add(pnlAcciones, BorderLayout.EAST);
+        pnlHeader.add(pnlTitulos);
+        pnlHeader.add(pnlAcciones);
 
         // Panel de KPIs superiores
         JPanel pnlKPIs = new JPanel(new GridLayout(1, 4, 15, 0));
@@ -130,8 +130,8 @@ public class ReporteExistenciasScreen extends JPanel {
 
         // Tabla
         String[] columnas = {
-            "Código Barras", "Nombre Producto", "Categoría", "Proveedor",
-            "Stock Mín.", "Stock Actual", "Caducidad Próx.", "Valor Stock ($)", "Estado"
+            "Código", "Producto", "Categoría", "Proveedor",
+            "Mín.", "Stock", "Caducidad", "Valor ($)", "Estado"
         };
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
@@ -139,12 +139,20 @@ public class ReporteExistenciasScreen extends JPanel {
         };
         tablaExistencias = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tablaExistencias);
+        tablaExistencias.getColumnModel().getColumn(0).setPreferredWidth(110);
+        tablaExistencias.getColumnModel().getColumn(1).setPreferredWidth(190);
+        tablaExistencias.getColumnModel().getColumn(2).setPreferredWidth(110);
+        tablaExistencias.getColumnModel().getColumn(3).setPreferredWidth(130);
+        tablaExistencias.getColumnModel().getColumn(4).setPreferredWidth(85);
+        tablaExistencias.getColumnModel().getColumn(5).setPreferredWidth(95);
+        tablaExistencias.getColumnModel().getColumn(6).setPreferredWidth(115);
+        tablaExistencias.getColumnModel().getColumn(7).setPreferredWidth(115);
+        tablaExistencias.getColumnModel().getColumn(8).setPreferredWidth(100);
 
         JScrollPane scroll = new JScrollPane(tablaExistencias);
         scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
         add(scroll, BorderLayout.CENTER);
     }
-
     public void cargarDatos() {
         try {
             listaProductos = productoDAO.listarTodos(true);

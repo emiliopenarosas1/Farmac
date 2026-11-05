@@ -98,6 +98,20 @@ psql -U postgres -d farmac_db -f sql/05_migracion_auditoria.sql
 La conexion se configura en `config/farmac.properties` (`db.url`, `db.user`,
 `db.password`).
 
+### Datos de prueba integrales
+
+Para poblar todas las tablas con un escenario completo (ventas completadas y
+canceladas, recetas vigentes y vencidas, turnos con sobrante/faltante, lotes
+vencidos, por vencer y agotados, usuarios y proveedores de ejemplo):
+
+```bash
+psql -U postgres -d farmac_db -f sql/08_datos_prueba.sql
+```
+
+El script es idempotente, usa un rango de IDs reservado (>= 100/1000) y no
+afecta los datos reales. Usuarios adicionales: `encargado2` / `admin123`,
+`empleado2` y `empleado3` / `caja123`.
+
 ---
 
 ## Como compilar y ejecutar
