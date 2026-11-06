@@ -1,22 +1,96 @@
 # Farmac — Sistema de Gestion de Farmacia
 
-Sistema de escritorio desarrollado en **Java 21** con **Swing** para la gestion integral de una farmacia: punto de venta, inventario con control FEFO, corte de caja, reportes de caducidad y administracion de usuarios.
+## Descripcion general
 
----
+Farmac es un sistema de gestion integral para farmacia desarrollado en **Java 21** con interfaz grafica de escritorio basada en **Swing**. El sistema concentra en una sola aplicacion los procesos esenciales de la operacion farmaceutica: el catalogo de medicamentos y proveedores, el punto de venta, el control de inventario bajo criterio de fecha de caducidad mas proxima (FEFO), la captura de recetas medicas para medicamentos de prescripcion controlada, el arqueo de caja y la generacion de reportes.
 
-## Caracteristicas principales
+El proposito del sistema es centralizar y dar orden a la operatividad diaria de una farmacia. En lugar de dispersar las funciones entre herramientas aisladas, Farmac integra la gestion comercial, el control de inventario y el control financiero en un flujo coherente: se identifica el medicamento y su origen mediante proveedores y lotes, se controla su disponibilidad mediante fechas de caducidad, se verifica la prescripcion medica cuando el medico lo exige, se realiza la venta y se emite el comprobante, se registra el movimiento de inventario y se cierra el turno de caja con su arqueo.
 
-| Modulo | Descripcion |
-|---|---|
-| **Punto de Venta** | Catalogo con busqueda, lector de codigo de barras, carrito, ticket PDF |
-| **Inventario** | Recepcion de lotes, ajustes autorizados, algoritmo FEFO |
-| **Corte de Caja** | Arqueo, diferencia automatica, historial de turnos |
-| **Reporte Caducidad** | Semaforo de lotes proximos a vencer, exportacion CSV |
-| **Gestion Usuarios** | Alta, edicion y activacion/desactivacion de Encargados y Empleados |
-| **Catalogo Productos** | CRUD completo, busqueda por codigo de barras |
-| **Recetas Medicas** | Captura obligatoria para medicamentos controlados (COFEPRIS) |
+El diseno del software se sustenta en una arquitectura por capas: paquetes de presentacion (interfaz grafica Swing), dominio (modelos con logica de negocio), acceso a datos (persistencia mediante DAO sobre PostgreSQL), configuracion y utilidades. Esta separacion permite mantener la interfaz, la logica y la persistencia de forma independiente entre si.
 
----
+## Funcionalidades
+
+### Punto de venta
+- Catalogo de productos con busqueda por nombre y por codigo de barras.
+- Integracion con lector de codigo de barras.
+- Carrito de ventas y calculo de totales.
+- Generacion de ticket en formato PDF al completar la venta.
+
+### Inventario
+- Recepcion de lotes con numero de lote, fecha de caducidad, cantidad recibida, precio de compra y referencia de factura.
+- Ajustes de inventario con movimiento transaccional y registro en bitacora.
+- Algoritmo de seleccion de lotes por fecha de caducidad mas proxima (FEFO).
+- Consulta de existencias y reporte de caducidad con semaforo de proximos vencimientos.
+
+### Recetas medicas
+- Medicamentos con `requiere_receta` habilitado exigen receta para su venta.
+- Validacion de receta vigente.
+- Bloqueo de ventas de medicamentos controlados sin receta o con receta vencida.
+
+### Corte de caja
+- Apertura y cierre de turno con fondo inicial.
+- Calculo del monto esperado, conteo de efectivo y diferencia.
+- Historial de turnos con sus arqueos.
+
+### Reportes y auditoria
+- Ventas con y sin receta, con filtro de recetas.
+- Historial de turnos de caja.
+- Bitacora de acciones del sistema.
+- Exportacion de reportes de caducidad y existencias.
+
+### Administracion
+- Gestion de usuarios con roles (Encargado y Empleado).
+- Gestion de proveedores.
+- Gestion de categorias y productos.
+
+## Proposito
+
+El proposito del proyecto es disponer de un sistema propio de gestion para una farmacia que cubra el ciclo completo de la dispensacion de medicamentos:
+
+1. Identificacion del medicamento y origen mediante proveedores y lotes.
+2. Control de disponibilidad mediante fechas de caducidad.
+3. Verificacion de la prescripcion medica cuando el medico lo exige.
+4. Realizacion de la venta y emision del comprobante.
+5. Registro del movimiento de inventario y de la accion en la bitacora.
+6. Cierre del turno de caja y arqueo de la operacion.
+
+El resultado esperado es una farmacia con procesos auditables, inventario controlado y operaciones de caja verificadas.
+
+## Desglose tecnologico y especificaciones
+
+### Lenguaje y plataforma
+- Lenguaje: Java 21.
+- Interfaz de usuario: Swing con tema FlatLaf y iconos Ikonli.
+
+### Persistencia de datos
+- Motor de base de datos: PostgreSQL.
+- Acceso mediante JDBC con driver `postgresql-42.5.4`.
+- Esquema definido en scripts SQL versionados en `sql/`.
+- Transacciones con control ACID y manejo de errores transaccional.
+
+### Seguridad
+- Contraseñas gestionadas con hash BCrypt.
+- Sesiones de usuario.
+- Bitacora de acciones.
+
+### Generacion de documentos
+- Tickets de venta en formato PDF.
+
+### Desarrollo y control de calidad
+- Build: Apache Ant (`build.xml`).
+- IDE recomendado: NetBeans 21.
+- Pruebas: JUnit 4 con Hamcrest.
+
+## Arquitectura del sistema
+
+El sistema se organiza en los siguientes paquetes dentro de `src/farmac`:
+
+- `app`: punto de entrada de la aplicacion.
+- `config`: conexion a base de datos.
+- `dominio`: clases de negocio y modelos.
+- `dao`: acceso a datos con persistencia.
+- `ui`: pantallas de la interfaz.
+- `util`: componentes transversales (tema, tickets, sesion, respaldo).
 
 ## Estructura del proyecto
 
@@ -26,58 +100,28 @@ Farmac/
 │   └── farmac/
 │       ├── app/          # Punto de entrada (Main.java)
 │       ├── config/       # Conexion a base de datos (ConexionBD.java)
-│       ├── dominio/      # 13 clases de dominio
-│       │   ├── Usuario.java              (abstracta)
-│       │   ├── Encargado.java
-│       │   ├── Empleado.java
-│       │   ├── Producto.java
-│       │   ├── Proveedor.java
-│       │   ├── Lote.java
-│       │   ├── TurnoCaja.java
-│       │   ├── Venta.java
-│       │   ├── DetalleVenta.java
-│       │   ├── RecetaMedica.java
-│       │   ├── MovimientoInventario.java
-│       │   ├── Bitacora.java
-│       │   └── OperacionesInventario.java
-│       ├── ui/           # 12 pantallas Swing + 1 dialogo
-│       └── util/         # TemaFarmac, TicketGenerator, Sesion, RespaldoUtil
+│       ├── dominio/      # Modelos y logica de negocio
+│       ├── dao/          # Acceso a datos (DAO)
+│       ├── ui/           # Pantallas Swing
+│       └── util/         # Utilidades (tema, tickets, sesion, respaldo)
 ├── sql/                  # Scripts de esquema, datos y migraciones
-├── test/                 # Pruebas JUnit 4 (opcional)
-├── lib/                  # jbcrypt, postgresql, junit, hamcrest
+├── test/                 # Pruebas JUnit
+├── lib/                  # Librerias de terceros
 ├── build.xml             # Build con Apache Ant
-├── README.md
-├── DIAGRAMA_CLASES.md
-└── DIAGRAMA_OBJETOS.md
+├── nbproject/           # Configuracion de NetBeans
+└── README.md
 ```
-
----
-
-## Conceptos POO aplicados
-
-| Concepto | Implementacion |
-|---|---|
-| **Herencia** | `Encargado` y `Empleado` extienden la clase abstracta `Usuario` |
-| **Polimorfismo** | `obtenerRol()` sobreescrito en cada subclase |
-| **Abstraccion** | `Usuario` es abstracta; no se puede instanciar directamente |
-| **Encapsulamiento** | Todos los atributos son `private`/`protected` con getters y setters |
-| **Composicion** | `Venta *-- DetalleVenta`: los detalles no existen sin su venta |
-| **Agregacion** | `Producto o-- Lote`: un Lote referencia a un Producto independiente |
-| **Algoritmo FEFO** | `OperacionesInventario.obtenerLotesFEFO()` ordena por caducidad ascendente |
-
----
 
 ## Requisitos
 
-- **Java 21** (Temurin / OpenJDK)
-- **Apache Ant** (para compilar con `build.xml`)
-- **NetBeans 21** (recomendado, proyecto Ant nativo)
-
----
+- **Java 21**.
+- **Apache Ant** para compilar con `build.xml`.
+- **NetBeans 21** recomendado (proyecto Ant nativo).
+- **PostgreSQL** para persistencia.
 
 ## Base de datos
 
-El proyecto usa PostgreSQL. Cree la base y ejecute los scripts en orden:
+El proyecto utiliza **PostgreSQL**. Para crear la base y aplicar el esquema:
 
 ```bash
 createdb -U postgres farmac_db
@@ -86,85 +130,46 @@ psql -U postgres -d farmac_db -f sql/01_schema.sql
 psql -U postgres -d farmac_db -f sql/02_datos.sql
 psql -U postgres -d farmac_db -f sql/03_inventario.sql
 psql -U postgres -d farmac_db -f sql/04_ventas.sql
-```
-
-Si la base ya existia antes de esta version, aplique tambien la migracion
-que agrega la bitacora y el tipo de movimiento `CANCELACION`:
-
-```bash
 psql -U postgres -d farmac_db -f sql/05_migracion_auditoria.sql
 ```
 
-La conexion se configura en `config/farmac.properties` (`db.url`, `db.user`,
-`db.password`).
+La conexion se configura en `src/farmac.properties` (`db.url`, `db.user`, `db.password`).
 
 ### Datos de prueba integrales
-
-Para poblar todas las tablas con un escenario completo (ventas completadas y
-canceladas, recetas vigentes y vencidas, turnos con sobrante/faltante, lotes
-vencidos, por vencer y agotados, usuarios y proveedores de ejemplo):
 
 ```bash
 psql -U postgres -d farmac_db -f sql/08_datos_prueba.sql
 ```
 
-El script es idempotente, usa un rango de IDs reservado (>= 100/1000) y no
-afecta los datos reales. Usuarios adicionales: `encargado2` / `admin123`,
-`empleado2` y `empleado3` / `caja123`.
-
----
-
 ## Como compilar y ejecutar
 
 ```bash
-# Compilar
 ant clean dist
-
-# Ejecutar JAR generado
 java -jar dist/Farmac.jar
 ```
 
-O directamente desde NetBeans: `Run Project (F6)`.
+O desde NetBeans: `Run Project (F6)`.
 
----
+## Consultas de auditoria
 
-## Consultas de Auditoría (Historial de Ventas y Turnos)
+La pantalla **Historial de Ventas** incluye:
 
-La pantalla **Historial de Ventas** (acceso del Encargado) incluye dos consultas
-adicionales de auditoría:
-
-- **Pestaña "Ventas con Receta"**: lista las ventas del periodo filtrado que
-  contaron con receta médica asociada (folio de receta, médico, producto y estado).
-- **Pestaña "Historial de Turnos"**: registra la apertura y el cierre de cada
-  turno de caja, con fondos iniciales, montos esperados, efectivo contado y diferencia.
-- **Filtro "Solo ventas con receta"** en la barra de filtros.
-
----
+- Pestaña **Ventas con Receta**: ventas del periodo con receta asociada.
+- Pestaña **Historial de Turnos**: apertura y cierre de turnos con arqueos.
+- Filtro **Solo ventas con receta**.
 
 ## Tickets PDF
 
-Los tickets se generan automaticamente al completar una venta.  
-Se guardan en:
-
-```
-tickets/
-└── YYYY-MM-DD/
-    └── ticket_00001_HHmmss.pdf
-```
-
----
+Los tickets se generan al completar una venta y se guardan en `tickets/YYYY-MM-DD/`.
 
 ## Roles del sistema
 
 | Rol | Acceso |
 |---|---|
-| **Encargado** | Todos los modulos: catalogo, inventario, ajustes, proveedores, usuarios, reportes y corte |
-| **Empleado** | Punto de venta y corte de caja unicamente |
+| **Encargado** | Todos los modulos |
+| **Empleado** | Punto de venta y corte de caja |
 
-El login incluye un selector visual Encargado / Empleado. El rol efectivo siempre
-se toma del usuario almacenado en la base de datos.
-
----
+El login incluye un selector visual Encargado / Empleado. El rol efectivo siempre se toma del usuario almacenado en la base de datos.
 
 ## Credenciales de prueba
 
@@ -173,17 +178,13 @@ se toma del usuario almacenado en la base de datos.
 | `admin` | `admin123` | Encargado |
 | `empleado1` | `caja123` | Empleado |
 
-Los hashes BCrypt correspondientes estan en `sql/02_datos.sql`. Si la base ya
-tenia usuarios con hashes invalidos, actualicelos con:
+Los hashes BCrypt correspondientes estan en `sql/02_datos.sql`.
 
-```sql
-UPDATE usuario SET password_hash = '$2a$10$fm2dGYB.bd80nsqMQ00waePHAiyCiZdOj8RlXKOVT3uzR7N/SX5/O'
-WHERE nombre_usuario = 'admin';
-UPDATE usuario SET password_hash = '$2a$10$0UvIkCceCpYYbajeb42PVO8NyJznYD/lw1PpgcMOlJhdmpISMnjym'
-WHERE nombre_usuario = 'empleado1';
-```
+## Documentacion complementaria
 
----
+- `DIAGRAMA_CLASES.md`: representacion orientada a objetos del dominio.
+- `DIAGRAMA_OBJETOS.md`: representacion de objetos y servicios.
+- `DIAGRAMA_CASOS_USO_MERMAID.txt` y `DIAGRAMA_CASOS_USO_PERSONITAS.txt`: casos de uso.
 
 ## Autores
 
