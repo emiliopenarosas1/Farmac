@@ -10,6 +10,7 @@ import farmac.dominio.TurnoCaja;
 import farmac.dominio.Venta;
 import farmac.util.Sesion;
 import farmac.util.DialogoFarmac;
+import farmac.util.SelectorFecha;
 import farmac.util.TemaFarmac;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -76,40 +77,14 @@ public class HistorialVentasScreen extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout(15, 15));
+        setLayout(new BorderLayout(0, 12));
         setBackground(TemaFarmac.GRIS_FONDO);
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setBorder(BorderFactory.createEmptyBorder(20, 26, 20, 26));
 
-        // Encabezado (título arriba y filtros abajo para que no se encimen)
-        JPanel pnlHeader = new JPanel(new BorderLayout(0, 8));
-        pnlHeader.setBackground(TemaFarmac.GRIS_FONDO);
-
-        JLabel lblTitulo = new JLabel("Historial de Ventas y Rotación");
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JLabel lblSub = new JLabel("Auditoría de tickets, cancelaciones controladas y análisis de rotación");
-        lblSub.setFont(TemaFarmac.FUENTE_REGULAR);
-        lblSub.setForeground(TemaFarmac.GRIS_TEXTO);
-
-        JPanel pnlTitulos = new JPanel(new BorderLayout(0, 4));
-        pnlTitulos.setBackground(TemaFarmac.GRIS_FONDO);
-        pnlTitulos.add(lblTitulo, BorderLayout.NORTH);
-        pnlTitulos.add(lblSub, BorderLayout.SOUTH);
-        pnlHeader.add(pnlTitulos, BorderLayout.NORTH);
-
-        // Barra de filtros (dos filas: fechas con combos y acciones)
-        JPanel pnlFiltros = new JPanel();
-        pnlFiltros.setLayout(new BoxLayout(pnlFiltros, BoxLayout.Y_AXIS));
-        pnlFiltros.setOpaque(false);
-
-        JPanel filaFechas = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.RIGHT, 6, 2));
-        filaFechas.setOpaque(false);
-        filaFechas.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-        JPanel filaAcciones = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.RIGHT, 8, 2));
-        filaAcciones.setOpaque(false);
-        filaAcciones.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        JLabel lblTitulo = new JLabel("Historial de ventas y rotación");
+        lblTitulo.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 20));
+        lblTitulo.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblTitulo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         LocalDate hoy = LocalDate.now();
         LocalDate haceUnMes = hoy.minusDays(30);
@@ -128,42 +103,98 @@ public class HistorialVentasScreen extends JPanel {
         TemaFarmac.estilizarComboBox(cmbEstado);
 
         JButton btnFiltrar = TemaFarmac.crearBotonPrimario("Filtrar");
+        btnFiltrar.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.FILTER, 12, java.awt.Color.WHITE));
+        btnFiltrar.setIconTextGap(8);
         btnFiltrar.addActionListener(e -> cargarDatos());
 
-        JButton btnDetalles = TemaFarmac.crearBotonSecundario("Ver Detalles");
+        JButton btnDetalles = TemaFarmac.crearBotonSecundario("Ver detalles");
+        btnDetalles.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.EYE, 12, TemaFarmac.TEXTO));
+        btnDetalles.setIconTextGap(8);
         btnDetalles.addActionListener(e -> verDetallesActivo());
 
-        JButton btnCancelar = TemaFarmac.crearBotonPeligro("Cancelar Venta");
+        JButton btnCancelar = TemaFarmac.crearBotonPeligro("Cancelar venta");
+        btnCancelar.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.TIMES, 12, TemaFarmac.ROJO));
+        btnCancelar.setIconTextGap(8);
         btnCancelar.addActionListener(e -> cancelarVentaSeleccionada());
 
         chkSoloRecetas = new JCheckBox("Solo ventas con receta");
         chkSoloRecetas.setOpaque(false);
+        chkSoloRecetas.setFont(TemaFarmac.FUENTE_REGULAR);
         chkSoloRecetas.addActionListener(e -> cargarDatos());
 
-        filaFechas.add(chkSoloRecetas);
-        filaFechas.add(new JLabel("Desde:"));
-        filaFechas.add(cmbDiaDesde);
-        filaFechas.add(cmbMesDesde);
-        filaFechas.add(cmbAnioDesde);
-        filaFechas.add(new JLabel("Hasta:"));
-        filaFechas.add(cmbDiaHasta);
-        filaFechas.add(cmbMesHasta);
-        filaFechas.add(cmbAnioHasta);
-        filaFechas.add(new JLabel("Estado:"));
-        filaFechas.add(cmbEstado);
-
-        filaAcciones.add(btnFiltrar);
-        filaAcciones.add(btnDetalles);
-        filaAcciones.add(btnCancelar);
-
-        pnlFiltros.add(filaFechas);
-        pnlFiltros.add(filaAcciones);
-
-        pnlHeader.add(pnlFiltros, BorderLayout.SOUTH);
-        add(pnlHeader, BorderLayout.NORTH);
-
-        // Pestañas (Ventas vs Rotación)
+        // Pestañas (selector segmentado propio; el contenido vive en un JTabbedPane sin barra)
         tabbed = new JTabbedPane();
+        tabbed.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
+            @Override protected int calculateTabAreaHeight(int tabPlacement, int horizRunCount, int maxTabHeight) { return 0; }
+            @Override protected void paintTabArea(java.awt.Graphics g, int tabPlacement, int selectedIndex) { }
+            @Override protected void paintContentBorder(java.awt.Graphics g, int tabPlacement, int selectedIndex) { }
+            @Override protected java.awt.Insets getContentBorderInsets(int tabPlacement) { return new java.awt.Insets(0, 0, 0, 0); }
+        });
+        tabbed.setOpaque(false);
+        tabbed.setBorder(null);
+
+        pnlSelectorPestanas = new JPanel(new GridLayout(1, 0, 4, 0)) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new java.awt.Color(0xA9, 0xAC, 0xA9));
+                g2.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.dispose();
+            }
+        };
+        pnlSelectorPestanas.setOpaque(false);
+        pnlSelectorPestanas.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+
+        JPanel pnlSelectorWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        pnlSelectorWrap.setOpaque(false);
+        pnlSelectorWrap.add(pnlSelectorPestanas);
+
+        JPanel pnlFiltros = new JPanel(new BorderLayout(14, 0));
+        pnlFiltros.setBackground(java.awt.Color.WHITE);
+        pnlFiltros.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 10, 1),
+                BorderFactory.createEmptyBorder(12, 16, 12, 16)));
+
+        JPanel filaCampos = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
+        filaCampos.setOpaque(false);
+        selDesde = new SelectorFecha(haceUnMes);
+        selHasta = new SelectorFecha(hoy);
+        filaCampos.add(crearGrupoFecha("Desde", selDesde));
+        filaCampos.add(crearGrupoFecha("Hasta", selHasta));
+        JPanel grpEstado = new JPanel();
+        grpEstado.setOpaque(false);
+        grpEstado.setLayout(new BoxLayout(grpEstado, BoxLayout.Y_AXIS));
+        JLabel lblEst = new JLabel("Estado");
+        lblEst.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblEst.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblEst.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cmbEstado.setAlignmentX(Component.LEFT_ALIGNMENT);
+        grpEstado.add(lblEst);
+        grpEstado.add(javax.swing.Box.createRigidArea(new java.awt.Dimension(0, 4)));
+        grpEstado.add(cmbEstado);
+        filaCampos.add(grpEstado);
+        filaCampos.add(chkSoloRecetas);
+        pnlFiltros.add(filaCampos, BorderLayout.CENTER);
+        pnlFiltros.add(btnFiltrar, BorderLayout.EAST);
+
+        JPanel pnlNorte = new JPanel();
+        pnlNorte.setOpaque(false);
+        pnlNorte.setLayout(new BoxLayout(pnlNorte, BoxLayout.Y_AXIS));
+        pnlSelectorWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlFiltros.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlNorte.add(lblTitulo);
+        pnlNorte.add(javax.swing.Box.createRigidArea(new java.awt.Dimension(0, 12)));
+        pnlNorte.add(pnlSelectorWrap);
+        pnlNorte.add(javax.swing.Box.createRigidArea(new java.awt.Dimension(0, 12)));
+        pnlNorte.add(pnlFiltros);
+        add(pnlNorte, BorderLayout.NORTH);
+
+        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        pnlAcciones.setOpaque(false);
+        pnlAcciones.add(btnDetalles);
+        pnlAcciones.add(btnCancelar);
+        add(pnlAcciones, BorderLayout.SOUTH);
 
         // Pestaña 1: Ventas
         String[] colsVentas = {"Ticket", "Fecha y Hora", "Cajero", "Turno", "Forma Pago", "Total", "Estado", "Motivo Canc."};
@@ -182,8 +213,8 @@ public class HistorialVentasScreen extends JPanel {
         tablaVentas.getColumnModel().getColumn(6).setPreferredWidth(110);
         tablaVentas.getColumnModel().getColumn(7).setPreferredWidth(180);
 
-        JScrollPane scrollVentas = new JScrollPane(tablaVentas);
-        tabbed.addTab("Ventas Registradas", scrollVentas);
+        tablaVentas.getColumnModel().getColumn(6).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+        agregarPestana("Ventas registradas", crearScrollTabla(tablaVentas));
 
         // Pestaña 2: Rotación de Productos
         if (Sesion.esEncargado()) {
@@ -194,8 +225,8 @@ public class HistorialVentasScreen extends JPanel {
             };
             tablaRotacion = new JTable(modeloRotacion);
             TemaFarmac.estilizarTabla(tablaRotacion);
-            JScrollPane scrollRot = new JScrollPane(tablaRotacion);
-            tabbed.addTab("Ranking de Rotación (Más / Menos Vendidos)", scrollRot);
+            JScrollPane scrollRot = crearScrollTabla(tablaRotacion);
+            agregarPestana("Ranking de rotación", scrollRot);
 
             // Pestaña 3: Ventas con Receta Médica asociada
             String[] colsRec = {"Venta", "Fecha", "Cajero", "Producto", "Folio Receta", "Médico", "Estado Venta", "Receta"};
@@ -205,7 +236,8 @@ public class HistorialVentasScreen extends JPanel {
             };
             tablaVentasConReceta = new JTable(modeloVentasConReceta);
             TemaFarmac.estilizarTabla(tablaVentasConReceta);
-            tabbed.addTab("Ventas con Receta", new JScrollPane(tablaVentasConReceta));
+            tablaVentasConReceta.getColumnModel().getColumn(6).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+            agregarPestana("Ventas con receta", crearScrollTabla(tablaVentasConReceta));
 
             // Pestaña 4: Historial de Turnos de Caja (apertura / cierre)
             String[] colsTurnos = {"ID", "Usuario", "Apertura", "Cierre", "Estado", "Fondo", "Esperado", "Contado", "Diferencia"};
@@ -215,17 +247,62 @@ public class HistorialVentasScreen extends JPanel {
             };
             tablaTurnos = new JTable(modeloTurnos);
             TemaFarmac.estilizarTabla(tablaTurnos);
-            tabbed.addTab("Historial de Turnos", new JScrollPane(tablaTurnos));
+            tablaTurnos.getColumnModel().getColumn(4).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+            agregarPestana("Historial de turnos", crearScrollTabla(tablaTurnos));
         }
 
         add(tabbed, BorderLayout.CENTER);
+        seleccionarPestana(0);
+    }
+
+    private SelectorFecha selDesde;
+    private SelectorFecha selHasta;
+    private JPanel pnlSelectorPestanas;
+    private final List<JButton> botonesPestana = new ArrayList<>();
+
+    private JScrollPane crearScrollTabla(JTable tabla) {
+        JScrollPane sp = new JScrollPane(tabla);
+        sp.setBorder(new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 8, 1));
+        sp.getViewport().setBackground(java.awt.Color.WHITE);
+        return sp;
+    }
+
+    private void agregarPestana(String titulo, Component contenido) {
+        final int indice = tabbed.getTabCount();
+        tabbed.addTab(titulo, contenido);
+        TemaFarmac.BotonSegmento b = new TemaFarmac.BotonSegmento(titulo);
+        b.addActionListener(e -> seleccionarPestana(indice));
+        botonesPestana.add(b);
+        pnlSelectorPestanas.add(b);
+    }
+
+    private void seleccionarPestana(int indice) {
+        tabbed.setSelectedIndex(indice);
+        for (int i = 0; i < botonesPestana.size(); i++) {
+            ((TemaFarmac.BotonSegmento) botonesPestana.get(i)).setActivo(i == indice);
+        }
+    }
+
+    private JPanel crearGrupoFecha(String titulo, SelectorFecha selector) {
+        JPanel g = new JPanel();
+        g.setOpaque(false);
+        g.setLayout(new BoxLayout(g, BoxLayout.Y_AXIS));
+        JLabel l = new JLabel(titulo);
+        l.setFont(TemaFarmac.FUENTE_NEGRITA);
+        l.setForeground(TemaFarmac.TEXTO_AZUL);
+        l.setAlignmentX(Component.LEFT_ALIGNMENT);
+        selector.setAlignmentX(Component.LEFT_ALIGNMENT);
+        g.add(l);
+        g.add(javax.swing.Box.createRigidArea(new java.awt.Dimension(0, 4)));
+        g.add(selector);
+        return g;
     }
 
     public void cargarDatos() {
         if (cargando) return;
 
-        final LocalDate desde = leerFecha(cmbDiaDesde, cmbMesDesde, cmbAnioDesde);
-        final LocalDate hasta = leerFecha(cmbDiaHasta, cmbMesHasta, cmbAnioHasta);
+        final LocalDate desde = selDesde.getFecha();
+        final LocalDate hasta = selHasta.getFecha();
         if (desde.isAfter(hasta)) {
             DialogoFarmac.mostrarJO(this,
                     "La fecha 'Desde' (" + desde + ") no puede ser posterior a 'Hasta' (" + hasta + ").",

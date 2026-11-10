@@ -47,7 +47,7 @@ public class RecepcionInventarioScreen extends JPanel {
     private JComboBox<Producto> cmbProductos;
     private JComboBox<Proveedor> cmbProveedores;
     private JTextField txtNumLote;
-    private JTextField txtCaducidad;
+    private farmac.util.SelectorFecha selCaducidad;
     private JTextField txtCantidad;
     private JTextField txtPrecioCompra;
     private JTextField txtFactura;
@@ -64,76 +64,69 @@ public class RecepcionInventarioScreen extends JPanel {
     }
 
     private void inicializarUI() {
-        setLayout(new BorderLayout(16, 16));
+        setLayout(new BorderLayout(0, 12));
         setBackground(TemaFarmac.GRIS_FONDO);
-        setBorder(new EmptyBorder(18, 20, 18, 20));
+        setBorder(new EmptyBorder(20, 26, 20, 26));
 
-        JPanel pnlHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        pnlHeader.setOpaque(false);
-
-        JLabel lblTitulo = new JLabel("Recepción de Mercancía por Lote");
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JLabel lblSub = new JLabel("Registro formal de partidas con validación de caducidad futura, proveedor y remisión");
-        lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
-
-        JPanel pnlTit = new JPanel();
-        pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
-        pnlTit.setOpaque(false);
-        pnlTit.add(lblTitulo);
-        pnlTit.add(Box.createRigidArea(new Dimension(0, 2)));
-        pnlTit.add(lblSub);
-
-        pnlHeader.add(pnlTit);
-        add(pnlHeader, BorderLayout.NORTH);
+        JLabel lblTitulo = new JLabel("Recepción de mercancía por lote");
+        lblTitulo.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 20));
+        lblTitulo.setForeground(TemaFarmac.TEXTO_AZUL);
+        add(lblTitulo, BorderLayout.NORTH);
 
         JPanel pnlCard = TemaFarmac.crearCard();
-        pnlCard.setLayout(new BorderLayout(0, 12));
+        pnlCard.setLayout(new BorderLayout(0, 16));
+        pnlCard.setBorder(new EmptyBorder(18, 18, 18, 18));
 
         cmbProductos = new JComboBox<>();
-        cmbProductos.setFont(TemaFarmac.FUENTE_REGULAR);
-        cmbProductos.setBackground(Color.WHITE);
+        TemaFarmac.estilizarComboBox(cmbProductos);
+        cmbProductos.setPreferredSize(new Dimension(200, 38));
 
         cmbProveedores = new JComboBox<>();
-        cmbProveedores.setFont(TemaFarmac.FUENTE_REGULAR);
-        cmbProveedores.setBackground(Color.WHITE);
+        TemaFarmac.estilizarComboBox(cmbProveedores);
+        cmbProveedores.setPreferredSize(new Dimension(200, 38));
 
         txtNumLote = TemaFarmac.crearCampoTexto(18);
-        txtCaducidad = TemaFarmac.crearCampoTexto(18);
-        txtCaducidad.putClientProperty("JTextField.placeholderText", "Ej. 2027-12-31");
+        selCaducidad = new farmac.util.SelectorFecha(LocalDate.now());
+        selCaducidad.setPreferredSize(new Dimension(200, 38));
         txtCantidad = TemaFarmac.crearCampoTexto(18);
         txtPrecioCompra = TemaFarmac.crearCampoTexto(18);
         txtFactura = TemaFarmac.crearCampoTexto(18);
 
-        JPanel form = TemaFarmac.crearFormulario(
+        JPanel form = TemaFarmac.crearFormularioGrid(
                 new String[]{
-                    "Medicamento / Producto *:",
-                    "Proveedor / Distribuidor *:",
-                    "Número de Lote *:",
-                    "Fecha de Caducidad (AAAA-MM-DD) *:",
-                    "Piezas Recibidas *:",
-                    "Precio Unitario Compra ($) *:",
-                    "Factura / Remisión:"
+                    "Medicamento / producto *",
+                    "Proveedor / distribuidor *",
+                    "Número de lote *",
+                    "Fecha de caducidad *",
+                    "Piezas recibidas *",
+                    "Precio unitario de compra ($) *",
+                    "Factura / remisión"
                 },
                 new javax.swing.JComponent[]{
-                    cmbProductos, cmbProveedores, txtNumLote, txtCaducidad,
+                    cmbProductos, cmbProveedores, txtNumLote, selCaducidad,
                     txtCantidad, txtPrecioCompra, txtFactura
-                });
+                },
+                new int[]{1, 1, 1, 1, 1, 1, 2});
         pnlCard.add(form, BorderLayout.CENTER);
 
-        JButton btnGuardar = TemaFarmac.crearBoton("Guardar Entrada en Inventario", TemaFarmac.VERDE, Color.WHITE);
-        btnGuardar.setMinimumSize(new Dimension(0, 42));
+        JButton btnGuardar = TemaFarmac.crearBoton("Guardar entrada en inventario", TemaFarmac.TURQUESA, Color.WHITE);
+        btnGuardar.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 13));
+        btnGuardar.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.BOX, 13, Color.WHITE));
+        btnGuardar.setIconTextGap(8);
+        btnGuardar.setPreferredSize(new Dimension(200, 46));
         btnGuardar.addActionListener(e -> registrar());
+        pnlCard.add(btnGuardar, BorderLayout.SOUTH);
 
-        JPanel pnlBoton = new JPanel(new BorderLayout());
-        pnlBoton.setOpaque(false);
-        pnlBoton.setBorder(new EmptyBorder(6, 6, 0, 6));
-        pnlBoton.add(btnGuardar, BorderLayout.CENTER);
-        pnlCard.add(pnlBoton, BorderLayout.SOUTH);
+        // Navegación con Enter: cada campo pasa al siguiente y el último guarda
+        TemaFarmac.enterComoTab(this::registrar, cmbProductos, cmbProveedores, txtNumLote, selCaducidad.getCampoTexto(),
+                txtCantidad, txtPrecioCompra, txtFactura);
 
-        add(TemaFarmac.crearScrollFormulario(pnlCard), BorderLayout.CENTER);
+        // La tarjeta ocupa ~60% del ancho, alineada a la izquierda
+        pnlCard.setPreferredSize(new Dimension(800, pnlCard.getPreferredSize().height));
+        JPanel wrap = new JPanel(new BorderLayout());
+        wrap.setOpaque(false);
+        wrap.add(pnlCard, BorderLayout.WEST);
+        add(TemaFarmac.crearScrollResponsivo(wrap), BorderLayout.CENTER);
     }
 
     public void cargarCombos() {
@@ -158,7 +151,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar catálogos: " + e.getMessa
         Producto p = (Producto) cmbProductos.getSelectedItem();
         Proveedor prov = (Proveedor) cmbProveedores.getSelectedItem();
         String lote = txtNumLote.getText().trim();
-        String cadStr = txtCaducidad.getText().trim();
+        String cadStr = selCaducidad.getFecha().toString();
         String cantStr = txtCantidad.getText().trim();
         String precioStr = txtPrecioCompra.getText().trim();
         String factura = txtFactura.getText().trim();
@@ -219,7 +212,7 @@ DialogoFarmac.mostrar(this, "Error", "Error al cargar catálogos: " + e.getMessa
 
             // Limpiar campos
             txtNumLote.setText("");
-            txtCaducidad.setText("");
+            selCaducidad.setFecha(LocalDate.now());
             txtCantidad.setText("");
             txtPrecioCompra.setText("");
             txtFactura.setText("");

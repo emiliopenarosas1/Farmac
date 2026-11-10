@@ -24,6 +24,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -52,6 +53,7 @@ public class LoginScreen extends JFrame {
     public LoginScreen() {
         super("Farmac - Acceso al Sistema");
         this.usuarioDAO = new UsuarioDAO();
+        setIconImages(TemaFarmac.iconosApp());
         configurarVentana();
         inicializarComponentes();
         finalizarVentana();
@@ -86,7 +88,7 @@ public class LoginScreen extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(TemaFarmac.AZUL_PETROLEO);
+                g2.setColor(TemaFarmac.FONDO);
                 g2.fillRect(0, 0, getWidth(), getHeight());
                 g2.dispose();
             }
@@ -101,7 +103,9 @@ public class LoginScreen extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(TemaFarmac.BLANCO);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 12, 12));
+                g2.setColor(TemaFarmac.BORDE);
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 12, 12));
                 g2.dispose();
             }
         };
@@ -110,20 +114,18 @@ public class LoginScreen extends JFrame {
         // en equipos con resoluciones pequeñas.
         Dimension pantallaLogin = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         card.setPreferredSize(new Dimension(
-                Math.min(380, Math.max(320, pantallaLogin.width - 80)),
-                Math.min(480, Math.max(380, pantallaLogin.height - 140))));
+                Math.min(500, Math.max(340, pantallaLogin.width - 80)),
+                Math.min(560, Math.max(440, pantallaLogin.height - 140))));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(24, 28, 24, 28));
+        card.setBorder(new EmptyBorder(34, 48, 34, 48));
 
         // Título y Marca
-        JLabel lblTitulo = new JLabel("FARMAC");
-        lblTitulo.setFont(TemaFarmac.FUENTE_DISPLAY);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
+        JComponent lblTitulo = TemaFarmac.crearLogo(new Color(0x1B, 0x3D, 0x7A), 44);
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblSlogan = new JLabel("Cada lote, bajo control.");
-        lblSlogan.setFont(TemaFarmac.FUENTE_REGULAR);
-        lblSlogan.setForeground(TemaFarmac.TURQUESA);
+        lblSlogan.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 14));
+        lblSlogan.setForeground(TemaFarmac.TEXTO_AZUL);
         lblSlogan.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Switch / Segmented Control como ayuda visual
@@ -132,15 +134,15 @@ public class LoginScreen extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0xE2, 0xE8, 0xF0));
+                g2.setColor(new Color(0xA9, 0xAC, 0xA9));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
                 g2.dispose();
             }
         };
         pnlSwitchContenedor.setOpaque(false);
         pnlSwitchContenedor.setLayout(new GridLayout(1, 2, 4, 0));
-        pnlSwitchContenedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        pnlSwitchContenedor.setBorder(new EmptyBorder(3, 3, 3, 3));
+        pnlSwitchContenedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        pnlSwitchContenedor.setBorder(new EmptyBorder(4, 4, 4, 4));
 
         btnRolEmpleado = crearBotonSegmento("Empleado");
         btnRolEncargado = crearBotonSegmento("Encargado");
@@ -153,59 +155,59 @@ public class LoginScreen extends JFrame {
 
         lblRolDescripcion = new JLabel("Autenticación con permisos de Encargado", SwingConstants.CENTER);
         lblRolDescripcion.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblRolDescripcion.setForeground(TemaFarmac.TEXTO_MUTED);
+        lblRolDescripcion.setForeground(TemaFarmac.TEXTO_AZUL);
         lblRolDescripcion.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Campos de entrada (sin valores precargados fijos)
         JLabel lblUser = new JLabel("Nombre de Usuario");
         lblUser.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblUser.setForeground(TemaFarmac.TEXTO_AZUL);
-        lblUser.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         txtUsuario = TemaFarmac.crearCampoTexto(20);
-        txtUsuario.setMaximumSize(new Dimension(360, 36));
+        txtUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         txtUsuario.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblPass = new JLabel("Contraseña");
         lblPass.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblPass.setForeground(TemaFarmac.TEXTO_AZUL);
-        lblPass.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        txtPassword = new JPasswordField(20);
-        txtPassword.setFont(TemaFarmac.FUENTE_REGULAR);
-        txtPassword.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE),
-                BorderFactory.createEmptyBorder(6, 10, 6, 10)
-        ));
-        txtPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        txtPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
+        txtPassword = TemaFarmac.crearCampoPassword(20);
+        txtPassword.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         txtPassword.addActionListener(e -> procesarLogin());
 
-        btnVerPassword = TemaFarmac.crearBoton("", TemaFarmac.BORDE, TemaFarmac.TEXTO);
-        btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE, 14, TemaFarmac.TEXTO));
-        btnVerPassword.setPreferredSize(new Dimension(40, 36));
-        btnVerPassword.setMinimumSize(new Dimension(40, 36));
-        btnVerPassword.setMaximumSize(new Dimension(40, 36));
+        btnVerPassword = new JButton();
+        btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE_SLASH, 15, TemaFarmac.AZUL_PETROLEO));
+        btnVerPassword.setContentAreaFilled(false);
+        btnVerPassword.setBorderPainted(false);
+        btnVerPassword.setFocusPainted(false);
+        btnVerPassword.setFocusable(false);
+        btnVerPassword.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnVerPassword.setBorder(new EmptyBorder(0, 8, 0, 10));
         btnVerPassword.addActionListener(e -> alternarVerPassword());
 
-        JPanel pnlPassword = new JPanel(new BorderLayout(6, 0));
-        pnlPassword.setOpaque(false);
-        pnlPassword.setMaximumSize(new Dimension(360, 36));
+        // Campo con borde redondeado que contiene el botón del ojo
+        JPanel pnlPassword = new JPanel(new BorderLayout(0, 0));
+        pnlPassword.setBackground(Color.WHITE);
+        pnlPassword.setBorder(new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE_CAMPO, 8, 1));
+        pnlPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        pnlPassword.setPreferredSize(new Dimension(300, 40));
         pnlPassword.setAlignmentX(Component.CENTER_ALIGNMENT);
         pnlPassword.add(txtPassword, BorderLayout.CENTER);
         pnlPassword.add(btnVerPassword, BorderLayout.EAST);
 
-        btnIngresar = TemaFarmac.crearBoton("Ingresar al Sistema", TemaFarmac.TURQUESA, Color.WHITE);
+        btnIngresar = TemaFarmac.crearBoton("Ingresar al sistema", TemaFarmac.AZUL_ACCION, Color.WHITE);
         btnIngresar.setIcon(FontIcon.of(FontAwesomeSolid.SIGN_IN_ALT, 16, Color.WHITE));
         btnIngresar.setIconTextGap(8);
         btnIngresar.setFont(TemaFarmac.FUENTE_SUBTITULO);
-        btnIngresar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        btnIngresar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
         btnIngresar.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnIngresar.addActionListener(e -> procesarLogin());
 
         // Ensamblado
         card.add(lblTitulo);
-        card.add(Box.createRigidArea(new Dimension(0, 3)));
+        card.add(Box.createRigidArea(new Dimension(0, 2)));
         card.add(lblSlogan);
         card.add(Box.createRigidArea(new Dimension(0, 16)));
 
@@ -214,12 +216,12 @@ public class LoginScreen extends JFrame {
         card.add(lblRolDescripcion);
         card.add(Box.createRigidArea(new Dimension(0, 16)));
 
-        card.add(lblUser);
+        card.add(envolverEtiqueta(lblUser));
         card.add(Box.createRigidArea(new Dimension(0, 4)));
         card.add(txtUsuario);
         card.add(Box.createRigidArea(new Dimension(0, 12)));
 
-        card.add(lblPass);
+        card.add(envolverEtiqueta(lblPass));
         card.add(Box.createRigidArea(new Dimension(0, 4)));
         card.add(pnlPassword);
         card.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -228,19 +230,27 @@ public class LoginScreen extends JFrame {
 
         pnlFondo.add(card);
 
+        // Navegación con Enter: usuario -> contraseña -> ingresar
+        TemaFarmac.enterComoTab(this::procesarLogin, txtUsuario, txtPassword);
+
         // Estado inicial
         seleccionarRol(true);
+        alternarVerPassword();
+        alternarVerPassword();
+    }
+
+    /** Coloca una etiqueta alineada a la izquierda dentro de una fila de ancho completo. */
+    private JPanel envolverEtiqueta(JLabel lbl) {
+        JPanel fila = new JPanel(new BorderLayout());
+        fila.setOpaque(false);
+        fila.setAlignmentX(Component.CENTER_ALIGNMENT);
+        fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
+        fila.add(lbl, BorderLayout.WEST);
+        return fila;
     }
 
     private JButton crearBotonSegmento(String texto) {
-        JButton btn = new JButton(texto);
-        btn.setFont(TemaFarmac.FUENTE_NEGRITA);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setContentAreaFilled(false);
-        btn.setRolloverEnabled(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+        return new TemaFarmac.BotonSegmento(texto);
     }
 
     private void seleccionarRol(boolean encargado) {
@@ -258,39 +268,18 @@ public class LoginScreen extends JFrame {
     }
 
     private void actualizarEstiloSwitch() {
-        if (esEncargado) {
-            btnRolEncargado.setOpaque(true);
-            btnRolEncargado.setContentAreaFilled(true);
-            btnRolEncargado.setBackground(TemaFarmac.AZUL_PETROLEO);
-            btnRolEncargado.setForeground(Color.WHITE);
-
-            btnRolEmpleado.setOpaque(false);
-            btnRolEmpleado.setContentAreaFilled(false);
-            btnRolEmpleado.setBackground(new Color(0xE2, 0xE8, 0xF0));
-            btnRolEmpleado.setForeground(TemaFarmac.TEXTO_MUTED);
-        } else {
-            btnRolEmpleado.setOpaque(true);
-            btnRolEmpleado.setContentAreaFilled(true);
-            btnRolEmpleado.setBackground(TemaFarmac.TURQUESA);
-            btnRolEmpleado.setForeground(Color.WHITE);
-
-            btnRolEncargado.setOpaque(false);
-            btnRolEncargado.setContentAreaFilled(false);
-            btnRolEncargado.setBackground(new Color(0xE2, 0xE8, 0xF0));
-            btnRolEncargado.setForeground(TemaFarmac.TEXTO_MUTED);
-        }
-        btnRolEmpleado.repaint();
-        btnRolEncargado.repaint();
+        ((TemaFarmac.BotonSegmento) btnRolEncargado).setActivo(esEncargado);
+        ((TemaFarmac.BotonSegmento) btnRolEmpleado).setActivo(!esEncargado);
     }
 
     private void alternarVerPassword() {
         passwordVisible = !passwordVisible;
         if (passwordVisible) {
             txtPassword.setEchoChar((char) 0);
-            btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE_SLASH, 14, TemaFarmac.TEXTO));
+            btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE, 15, TemaFarmac.AZUL_PETROLEO));
         } else {
             txtPassword.setEchoChar('\u2022');
-            btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE, 14, TemaFarmac.TEXTO));
+            btnVerPassword.setIcon(FontIcon.of(FontAwesomeSolid.EYE_SLASH, 15, TemaFarmac.AZUL_PETROLEO));
         }
     }
 

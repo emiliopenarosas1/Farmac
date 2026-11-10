@@ -51,6 +51,12 @@ public class MainScreen extends JFrame {
     private List<JButton> botonesMenu;
     private final Map<String, JPanel> panelesCreados;
     private boolean alertasCaducidadPendientes;
+    private List<Lote> alertasLotes = new ArrayList<>();
+    private List<Producto> alertasStock = new ArrayList<>();
+    private List<Lote> alertasTodosLotes = new ArrayList<>();
+    private JLabel lblEstadoTurno;
+    private JLabel lblFechaHora;
+    private javax.swing.Timer relojTurno;
 
     public MainScreen(Usuario usuario) {
         super("Farmac - Sistema de Gestión Farmacéutica y Punto de Venta");
@@ -59,6 +65,7 @@ public class MainScreen extends JFrame {
         this.panelesCreados = new HashMap<>();
 
         Sesion.setUsuarioActivo(usuario);
+        setIconImages(TemaFarmac.iconosApp());
         configurarVentana();
         inicializarComponentes();
 
@@ -84,35 +91,22 @@ public class MainScreen extends JFrame {
         setLayout(new BorderLayout());
 
         // Sidebar lateral
-        JPanel pnlSidebar = new JPanel();
+        JPanel pnlSidebar = new JPanel(new BorderLayout());
         pnlSidebar.setBackground(TemaFarmac.AZUL_PETROLEO);
-        pnlSidebar.setPreferredSize(new Dimension(220, 0));
-        pnlSidebar.setLayout(new BorderLayout());
+        pnlSidebar.setPreferredSize(new Dimension(254, 0));
 
-        // Cabecera del Sidebar
-        JPanel pnlBrand = new JPanel();
+        // Marca
+        JPanel pnlBrand = new JPanel(new BorderLayout());
         pnlBrand.setBackground(TemaFarmac.AZUL_PETROLEO);
-        pnlBrand.setLayout(new BoxLayout(pnlBrand, BoxLayout.Y_AXIS));
-        pnlBrand.setBorder(new EmptyBorder(14, 14, 10, 14));
-
-        JLabel lblLogo = new JLabel("FARMAC");
-        lblLogo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblLogo.setForeground(Color.WHITE);
-
-        JLabel lblSlogan = new JLabel("Panel de Control Principal");
-        lblSlogan.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblSlogan.setForeground(new Color(0x94, 0xD2, 0xBD));
-
-        pnlBrand.add(lblLogo);
-        pnlBrand.add(Box.createRigidArea(new Dimension(0, 1)));
-        pnlBrand.add(lblSlogan);
+        pnlBrand.setBorder(new EmptyBorder(18, 20, 14, 14));
+        pnlBrand.add(TemaFarmac.crearLogo(Color.WHITE, 26), BorderLayout.WEST);
         pnlSidebar.add(pnlBrand, BorderLayout.NORTH);
 
         // Menú de opciones (con scroll vertical por si la pantalla es baja)
         JPanel pnlMenu = new JPanel();
         pnlMenu.setBackground(TemaFarmac.AZUL_PETROLEO);
         pnlMenu.setLayout(new BoxLayout(pnlMenu, BoxLayout.Y_AXIS));
-        pnlMenu.setBorder(new EmptyBorder(4, 6, 4, 6));
+        pnlMenu.setBorder(new EmptyBorder(4, 10, 4, 10));
 
         cardLayout = new CardLayout();
         pnlContenidoCentral = new JPanel(cardLayout);
@@ -122,82 +116,180 @@ public class MainScreen extends JFrame {
 
         // Módulos compartidos: se construyen de forma diferida al abrir cada pestaña
         agregarOpcionMenu(pnlMenu, "Punto de Venta", "POS", () -> new PuntoVentaScreen(usuarioActivo));
-        agregarOpcionMenu(pnlMenu, "Control de Caja", "CAJA", () -> new CorteCajaScreen(usuarioActivo));
+        agregarOpcionMenu(pnlMenu, "Control de caja", "CAJA", () -> new CorteCajaScreen(usuarioActivo));
         agregarOpcionMenu(pnlMenu, "Historial de Ventas", "HISTORIAL", HistorialVentasScreen::new);
 
         // Módulos exclusivos de Encargado
         if (esEncargado) {
-            agregarOpcionMenu(pnlMenu, "Catálogo Medicamentos", "CATALOGO", () -> new CatalogoProductosScreen(usuarioActivo));
+            agregarOpcionMenu(pnlMenu, "Catálogo de Medicamentos", "CATALOGO", () -> new CatalogoProductosScreen(usuarioActivo));
             agregarOpcionMenu(pnlMenu, "Recepción de Lotes", "RECEPCION", RecepcionInventarioScreen::new);
             agregarOpcionMenu(pnlMenu, "Ajustes de Inventario", "AJUSTES", () -> new AjusteInventarioScreen(usuarioActivo));
-            agregarOpcionMenu(pnlMenu, "Reporte Existencias", "EXISTENCIAS", ReporteExistenciasScreen::new);
-            agregarOpcionMenu(pnlMenu, "Alertas Caducidad", "CADUCIDAD", ReporteCaducidadScreen::new);
+            agregarOpcionMenu(pnlMenu, "Reporte de Existencias", "EXISTENCIAS", ReporteExistenciasScreen::new);
+            agregarOpcionMenu(pnlMenu, "Alerta de caducidad", "CADUCIDAD", ReporteCaducidadScreen::new);
             agregarOpcionMenu(pnlMenu, "Proveedores", "PROVEEDORES", ProveedoresScreen::new);
             agregarOpcionMenu(pnlMenu, "Gestión de Usuarios", "USUARIOS", GestionUsuariosScreen::new);
-
-            // Botón de Respaldo de BD
-            JButton btnRespaldo = new JButton("Respaldar BD (SQL)");
-            btnRespaldo.setFont(TemaFarmac.FUENTE_PEQUENA);
-            btnRespaldo.setForeground(new Color(0xD0, 0xE2, 0xEC));
-            btnRespaldo.setBackground(TemaFarmac.AZUL_PETROLEO);
-            btnRespaldo.setContentAreaFilled(false);
-            btnRespaldo.setBorderPainted(false);
-            btnRespaldo.setFocusPainted(false);
-            btnRespaldo.setHorizontalAlignment(SwingConstants.LEFT);
-            btnRespaldo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-            btnRespaldo.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnRespaldo.addActionListener(e -> ejecutarRespaldoBD());
-            pnlMenu.add(Box.createRigidArea(new Dimension(0, 8)));
-            pnlMenu.add(btnRespaldo);
         }
 
         JScrollPane scrollMenu = new JScrollPane(pnlMenu,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollMenu.setBorder(null);
-        scrollMenu.setOpaque(false);
-        scrollMenu.getViewport().setOpaque(false);
+        scrollMenu.getViewport().setBackground(TemaFarmac.AZUL_PETROLEO);
         scrollMenu.getVerticalScrollBar().setUnitIncrement(16);
         pnlSidebar.add(scrollMenu, BorderLayout.CENTER);
 
-        // Pie de usuario
-        JPanel pnlUserFooter = new JPanel();
-        pnlUserFooter.setBackground(TemaFarmac.AZUL_OSCURO);
-        pnlUserFooter.setLayout(new BoxLayout(pnlUserFooter, BoxLayout.Y_AXIS));
-        pnlUserFooter.setBorder(new EmptyBorder(10, 12, 10, 12));
+        // Pie: respaldo (solo Encargado) y cerrar sesión
+        JPanel pnlPie = new JPanel();
+        pnlPie.setBackground(TemaFarmac.AZUL_PETROLEO);
+        pnlPie.setLayout(new BoxLayout(pnlPie, BoxLayout.Y_AXIS));
+        pnlPie.setBorder(new EmptyBorder(8, 10, 18, 10));
 
-        JLabel lblUserName = new JLabel(usuarioActivo.getNombreCompleto());
-        lblUserName.setFont(TemaFarmac.FUENTE_NEGRITA);
-        lblUserName.setForeground(Color.WHITE);
+        if (esEncargado) {
+            JButton btnRespaldo = crearBotonMenu("Respaldar BD (SQL)", FontAwesomeSolid.DATABASE);
+            btnRespaldo.addActionListener(e -> ejecutarRespaldoBD());
+            pnlPie.add(btnRespaldo);
+            pnlPie.add(Box.createRigidArea(new Dimension(0, 2)));
+        }
 
-        JLabel lblUserRole = new JLabel("Rol: " + usuarioActivo.obtenerRol());
-        lblUserRole.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblUserRole.setForeground(new Color(0x94, 0xD2, 0xBD));
-
-        JButton btnSalir = TemaFarmac.crearBoton(
-"Cerrar Sesión", TemaFarmac.ROJO, Color.WHITE);
-        btnSalir.setFont(TemaFarmac.FUENTE_PEQUENA);
-        btnSalir.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        JButton btnSalir = crearBotonMenu("Cerrar sesión", FontAwesomeSolid.SIGN_OUT_ALT);
         btnSalir.addActionListener(e -> {
+            if (relojTurno != null) {
+                relojTurno.stop();
+            }
             Sesion.cerrarSesion();
             dispose();
             new LoginScreen().setVisible(true);
         });
+        pnlPie.add(btnSalir);
+        pnlSidebar.add(pnlPie, BorderLayout.SOUTH);
 
-        pnlUserFooter.add(lblUserName);
-        pnlUserFooter.add(Box.createRigidArea(new Dimension(0, 2)));
-        pnlUserFooter.add(lblUserRole);
-        pnlUserFooter.add(Box.createRigidArea(new Dimension(0, 6)));
-        pnlUserFooter.add(btnSalir);
-
-        pnlSidebar.add(pnlUserFooter, BorderLayout.SOUTH);
+        // Área derecha: barra superior + contenido
+        JPanel pnlDerecha = new JPanel(new BorderLayout());
+        pnlDerecha.add(crearBarraSuperior(), BorderLayout.NORTH);
+        pnlDerecha.add(pnlContenidoCentral, BorderLayout.CENTER);
 
         add(pnlSidebar, BorderLayout.WEST);
-        add(pnlContenidoCentral, BorderLayout.CENTER);
+        add(pnlDerecha, BorderLayout.CENTER);
 
         if (!botonesMenu.isEmpty()) {
             botonesMenu.get(0).doClick();
         }
+    }
+
+    private static final Color COLOR_MENU = Color.WHITE;
+
+    private JButton crearBotonMenu(String texto, FontAwesomeSolid icono) {
+        boolean largo = texto.length() > 22;
+        String etiqueta = largo ? "<html>" + texto.replaceFirst(" de ", " de<br>") + "</html>" : texto;
+        JButton btn = new JButton(etiqueta) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                if (Boolean.TRUE.equals(getClientProperty("farmac.activo"))) {
+                    java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                    g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(0x3A, 0x66, 0xB5));
+                    g2.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                    g2.dispose();
+                }
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 15));
+        btn.setForeground(COLOR_MENU);
+        btn.setBackground(TemaFarmac.AZUL_PETROLEO);
+        btn.setOpaque(false);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setHorizontalAlignment(SwingConstants.LEFT);
+        btn.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, largo ? 52 : 44));
+        btn.setPreferredSize(new Dimension(220, largo ? 52 : 44));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(new EmptyBorder(5, 14, 5, 8));
+        btn.setIcon(FontIcon.of(icono, 15, COLOR_MENU));
+        btn.setIconTextGap(14);
+        return btn;
+    }
+
+    private JPanel crearBarraSuperior() {
+        JPanel barra = new JPanel(new BorderLayout());
+        barra.setBackground(Color.WHITE);
+        barra.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, TemaFarmac.BORDE),
+                new EmptyBorder(10, 26, 10, 26)));
+
+        // Avatar + nombre + rol
+        JPanel izq = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 12, 0));
+        izq.setOpaque(false);
+        JLabel avatar = new JLabel(FontIcon.of(FontAwesomeSolid.USER, 16, Color.WHITE), SwingConstants.CENTER) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(TemaFarmac.AZUL_PETROLEO);
+                g2.fillOval(0, 0, getWidth() - 1, getHeight() - 1);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        avatar.setPreferredSize(new Dimension(38, 38));
+        JLabel lblNombre = new JLabel(usuarioActivo.getNombreCompleto().replaceAll("\\s*\\([^)]*\\)\\s*$", ""));
+        lblNombre.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 16));
+        lblNombre.setForeground(TemaFarmac.TEXTO);
+        JLabel lblSep = new JLabel("|");
+        lblSep.setForeground(TemaFarmac.BORDE);
+        JLabel lblRol = new JLabel("<html>Rol: <b>" + usuarioActivo.obtenerRol() + "</b></html>");
+        lblRol.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 16));
+        lblRol.setForeground(TemaFarmac.TEXTO_AZUL);
+        izq.add(avatar);
+        izq.add(lblNombre);
+        izq.add(lblSep);
+        izq.add(lblRol);
+
+        // Estado de turno + fecha/hora
+        JPanel der = new JPanel();
+        der.setOpaque(false);
+        der.setLayout(new BoxLayout(der, BoxLayout.X_AXIS));
+        lblEstadoTurno = new JLabel();
+        lblEstadoTurno.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 15));
+        lblFechaHora = new JLabel();
+        lblFechaHora.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 15));
+        lblFechaHora.setForeground(TemaFarmac.TEXTO_MUTED);
+        lblEstadoTurno.setAlignmentY(java.awt.Component.CENTER_ALIGNMENT);
+        lblFechaHora.setAlignmentY(java.awt.Component.CENTER_ALIGNMENT);
+        der.add(lblEstadoTurno);
+        der.add(Box.createRigidArea(new Dimension(24, 0)));
+        der.add(lblFechaHora);
+
+        barra.add(izq, BorderLayout.WEST);
+        barra.add(der, BorderLayout.EAST);
+
+        actualizarBarraEstado();
+        relojTurno = new javax.swing.Timer(15000, e -> actualizarBarraEstado());
+        relojTurno.start();
+        return barra;
+    }
+
+    private void actualizarBarraEstado() {
+        boolean abierto = Sesion.hayTurnoAbierto();
+        Color c = abierto ? TemaFarmac.VERDE : TemaFarmac.AMBAR;
+        lblEstadoTurno.setText(abierto ? "Turno abierto" : "Sin turno abierto");
+        lblEstadoTurno.setForeground(c);
+        lblEstadoTurno.setIcon(new javax.swing.Icon() {
+            @Override public void paintIcon(java.awt.Component comp, java.awt.Graphics g, int x, int y) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(c);
+                g2.fillOval(x, y, 8, 8);
+                g2.dispose();
+            }
+            @Override public int getIconWidth() { return 8; }
+            @Override public int getIconHeight() { return 8; }
+        });
+        lblEstadoTurno.setIconTextGap(6);
+        lblFechaHora.setText(java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
     }
 
     private FontAwesomeSolid iconoPorClave(String clave) {
@@ -217,35 +309,17 @@ public class MainScreen extends JFrame {
     }
 
     private void agregarOpcionMenu(JPanel contenedorMenu, String texto, String claveCard, Supplier<JPanel> fabricaPanel) {
-        JButton btn = new JButton(texto);
-        btn.setFont(TemaFarmac.FUENTE_NEGRITA);
-        btn.setForeground(new Color(0xD0, 0xE2, 0xEC));
-        btn.setBackground(TemaFarmac.AZUL_PETROLEO);
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
-        btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(5, 8, 5, 8));
-        btn.setIcon(FontIcon.of(iconoPorClave(claveCard), 13, new Color(0xD0, 0xE2, 0xEC)));
-        btn.setIconTextGap(8);
+        JButton btn = crearBotonMenu(texto, iconoPorClave(claveCard));
 
         btn.addActionListener(e -> {
             for (JButton b : botonesMenu) {
-                b.setOpaque(false);
-                b.setBackground(TemaFarmac.AZUL_PETROLEO);
-                b.setForeground(new Color(0xD0, 0xE2, 0xEC));
-                if (b.getIcon() instanceof FontIcon) {
-                    ((FontIcon) b.getIcon()).setIconColor(new Color(0xD0, 0xE2, 0xEC));
-                }
+                b.putClientProperty("farmac.activo", Boolean.FALSE);
+                b.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 15));
+                b.repaint();
             }
-            btn.setOpaque(true);
-            btn.setBackground(TemaFarmac.TURQUESA);
-            btn.setForeground(Color.WHITE);
-            if (btn.getIcon() instanceof FontIcon) {
-                ((FontIcon) btn.getIcon()).setIconColor(Color.WHITE);
-            }
+            btn.putClientProperty("farmac.activo", Boolean.TRUE);
+            btn.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 15));
+            btn.repaint();
 
             // Construcción diferida: cada pantalla se crea solo la primera vez que se abre.
             if (!panelesCreados.containsKey(claveCard)) {
@@ -261,6 +335,7 @@ public class MainScreen extends JFrame {
                 }
             }
             cardLayout.show(pnlContenidoCentral, claveCard);
+            actualizarBarraEstado();
         });
 
         botonesMenu.add(btn);
@@ -329,6 +404,9 @@ public class MainScreen extends JFrame {
             op.setInventario(lotes);
 
             List<Lote> alertasCad = op.obtenerLotesEnAlerta();
+            alertasTodosLotes = lotes;
+            alertasLotes = new ArrayList<>(alertasCad);
+            alertasStock = new ArrayList<>();
 
             StringBuilder msj = new StringBuilder();
 
@@ -368,6 +446,7 @@ public class MainScreen extends JFrame {
                 ProductoDAO prodDAO = new ProductoDAO();
                 List<Producto> prods = prodDAO.listarTodos(true);
                 List<Producto> bajos = op.productosBajoStock(prods);
+                alertasStock = new ArrayList<>(bajos);
                 if (!bajos.isEmpty()) {
                     msj.append("\n\nALERTA DE DESABASTO / STOCK MÍNIMO:\n")
                        .append("• ").append(bajos.size()).append(" producto(s) en o por debajo de su stock de seguridad:\n");
@@ -388,20 +467,179 @@ public class MainScreen extends JFrame {
         }
     }
 
-    /** Muestra el aviso al usuario. Se invoca siempre desde el EDT. */
+    /** Muestra el aviso al usuario con secciones de caducidad y desabasto. Se invoca siempre desde el EDT. */
     private void mostrarDialogoAlertas(String mensaje) {
-        JTextArea area = new JTextArea(mensaje);
-        area.setEditable(false);
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setFont(TemaFarmac.FUENTE_REGULAR);
-        JScrollPane scroll = new JScrollPane(area);
-        scroll.setPreferredSize(new Dimension(460, 240));
-        int opcion = JOptionPane.showOptionDialog(this, scroll, "Avisos del Sistema al Iniciar",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
-                new Object[]{"Estoy enterado", "Solucionar"}, "Estoy enterado");
-        if (opcion == 1 && alertasCaducidadPendientes) {
-            cardLayout.show(pnlContenidoCentral, "CADUCIDAD");
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        javax.swing.JDialog dlg = new javax.swing.JDialog(this, "Aviso del sistema", true);
+
+        JPanel raiz = new JPanel(new BorderLayout());
+        raiz.setBackground(Color.WHITE);
+
+        // Cabecera
+        JPanel cab = new JPanel(new BorderLayout(14, 0));
+        cab.setOpaque(false);
+        cab.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, TemaFarmac.BORDE), new EmptyBorder(16, 22, 14, 22)));
+        JPanel tit = new JPanel();
+        tit.setOpaque(false);
+        tit.setLayout(new BoxLayout(tit, BoxLayout.Y_AXIS));
+        JLabel lblT = new JLabel("Aviso del sistema");
+        lblT.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 17));
+        lblT.setForeground(TemaFarmac.TEXTO_AZUL);
+        JLabel lblS = new JLabel("Revisión automática de inventario");
+        lblS.setFont(TemaFarmac.FUENTE_REGULAR);
+        lblS.setForeground(TemaFarmac.TEXTO_MUTED);
+        tit.add(lblT);
+        tit.add(lblS);
+        cab.add(new JLabel(FontIcon.of(FontAwesomeSolid.EXCLAMATION_TRIANGLE, 24, TemaFarmac.AMBAR)), BorderLayout.WEST);
+        cab.add(tit, BorderLayout.CENTER);
+        raiz.add(cab, BorderLayout.NORTH);
+
+        JPanel cuerpo = new JPanel();
+        cuerpo.setOpaque(false);
+        cuerpo.setLayout(new BoxLayout(cuerpo, BoxLayout.Y_AXIS));
+        cuerpo.setBorder(new EmptyBorder(16, 22, 8, 22));
+
+        // Sección de caducidades
+        if (!alertasLotes.isEmpty()) {
+            long vencidos = alertasLotes.stream().filter(l -> l.estaVencido(hoy)).count();
+            long porVencer = alertasLotes.size() - vencidos;
+            JPanel sec = crearSeccionAlerta("Alerta de caducidades",
+                    "<html><b>" + vencidos + "</b> vencido \u00B7 <b>" + porVencer + "</b> por vencer en 60 d\u00EDas</html>",
+                    TemaFarmac.ROJO, TemaFarmac.ROJO_BG, new Color(0xEE, 0xB4, 0xB4));
+            JPanel lista = (JPanel) sec.getClientProperty("lista");
+            for (Lote l : alertasLotes) {
+                boolean venc = l.estaVencido(hoy);
+                String nombre = (l.getProducto() != null ? l.getProducto().getNombre() : "Producto") + " | " + l.getNumeroLote();
+                JPanel fila = new JPanel(new BorderLayout(12, 0));
+                fila.setBackground(Color.WHITE);
+                fila.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(0xF0, 0xD5, 0xD5)), new EmptyBorder(8, 14, 8, 14)));
+                JLabel ln = new JLabel("<html><div style='width:260px'>" + nombre + "</div></html>");
+                ln.setFont(TemaFarmac.FUENTE_REGULAR);
+                ln.setForeground(TemaFarmac.TEXTO_AZUL);
+                JLabel lf = new JLabel("caduca " + l.getFechaCaducidad().format(fmt));
+                lf.setFont(TemaFarmac.FUENTE_PEQUENA);
+                lf.setForeground(TemaFarmac.TEXTO_MUTED);
+                JLabel le = new JLabel(venc ? "VENCIDO" : "POR VENCER");
+                le.setFont(TemaFarmac.FUENTE_REGULAR);
+                le.setForeground(venc ? TemaFarmac.ROJO : TemaFarmac.AMBAR);
+                le.setIcon(puntoColor(venc ? TemaFarmac.ROJO : TemaFarmac.AMBAR));
+                le.setIconTextGap(6);
+                le.setPreferredSize(new Dimension(110, 18));
+                JPanel der = new JPanel(new BorderLayout(14, 0));
+                der.setOpaque(false);
+                der.add(lf, BorderLayout.WEST);
+                der.add(le, BorderLayout.EAST);
+                fila.add(ln, BorderLayout.CENTER);
+                fila.add(der, BorderLayout.EAST);
+                lista.add(fila);
+            }
+            sec.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+            cuerpo.add(sec);
+            cuerpo.add(Box.createRigidArea(new Dimension(0, 14)));
         }
+
+        // Sección de desabasto
+        if (!alertasStock.isEmpty()) {
+            JPanel sec = crearSeccionAlerta("Alerta de desabasto / stock m\u00EDnimo",
+                    "<html><b>" + alertasStock.size() + "</b> productos en o bajo su stock de seguridad</html>",
+                    new Color(0x8A, 0x5A, 0x0A), TemaFarmac.AMBAR_BG, new Color(0xE8, 0xCF, 0x8E));
+            JPanel lista = (JPanel) sec.getClientProperty("lista");
+            List<Lote> todos = alertasTodosLotes;
+            for (Producto pr : alertasStock) {
+                JPanel fila = new JPanel(new BorderLayout(12, 0));
+                fila.setBackground(Color.WHITE);
+                fila.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(0xF2, 0xE6, 0xC4)), new EmptyBorder(8, 14, 8, 14)));
+                JLabel ln = new JLabel(pr.getNombre());
+                ln.setFont(TemaFarmac.FUENTE_REGULAR);
+                ln.setForeground(TemaFarmac.TEXTO_AZUL);
+                JLabel lm = new JLabel("m\u00EDnimo " + pr.getStockMinimo());
+                lm.setFont(TemaFarmac.FUENTE_PEQUENA);
+                lm.setForeground(TemaFarmac.TEXTO_MUTED);
+                JLabel lp = new JLabel(pr.calcularStockTotal(todos) + " pzas");
+                lp.setFont(TemaFarmac.FUENTE_NEGRITA);
+                lp.setForeground(TemaFarmac.ROJO);
+                lp.setPreferredSize(new Dimension(70, 18));
+                lp.setHorizontalAlignment(SwingConstants.RIGHT);
+                JPanel der = new JPanel(new BorderLayout(18, 0));
+                der.setOpaque(false);
+                der.add(lm, BorderLayout.WEST);
+                der.add(lp, BorderLayout.EAST);
+                fila.add(ln, BorderLayout.CENTER);
+                fila.add(der, BorderLayout.EAST);
+                lista.add(fila);
+            }
+            sec.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+            cuerpo.add(sec);
+        }
+
+        JScrollPane scroll = new JScrollPane(cuerpo, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setBorder(null);
+        scroll.getViewport().setBackground(Color.WHITE);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        raiz.add(scroll, BorderLayout.CENTER);
+
+        // Pie
+        JPanel pie = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
+        pie.setOpaque(false);
+        pie.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, TemaFarmac.BORDE), new EmptyBorder(14, 12, 14, 12)));
+        JButton btnOk = TemaFarmac.crearBoton("Enterado", TemaFarmac.TURQUESA, Color.WHITE);
+        btnOk.addActionListener(e -> dlg.dispose());
+        pie.add(btnOk);
+        raiz.add(pie, BorderLayout.SOUTH);
+
+        dlg.getRootPane().setDefaultButton(btnOk);
+        dlg.setContentPane(raiz);
+        dlg.pack();
+        Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
+        dlg.setSize(Math.min(Math.max(dlg.getWidth(), 700), pantalla.width - 60),
+                Math.min(dlg.getHeight(), pantalla.height - 100));
+        dlg.setLocationRelativeTo(this);
+        dlg.setVisible(true);
+
+    }
+
+    private javax.swing.Icon puntoColor(Color c) {
+        return new javax.swing.Icon() {
+            @Override public void paintIcon(java.awt.Component comp, java.awt.Graphics g, int x, int y) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(c);
+                g2.fillOval(x, y, 8, 8);
+                g2.dispose();
+            }
+            @Override public int getIconWidth() { return 8; }
+            @Override public int getIconHeight() { return 8; }
+        };
+    }
+
+    /** Sección con encabezado de color y un panel "lista" (guardado como propiedad) donde se agregan las filas. */
+    private JPanel crearSeccionAlerta(String titulo, String resumen, Color colorTitulo, Color fondo, Color borde) {
+        JPanel sec = new JPanel(new BorderLayout());
+        sec.setBackground(Color.WHITE);
+        sec.setBorder(new TemaFarmac.BordeRedondeado(borde, 8, 1));
+        JPanel cab = new JPanel(new BorderLayout());
+        cab.setBackground(fondo);
+        cab.setBorder(new EmptyBorder(11, 14, 11, 14));
+        JLabel lt = new JLabel(titulo);
+        lt.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lt.setForeground(colorTitulo);
+        JLabel lr = new JLabel(resumen);
+        lr.setFont(TemaFarmac.FUENTE_REGULAR);
+        lr.setForeground(colorTitulo);
+        cab.add(lt, BorderLayout.WEST);
+        cab.add(lr, BorderLayout.EAST);
+        JPanel lista = new JPanel();
+        lista.setBackground(Color.WHITE);
+        lista.setLayout(new BoxLayout(lista, BoxLayout.Y_AXIS));
+        sec.add(cab, BorderLayout.NORTH);
+        sec.add(lista, BorderLayout.CENTER);
+        sec.putClientProperty("lista", lista);
+        return sec;
     }
 }

@@ -178,6 +178,7 @@ public class DialogoFarmac {
         dialog.setSize(ancho, alto);
         dialog.setResizable(true);
         dialog.setLocationRelativeTo(padre);
+        redondearVentana(dialog);
 
         dialog.setVisible(true);
         Object r = dialog.getRootPane().getClientProperty("farmac.accion");
@@ -224,16 +225,20 @@ public class DialogoFarmac {
         header.setOpaque(false);
         header.setBorder(new EmptyBorder(4, 6, 8, 6));
 
+        final boolean esFormulario = mensaje instanceof Component;
+
         JLabel lblIcono = new JLabel();
         lblIcono.setIcon(FontIcon.of(iconoSolido(tipo), 20, colorTipo));
         lblIcono.setPreferredSize(new Dimension(34, 34));
         lblIcono.setHorizontalAlignment(SwingConstants.CENTER);
 
         JLabel lblTitulo = new JLabel(titulo);
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.TEXTO);
+        lblTitulo.setFont(esFormulario ? TemaFarmac.fuente(Font.BOLD, 18) : TemaFarmac.FUENTE_TITULO);
+        lblTitulo.setForeground(esFormulario ? TemaFarmac.TEXTO_AZUL : TemaFarmac.TEXTO);
 
-        header.add(lblIcono, BorderLayout.WEST);
+        if (!esFormulario) {
+            header.add(lblIcono, BorderLayout.WEST);
+        }
         header.add(lblTitulo, BorderLayout.CENTER);
 
         // Linea acento
@@ -241,13 +246,13 @@ public class DialogoFarmac {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-                g2.setColor(colorTipo);
+                g2.setColor(esFormulario ? TemaFarmac.BORDE : colorTipo);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 4, 4);
                 g2.dispose();
             }
         };
         linea.setOpaque(false);
-        linea.setPreferredSize(new Dimension(0, 3));
+        linea.setPreferredSize(new Dimension(0, esFormulario ? 1 : 3));
 
         JPanel lineaWrap = new JPanel(new BorderLayout());
         lineaWrap.setOpaque(false);
@@ -273,6 +278,9 @@ public class DialogoFarmac {
             txt.setLineWrap(true);
             txt.setFocusable(false);
             txt.setBorder(null);
+            // Ancho fijo para que el alto se calcule con el texto ya ajustado y el botón siempre sea visible
+            txt.setSize(new Dimension(440, Short.MAX_VALUE));
+            txt.setPreferredSize(new Dimension(440, txt.getPreferredSize().height + 6));
             cuerpo.add(txt, BorderLayout.CENTER);
         }
 
@@ -280,7 +288,7 @@ public class DialogoFarmac {
         pnlBotones.setOpaque(false);
 
         if (conCancelar) {
-            JButton btnCancelar = TemaFarmac.crearBoton("Cancelar", TemaFarmac.BORDE, TemaFarmac.TEXTO);
+            JButton btnCancelar = TemaFarmac.crearBotonSecundario("Cancelar");
             btnCancelar.addActionListener(e -> {
                 dialog.getRootPane().putClientProperty("farmac.confirmado", Boolean.FALSE);
                 cerrarConFade(dialog);
@@ -289,7 +297,7 @@ public class DialogoFarmac {
         }
 
         String textoOk = conCancelar ? "Aceptar" : "Entendido";
-        if (tipo == Tipo.CONFIRMACION) textoOk = "Confirmar";
+        if (tipo == Tipo.CONFIRMACION) textoOk = esFormulario ? "Guardar" : "Confirmar";
         JButton btnOk = TemaFarmac.crearBoton(textoOk, colorTipo, Color.WHITE);
         btnOk.addActionListener(e -> {
             dialog.getRootPane().putClientProperty("farmac.confirmado", Boolean.TRUE);
@@ -298,6 +306,16 @@ public class DialogoFarmac {
         pnlBotones.add(btnOk);
 
         cuerpo.add(pnlBotones, BorderLayout.SOUTH);
+
+        // Navegación con Enter dentro de formularios: avanza de campo y, en el último, acepta
+        if (esFormulario) {
+            java.util.List<JComponent> campos = new java.util.ArrayList<>();
+            recolectarCampos((Component) mensaje, campos);
+            if (!campos.isEmpty()) {
+                TemaFarmac.enterComoTab(btnOk::doClick, campos.toArray(new JComponent[0]));
+            }
+        }
+        dialog.getRootPane().setDefaultButton(null);
 
         // Ensamblar vertical
         JPanel vertical = new JPanel();
@@ -319,9 +337,34 @@ public class DialogoFarmac {
         int alto = Math.min(Math.max(dialog.getHeight(), 160), pantalla.height - 80);
         dialog.setSize(ancho, alto);
         dialog.setLocationRelativeTo(padre);
+        redondearVentana(dialog);
 
         // animacion de aparicion (fade-in): arrancar timer antes de mostrar
         return dialog;
+    }
+
+    /** Recorre el formulario y reúne, en orden visual, los campos que reciben texto o selección. */
+    private static void recolectarCampos(Component c, java.util.List<JComponent> destino) {
+        if (c instanceof JTextField || c instanceof JComboBox || c instanceof JCheckBox) {
+            destino.add((JComponent) c);
+            return;
+        }
+        if (c instanceof Container) {
+            for (Component h : ((Container) c).getComponents()) {
+                recolectarCampos(h, destino);
+            }
+        }
+    }
+
+    /** Recorta la ventana sin bordes con esquinas redondeadas para que no se vean esquinas cuadradas. */
+    private static void redondearVentana(JDialog dialog) {
+        dialog.setShape(new RoundRectangle2D.Float(0, 0, dialog.getWidth(), dialog.getHeight(), 16, 16));
+        dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                dialog.setShape(new RoundRectangle2D.Float(0, 0, dialog.getWidth(), dialog.getHeight(), 16, 16));
+            }
+        });
     }
 
     private static void cerrarConFade(JDialog dialog) {

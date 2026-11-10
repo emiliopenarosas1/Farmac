@@ -9,6 +9,8 @@ import farmac.dominio.OperacionesInventario;
 import farmac.util.Sesion;
 import farmac.util.DialogoFarmac;
 import farmac.util.TemaFarmac;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -69,79 +71,99 @@ public class ReporteCaducidadScreen extends JPanel {
     }
 
     private void inicializarUI() {
-        setLayout(new BorderLayout(16, 16));
+        setLayout(new BorderLayout(0, 12));
         setBackground(TemaFarmac.GRIS_FONDO);
-        setBorder(new EmptyBorder(18, 20, 18, 20));
+        setBorder(new EmptyBorder(20, 26, 20, 26));
 
-        // Cabecera reacomodable: título y acciones se acomodan en varias filas
-        JPanel pnlHeader = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 10, 4));
-        pnlHeader.setOpaque(false);
+        JLabel lblTitulo = new JLabel("Control de caducidades y semáforo preventivo");
+        lblTitulo.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 20));
+        lblTitulo.setForeground(TemaFarmac.TEXTO_AZUL);
 
-        JPanel pnlTit = new JPanel();
-        pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
-        pnlTit.setOpaque(false);
+        // KPIs con barra de color
+        lblKpiVencidos = new JLabel("0 lotes");
+        lblKpiPorVencer = new JLabel("0 lotes");
+        lblKpiVigentes = new JLabel("0 lotes");
+        JPanel pnlKpis = new JPanel(new GridLayout(1, 3, 14, 0));
+        pnlKpis.setOpaque(false);
+        pnlKpis.add(TemaFarmac.crearTarjetaKPI("Lotes vencidos", lblKpiVencidos, TemaFarmac.ROJO,
+                Color.WHITE, TemaFarmac.ROJO, new Color(0xC9, 0x3B, 0x3B), 22));
+        pnlKpis.add(TemaFarmac.crearTarjetaKPI("Por vencer (alerta)", lblKpiPorVencer, TemaFarmac.AMBAR,
+                Color.WHITE, TemaFarmac.AMBAR, new Color(0xE0, 0x8A, 0x1A), 22));
+        pnlKpis.add(TemaFarmac.crearTarjetaKPI("Lotes vigentes", lblKpiVigentes, TemaFarmac.VERDE,
+                Color.WHITE, TemaFarmac.VERDE, new Color(0x1E, 0x7A, 0x4C), 22));
 
-        JLabel lblTitulo = new JLabel("Control de Caducidades y Semáforo Preventivo");
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JLabel lblSub = new JLabel("Monitoreo de lotes vencidos, partidas en riesgo de caducidad y bajas por merma");
-        lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
-
-        pnlTit.add(lblTitulo);
-        pnlTit.add(Box.createRigidArea(new Dimension(0, 2)));
-        pnlTit.add(lblSub);
-
-        // Barra de acciones derecha
-        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        pnlAcciones.setOpaque(false);
-
+        // Barra de herramientas
         cmbUmbralDias = new JComboBox<>(new String[]{"30 días", "60 días (Estándar)", "90 días", "180 días"});
         cmbUmbralDias.setSelectedIndex(1);
         TemaFarmac.estilizarComboBox(cmbUmbralDias);
+        cmbUmbralDias.setPreferredSize(new Dimension(220, 40));
         cmbUmbralDias.addActionListener(e -> aplicarUmbral());
 
         btnActualizar = TemaFarmac.crearBotonSecundario("Actualizar");
+        btnActualizar.setIcon(FontIcon.of(FontAwesomeSolid.SYNC_ALT, 12, TemaFarmac.TEXTO));
+        btnActualizar.setIconTextGap(8);
         btnActualizar.addActionListener(e -> cargarDatos());
 
-        JButton btnAjustarCaducado = TemaFarmac.crearBotonPeligro("Dar Baja Lote Vencido");
+        JButton btnAjustarCaducado = TemaFarmac.crearBotonPeligro("Dar baja lote vencido");
+        btnAjustarCaducado.setIcon(FontIcon.of(FontAwesomeSolid.POWER_OFF, 12, TemaFarmac.ROJO));
+        btnAjustarCaducado.setIconTextGap(8);
         btnAjustarCaducado.addActionListener(e -> darDeBajaLoteVencido());
 
-        JButton btnExportar = TemaFarmac.crearBoton("Exportar CSV", TemaFarmac.VERDE, Color.WHITE);
+        JButton btnExportar = TemaFarmac.crearBotonSecundario("Exportar CSV");
+        btnExportar.setIcon(FontIcon.of(FontAwesomeSolid.DOWNLOAD, 12, TemaFarmac.TEXTO));
+        btnExportar.setIconTextGap(8);
         btnExportar.addActionListener(e -> exportarReporteCSV());
 
-        pnlAcciones.add(new JLabel("Umbral de Alerta:"));
-        pnlAcciones.add(cmbUmbralDias);
-        pnlAcciones.add(btnActualizar);
-        pnlAcciones.add(btnAjustarCaducado);
-        pnlAcciones.add(btnExportar);
+        JLabel lblUmbral = new JLabel("Umbral de alerta");
+        lblUmbral.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblUmbral.setForeground(TemaFarmac.TEXTO_AZUL);
 
-        pnlHeader.add(pnlTit);
-        pnlHeader.add(pnlAcciones);
-        add(pnlHeader, BorderLayout.NORTH);
+        JPanel pnlIzqFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        pnlIzqFiltros.setOpaque(false);
+        JPanel grpUmbral = new JPanel();
+        grpUmbral.setOpaque(false);
+        grpUmbral.setLayout(new BoxLayout(grpUmbral, BoxLayout.Y_AXIS));
+        lblUmbral.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        cmbUmbralDias.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        grpUmbral.add(lblUmbral);
+        grpUmbral.add(Box.createRigidArea(new Dimension(0, 4)));
+        grpUmbral.add(cmbUmbralDias);
+        JPanel filaAct = new JPanel(new java.awt.BorderLayout());
+        filaAct.setOpaque(false);
+        filaAct.setBorder(new EmptyBorder(22, 0, 0, 0));
+        filaAct.add(btnActualizar, BorderLayout.CENTER);
+        pnlIzqFiltros.add(grpUmbral);
+        pnlIzqFiltros.add(filaAct);
 
-        JPanel pnlCentro = new JPanel(new BorderLayout(0, 16));
-        pnlCentro.setOpaque(false);
+        JPanel pnlDerFiltros = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        pnlDerFiltros.setOpaque(false);
+        pnlDerFiltros.setBorder(new EmptyBorder(22, 0, 0, 0));
+        pnlDerFiltros.add(btnAjustarCaducado);
+        pnlDerFiltros.add(btnExportar);
 
-        // KPIs
-        JPanel pnlKpis = new JPanel(new GridLayout(1, 3, 12, 0));
-        pnlKpis.setOpaque(false);
+        JPanel pnlFiltros = new JPanel(new BorderLayout());
+        pnlFiltros.setBackground(Color.WHITE);
+        pnlFiltros.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 10, 1),
+                new EmptyBorder(12, 16, 12, 16)));
+        pnlFiltros.add(pnlIzqFiltros, BorderLayout.WEST);
+        pnlFiltros.add(pnlDerFiltros, BorderLayout.EAST);
 
-        lblKpiVencidos = new JLabel("0 lotes", JLabel.CENTER);
-        lblKpiPorVencer = new JLabel("0 lotes", JLabel.CENTER);
-        lblKpiVigentes = new JLabel("0 lotes", JLabel.CENTER);
-
-        pnlKpis.add(TemaFarmac.crearTarjetaKPI("LOTES VENCIDOS", lblKpiVencidos, TemaFarmac.ROJO));
-        pnlKpis.add(TemaFarmac.crearTarjetaKPI("POR VENCER (ALERTA)", lblKpiPorVencer, TemaFarmac.AMBAR));
-        pnlKpis.add(TemaFarmac.crearTarjetaKPI("LOTES VIGENTES", lblKpiVigentes, TemaFarmac.VERDE));
-        pnlCentro.add(pnlKpis, BorderLayout.NORTH);
+        JPanel pnlNorte = new JPanel();
+        pnlNorte.setOpaque(false);
+        pnlNorte.setLayout(new BoxLayout(pnlNorte, BoxLayout.Y_AXIS));
+        lblTitulo.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pnlKpis.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pnlFiltros.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pnlNorte.add(lblTitulo);
+        pnlNorte.add(Box.createRigidArea(new Dimension(0, 12)));
+        pnlNorte.add(pnlKpis);
+        pnlNorte.add(Box.createRigidArea(new Dimension(0, 12)));
+        pnlNorte.add(pnlFiltros);
+        add(pnlNorte, BorderLayout.NORTH);
 
         // Tabla
-        JPanel pnlCard = TemaFarmac.crearCard();
-        pnlCard.setLayout(new BorderLayout());
-
-        String[] columnas = {"ID", "Lote", "Medicamento", "Proveedor", "Caducidad", "Stock", "Días Rest.", "Estado"};
+        String[] columnas = {"ID", "Lote", "Medicamento", "Proveedor", "Caducidad", "Stock", "Días rest.", "Estado"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -149,23 +171,21 @@ public class ReporteCaducidadScreen extends JPanel {
         tblAlertas = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tblAlertas);
         tblAlertas.getColumnModel().getColumn(0).setPreferredWidth(45);
-        tblAlertas.getColumnModel().getColumn(1).setPreferredWidth(125);
+        tblAlertas.getColumnModel().getColumn(1).setPreferredWidth(150);
         tblAlertas.getColumnModel().getColumn(2).setPreferredWidth(200);
         tblAlertas.getColumnModel().getColumn(3).setPreferredWidth(145);
-        tblAlertas.getColumnModel().getColumn(4).setPreferredWidth(115);
-        tblAlertas.getColumnModel().getColumn(5).setPreferredWidth(92);
+        tblAlertas.getColumnModel().getColumn(4).setPreferredWidth(100);
+        tblAlertas.getColumnModel().getColumn(5).setPreferredWidth(80);
         tblAlertas.getColumnModel().getColumn(6).setPreferredWidth(120);
         tblAlertas.getColumnModel().getColumn(7).setPreferredWidth(115);
-
         tblAlertas.getColumnModel().getColumn(7).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+        // La columna ID se conserva en el modelo pero no se muestra
+        tblAlertas.removeColumn(tblAlertas.getColumnModel().getColumn(0));
 
         JScrollPane scroll = new JScrollPane(tblAlertas);
-        scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
+        scroll.setBorder(new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 8, 1));
         scroll.getViewport().setBackground(Color.WHITE);
-        pnlCard.add(scroll, BorderLayout.CENTER);
-
-        pnlCentro.add(pnlCard, BorderLayout.CENTER);
-        add(pnlCentro, BorderLayout.CENTER);
+        add(scroll, BorderLayout.CENTER);
     }
 
     private int obtenerDiasUmbral() {

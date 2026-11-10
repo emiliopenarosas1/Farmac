@@ -47,24 +47,30 @@ import javax.swing.table.TableCellRenderer;
  */
 public class TemaFarmac {
 
-    // Paleta de colores oficial
-    public static final Color AZUL_PETROLEO = new Color(0x0F, 0x47, 0x61);
-    public static final Color AZUL_CABECERA = new Color(0x13, 0x58, 0x78);
-    public static final Color AZUL_OSCURO   = new Color(0x0A, 0x30, 0x42);
-    public static final Color TURQUESA       = new Color(0x18, 0x7C, 0x93);
-    public static final Color VERDE          = new Color(0x23, 0x80, 0x5A);
+    // Paleta de colores (rediseño UI)
+    public static final Color AZUL_PETROLEO = new Color(0x0E, 0x2A, 0x5C); // azul marino principal (sidebar, KPI oscuro)
+    public static final Color AZUL_CABECERA = new Color(0x1B, 0x3D, 0x7A);
+    public static final Color AZUL_OSCURO   = new Color(0x0A, 0x20, 0x4A);
+    public static final Color AZUL_SELECCION= new Color(0x2B, 0x4F, 0x8E); // opción activa del menú
+    public static final Color AZUL_ACCION   = new Color(0x21, 0x73, 0xC8); // botón de login / enlaces
+    public static final Color TURQUESA       = new Color(0x2F, 0x6F, 0x4F); // botón de acción principal (verde oscuro)
+    public static final Color VERDE          = new Color(0x1E, 0x7A, 0x4C);
     public static final Color VERDE_BG       = new Color(0xDC, 0xF2, 0xE7);
-    public static final Color AMBAR          = new Color(0xD9, 0x82, 0x18);
-    public static final Color AMBAR_BG       = new Color(0xFE, 0xF2, 0xD6);
-    public static final Color ROJO           = new Color(0xC9, 0x3B, 0x3B);
-    public static final Color ROJO_BG        = new Color(0xFD, 0xEA, 0xE8);
-    public static final Color TEXTO          = new Color(0x1F, 0x29, 0x33);
-    public static final Color TEXTO_AZUL     = new Color(0x0F, 0x47, 0x61);
-    public static final Color TEXTO_MUTED    = new Color(0x52, 0x60, 0x6D);
-    public static final Color FONDO          = new Color(0xF0, 0xF4, 0xF8);
+    public static final Color VERDE_CLARO    = new Color(0x6F, 0xC4, 0x8E); // cifras sobre fondo azul
+    public static final Color AMBAR          = new Color(0xC2, 0x5E, 0x0A);
+    public static final Color AMBAR_BG       = new Color(0xF8, 0xEB, 0xC8);
+    public static final Color ROJO           = new Color(0xB3, 0x26, 0x26);
+    public static final Color ROJO_SUAVE     = new Color(0xE5, 0x5B, 0x4F); // botón "Quitar"
+    public static final Color ROJO_BG        = new Color(0xFC, 0xE1, 0xE1);
+    public static final Color TEXTO          = new Color(0x1B, 0x23, 0x30);
+    public static final Color TEXTO_AZUL     = new Color(0x0E, 0x2A, 0x5C);
+    public static final Color TEXTO_MUTED    = new Color(0x5B, 0x65, 0x72);
+    public static final Color FONDO          = new Color(0xC5, 0xC8, 0xC5); // gris de fondo del área de trabajo
     public static final Color BLANCO         = Color.WHITE;
-    public static final Color BORDE          = new Color(0xCB, 0xD5, 0xE1);
-    public static final Color TABLA_HEADER_BG= new Color(0x0F, 0x47, 0x61);
+    public static final Color BORDE          = new Color(0x8C, 0x91, 0x96); // borde de tarjetas / botones neutros
+    public static final Color BORDE_CAMPO    = new Color(0x1B, 0x3D, 0x7A); // borde de campos de texto
+    public static final Color TABLA_HEADER_BG= new Color(0xA9, 0xAC, 0xA9);
+    public static final Color TABLA_ZEBRA    = new Color(0xDD, 0xDF, 0xDD);
 
     // Alias para compatibilidad
     public static final Color GRIS_FONDO     = FONDO;
@@ -75,16 +81,16 @@ public class TemaFarmac {
     // contrario se cae a la fuente lógica SansSerif para que el layout no se
     // rompa en equipos con otros sistemas operativos.
     private static final String FAMILIA_BASE = resolverFamiliaBase();
-    public static final Font FUENTE_DISPLAY   = fuente(Font.BOLD, 22);
-    public static final Font FUENTE_TITULO    = fuente(Font.BOLD, 17);
-    public static final Font FUENTE_SUBTITULO = fuente(Font.BOLD, 13);
-    public static final Font FUENTE_REGULAR   = fuente(Font.PLAIN, 12);
-    public static final Font FUENTE_NEGRITA   = fuente(Font.BOLD, 12);
-    public static final Font FUENTE_PEQUENA   = fuente(Font.PLAIN, 11);
-    public static final Font FUENTE_BADGE     = fuente(Font.BOLD, 10);
+    public static final Font FUENTE_DISPLAY   = fuente(Font.BOLD, 24);
+    public static final Font FUENTE_TITULO    = fuente(Font.BOLD, 19);
+    public static final Font FUENTE_SUBTITULO = fuente(Font.BOLD, 15);
+    public static final Font FUENTE_REGULAR   = fuente(Font.PLAIN, 14);
+    public static final Font FUENTE_NEGRITA   = fuente(Font.BOLD, 14);
+    public static final Font FUENTE_PEQUENA   = fuente(Font.PLAIN, 13);
+    public static final Font FUENTE_BADGE     = fuente(Font.BOLD, 12);
 
     /** Altura estándar de controles para que botones y campos queden alineados. */
-    public static final int ALTO_CONTROL = 34;
+    public static final int ALTO_CONTROL = 38;
 
     public static Font fuente(int estilo, int tamano) {
         return new Font(FAMILIA_BASE, estilo, tamano);
@@ -155,24 +161,83 @@ public class TemaFarmac {
         form.setOpaque(false);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.gridx = 0;
+        gbc.weightx = 1;
         gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        int fila = 0;
         for (int i = 0; i < etiquetas.length; i++) {
-            gbc.gridx = 0;
-            gbc.gridy = i;
-            gbc.weightx = 0;
-            gbc.fill = GridBagConstraints.NONE;
-            JLabel lbl = new JLabel(etiquetas[i]);
+            String texto = etiquetas[i];
+            if (texto.endsWith(":")) {
+                texto = texto.substring(0, texto.length() - 1);
+            }
+            JLabel lbl = new JLabel(texto);
+            lbl.setFont(FUENTE_NEGRITA);
             lbl.setForeground(TEXTO_AZUL);
+            gbc.gridy = fila++;
+            gbc.insets = new Insets(i == 0 ? 0 : 10, 4, 3, 4);
             form.add(lbl, gbc);
 
-            gbc.gridx = 1;
-            gbc.weightx = 1;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.gridy = fila++;
+            gbc.insets = new Insets(0, 4, 0, 4);
             form.add(campos[i], gbc);
         }
         return form;
+    }
+
+    /**
+     * Formulario de dos columnas (etiqueta arriba, campo debajo). {@code spans[i]} vale 1 (media fila)
+     * o 2 (fila completa).
+     */
+    public static JPanel crearFormularioGrid(String[] etiquetas, JComponent[] campos, int[] spans) {
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+        int fila = 0;
+        int col = 0;
+        for (int i = 0; i < etiquetas.length; i++) {
+            int span = spans[i];
+            if (span == 2 && col != 0) {
+                col = 0;
+                fila += 2;
+            }
+            String texto = etiquetas[i];
+            JLabel lbl = new JLabel(texto);
+            lbl.setFont(FUENTE_NEGRITA);
+            lbl.setForeground(TEXTO_AZUL);
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 1;
+            gbc.gridx = col;
+            gbc.gridwidth = span;
+            gbc.gridy = fila;
+            gbc.insets = new Insets(fila == 0 ? 0 : 12, col == 0 ? 0 : 8, 4, col + span == 2 ? 0 : 8);
+            form.add(lbl, gbc);
+            gbc.gridy = fila + 1;
+            gbc.insets = new Insets(0, col == 0 ? 0 : 8, 0, col + span == 2 ? 0 : 8);
+            form.add(campos[i], gbc);
+            col += span;
+            if (col >= 2) {
+                col = 0;
+                fila += 2;
+            }
+        }
+        return form;
+    }
+
+    /** Aviso con fondo de color e icono (advertencia ámbar por defecto). */
+    public static JPanel crearAviso(String texto, Color fondo, Color colorTexto) {
+        JPanel aviso = new JPanel(new BorderLayout(10, 0));
+        aviso.setBackground(fondo);
+        aviso.setBorder(new EmptyBorder(11, 14, 11, 14));
+        JLabel lbl = new JLabel("<html>" + texto + "</html>");
+        lbl.setFont(FUENTE_REGULAR);
+        lbl.setForeground(colorTexto);
+        aviso.add(new JLabel(org.kordamp.ikonli.swing.FontIcon.of(
+                org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.EXCLAMATION_TRIANGLE, 15, colorTexto)), BorderLayout.WEST);
+        aviso.add(lbl, BorderLayout.CENTER);
+        return aviso;
     }
 
     /**
@@ -307,7 +372,7 @@ public class TemaFarmac {
                     g2.setColor(colorFondo);
                 }
                 float inset = getModel().isPressed() ? 1f : 0f;
-                g2.fill(new RoundRectangle2D.Float(inset, inset, getWidth() - 2 * inset, getHeight() - 2 * inset, 6, 6));
+                g2.fill(new RoundRectangle2D.Float(inset, inset, getWidth() - 2 * inset, getHeight() - 2 * inset, 8, 8));
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -331,11 +396,45 @@ public class TemaFarmac {
     }
 
     public static JButton crearBotonSecundario(String texto) {
-        return crearBoton(texto, AZUL_PETROLEO, BLANCO);
+        return crearBotonContorno(texto, TEXTO, TEXTO);
     }
 
     public static JButton crearBotonPeligro(String texto) {
-        return crearBoton(texto, ROJO, BLANCO);
+        return crearBotonContorno(texto, ROJO, new Color(0xE8, 0xA0, 0xA0));
+    }
+
+    /** Botón blanco con borde y texto de color (estilo secundario del rediseño). */
+    public static JButton crearBotonContorno(String texto, Color colorTexto, Color colorBorde) {
+        JButton btn = new JButton(texto) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                Color fondo = BLANCO;
+                if (getModel().isPressed()) {
+                    fondo = new Color(0xE3, 0xE6, 0xEA);
+                } else if (getModel().isRollover()) {
+                    fondo = new Color(0xF2, 0xF4, 0xF7);
+                }
+                g2.setColor(fondo);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.setColor(colorBorde);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(FUENTE_REGULAR);
+        btn.setForeground(colorTexto);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setOpaque(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(new EmptyBorder(7, 14, 7, 14));
+        btn.setMinimumSize(new Dimension(0, ALTO_CONTROL));
+        return btn;
     }
 
     public static JTextField crearCampoTexto(String valorInicial, int columnas) {
@@ -345,7 +444,7 @@ public class TemaFarmac {
         txt.setBackground(BLANCO);
         txt.setCaretColor(AZUL_PETROLEO);
         txt.setBorder(BorderFactory.createCompoundBorder(
-                new BordeRedondeado(BORDE, 6, 1),
+                new BordeRedondeado(BORDE_CAMPO, 8, 1),
                 new EmptyBorder(5, 8, 5, 8)
         ));
         Dimension pref = txt.getPreferredSize();
@@ -365,7 +464,7 @@ public class TemaFarmac {
         txt.setBackground(BLANCO);
         txt.setCaretColor(AZUL_PETROLEO);
         txt.setBorder(BorderFactory.createCompoundBorder(
-                new BordeRedondeado(BORDE, 6, 1),
+                new BordeRedondeado(BORDE_CAMPO, 8, 1),
                 new EmptyBorder(5, 8, 5, 8)
         ));
         Dimension pref = txt.getPreferredSize();
@@ -383,10 +482,104 @@ public class TemaFarmac {
         cmb.setForeground(TEXTO);
         cmb.setBackground(BLANCO);
         cmb.setBorder(BorderFactory.createCompoundBorder(
-                new BordeRedondeado(BORDE, 6, 1),
+                new BordeRedondeado(BORDE_CAMPO, 8, 1),
                 new EmptyBorder(3, 6, 3, 6)
         ));
         cmb.setMinimumSize(new Dimension(120, ALTO_CONTROL));
+    }
+
+
+    /**
+     * Navegación con la tecla Enter: al presionar Enter en un campo, el foco pasa
+     * al siguiente de la lista. Con {@code alFinal} se ejecuta una acción al
+     * presionar Enter en el último campo (por ejemplo, guardar).
+     */
+    public static void enterComoTab(Runnable alFinal, JComponent... campos) {
+        for (int i = 0; i < campos.length; i++) {
+            final JComponent actual = campos[i];
+            final JComponent siguiente = (i + 1 < campos.length) ? campos[i + 1] : null;
+            javax.swing.Action accion = new javax.swing.AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (actual instanceof JComboBox && ((JComboBox<?>) actual).isPopupVisible()) {
+                        ((JComboBox<?>) actual).setPopupVisible(false);
+                        return;
+                    }
+                    if (siguiente != null) {
+                        siguiente.requestFocusInWindow();
+                        if (siguiente instanceof javax.swing.text.JTextComponent) {
+                            ((javax.swing.text.JTextComponent) siguiente).selectAll();
+                        }
+                    } else if (alFinal != null) {
+                        alFinal.run();
+                    }
+                }
+            };
+            javax.swing.KeyStroke enter = javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0);
+            actual.getInputMap(JComponent.WHEN_FOCUSED).put(enter, "farmac.enterSiguiente");
+            actual.getActionMap().put("farmac.enterSiguiente", accion);
+            // Combos editables: el foco está en el editor interno
+            if (actual instanceof JComboBox && ((JComboBox<?>) actual).isEditable()) {
+                Component ed = ((JComboBox<?>) actual).getEditor().getEditorComponent();
+                if (ed instanceof JComponent) {
+                    ((JComponent) ed).getInputMap(JComponent.WHEN_FOCUSED).put(enter, "farmac.enterSiguiente");
+                    ((JComponent) ed).getActionMap().put("farmac.enterSiguiente", accion);
+                }
+            }
+        }
+    }
+
+    public static void enterComoTab(JComponent... campos) {
+        enterComoTab(null, campos);
+    }
+
+
+
+    /** Iconos de la aplicación (cruz verde de Farmac) en varios tamaños. */
+    public static java.util.List<java.awt.Image> iconosApp() {
+        java.util.List<java.awt.Image> lista = new java.util.ArrayList<>();
+        for (int s : new int[]{16, 24, 32, 48, 64, 128, 256}) {
+            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(s, s, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = img.createGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int margen = Math.max(1, s / 16);
+            int lado = s - 2 * margen;
+            int grosor = lado / 3;
+            int off = (lado - grosor) / 2;
+            float arco = Math.max(2f, s / 6f);
+            g2.setColor(new Color(0x2B, 0xB0, 0x8A));
+            g2.fill(new RoundRectangle2D.Float(margen, margen + off, lado, grosor, arco, arco));
+            g2.setColor(new Color(0x1F, 0x9A, 0x73));
+            g2.fill(new RoundRectangle2D.Float(margen + off, margen, grosor, lado, arco, arco));
+            g2.dispose();
+            lista.add(img);
+        }
+        return lista;
+    }
+
+    /** Logotipo: cruz verde + texto FARMAC. */
+    public static JComponent crearLogo(Color colorTexto, int alto) {
+        JLabel lbl = new JLabel("FARMAC");
+        lbl.setFont(fuente(Font.BOLD, alto));
+        lbl.setForeground(colorTexto);
+        lbl.setIconTextGap(Math.max(8, alto / 3));
+        final int lado = (int) (alto * 1.15);
+        lbl.setIcon(new javax.swing.Icon() {
+            @Override public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int grosor = lado / 3;
+                int off = (lado - grosor) / 2;
+                g2.setColor(new Color(0x2B, 0xB0, 0x8A));
+                g2.fill(new RoundRectangle2D.Float(x, y + off, lado, grosor, 6, 6));
+                g2.setColor(new Color(0x1F, 0x9A, 0x73));
+                g2.fill(new RoundRectangle2D.Float(x + off, y, grosor, lado, 6, 6));
+                g2.dispose();
+            }
+            @Override public int getIconWidth() { return lado; }
+            @Override public int getIconHeight() { return lado; }
+        });
+        return lbl;
     }
 
     public static JPanel crearCard() {
@@ -395,10 +588,6 @@ public class TemaFarmac {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                for (int i = 4; i >= 1; i--) {
-                    g2.setColor(new Color(0, 0, 0, 6 * i));
-                    g2.fill(new RoundRectangle2D.Float(i, i + 1, getWidth() - 2 * i, getHeight() - 2 * i, 10, 10));
-                }
                 g2.setColor(BLANCO);
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 10, 10));
                 g2.setColor(BORDE);
@@ -430,16 +619,45 @@ public class TemaFarmac {
     }
 
     public static JPanel crearTarjetaKPI(String titulo, JLabel lblValor, Color colorValor) {
-        JPanel card = crearCard();
-        card.setLayout(new BorderLayout(4, 4));
-        card.setPreferredSize(new Dimension(170, 75));
+        return crearTarjetaKPI(titulo, lblValor, colorValor, BLANCO, TEXTO_MUTED, null, 24);
+    }
+
+    /**
+     * Tarjeta de indicador: título pequeño arriba y valor grande. Admite fondo de color y una barra
+     * vertical de acento a la izquierda.
+     */
+    public static JPanel crearTarjetaKPI(String titulo, JLabel lblValor, Color colorValor,
+                                         Color fondo, Color colorTitulo, Color barra, int tamValor) {
+        JPanel card = new JPanel(new BorderLayout(0, 2)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(fondo);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 10, 10));
+                if (!fondo.equals(AZUL_PETROLEO)) {
+                    Color borde = fondo.equals(BLANCO) ? BORDE : new Color(0xE0, 0xC9, 0x8A);
+                    g2.setColor(borde);
+                    g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 10, 10));
+                }
+                if (barra != null) {
+                    g2.setColor(barra);
+                    g2.fill(new RoundRectangle2D.Float(14, 14, 7, getHeight() - 29, 6, 6));
+                }
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(12, barra != null ? 36 : 18, 12, 16));
+        card.setPreferredSize(new Dimension(170, 80));
 
         JLabel lblTit = new JLabel(titulo);
-        lblTit.setFont(FUENTE_PEQUENA);
-        lblTit.setForeground(TEXTO_AZUL);
+        lblTit.setFont(FUENTE_REGULAR);
+        lblTit.setForeground(colorTitulo);
 
-        lblValor.setFont(FUENTE_TITULO);
+        lblValor.setFont(fuente(Font.BOLD, tamValor));
         lblValor.setForeground(colorValor);
+        lblValor.setHorizontalAlignment(SwingConstants.LEFT);
 
         card.add(lblTit, BorderLayout.NORTH);
         card.add(lblValor, BorderLayout.CENTER);
@@ -449,20 +667,21 @@ public class TemaFarmac {
     public static void estilizarTabla(JTable tabla) {
         tabla.setFont(FUENTE_REGULAR);
         tabla.setForeground(TEXTO);
-        tabla.setRowHeight(34);
+        tabla.setRowHeight(40);
         tabla.setShowVerticalLines(false);
-        tabla.setShowHorizontalLines(true);
+        tabla.setShowHorizontalLines(false);
+        tabla.setIntercellSpacing(new Dimension(0, 0));
         tabla.setGridColor(new Color(0xE2, 0xE8, 0xF0));
-        tabla.setSelectionBackground(new Color(0xD8, 0xEE, 0xF8));
+        tabla.setSelectionBackground(new Color(0xB9, 0xD0, 0xEE));
         tabla.setSelectionForeground(TEXTO_AZUL);
 
         JTableHeader header = tabla.getTableHeader();
         // Encabezados ligeramente más compactos para que quepan en pantallas
         // angostas sin recortar el texto.
-        header.setFont(fuente(Font.BOLD, 11));
+        header.setFont(fuente(Font.BOLD, 14));
         header.setBackground(TABLA_HEADER_BG);
-        header.setForeground(Color.WHITE);
-        header.setPreferredSize(new Dimension(0, 32));
+        header.setForeground(TEXTO_AZUL);
+        header.setPreferredSize(new Dimension(0, 36));
         header.setReorderingAllowed(false);
         header.setOpaque(true);
 
@@ -471,8 +690,8 @@ public class TemaFarmac {
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 lbl.setBackground(TABLA_HEADER_BG);
-                lbl.setForeground(Color.WHITE);
-                lbl.setFont(fuente(Font.BOLD, 11));
+                lbl.setForeground(TEXTO_AZUL);
+                lbl.setFont(fuente(Font.BOLD, 14));
                 lbl.setBorder(new EmptyBorder(0, 8, 0, 8));
                 lbl.setHorizontalAlignment(SwingConstants.LEFT);
                 lbl.setOpaque(true);
@@ -481,28 +700,48 @@ public class TemaFarmac {
         };
         header.setDefaultRenderer(headerRenderer);
 
-        DefaultTableCellRenderer bodyRenderer = new DefaultTableCellRenderer();
+        DefaultTableCellRenderer bodyRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (!isSelected) {
+                    c.setBackground(row % 2 == 0 ? BLANCO : TABLA_ZEBRA);
+                }
+                return c;
+            }
+        };
         bodyRenderer.setBorder(new EmptyBorder(0, 8, 0, 8));
         bodyRenderer.setForeground(TEXTO);
         tabla.setDefaultRenderer(Object.class, bodyRenderer);
     }
 
-    public static class BotonTablaRenderer extends JButton implements TableCellRenderer {
+    /** Botón embebido en una celda: se dibuja con margen y esquinas redondeadas. */
+    private static JPanel envolverBotonTabla(JButton boton, boolean zebra, int fila) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(true);
+        panel.setBackground(fila % 2 == 0 ? BLANCO : TABLA_ZEBRA);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        panel.add(boton, gbc);
+        return panel;
+    }
+
+    public static class BotonTablaRenderer implements TableCellRenderer {
+        private final JButton boton;
+
         public BotonTablaRenderer(String texto, Color fondo, Color textoColor) {
-            super(texto);
-            setFont(FUENTE_BADGE);
-            setBackground(fondo);
-            setForeground(textoColor);
-            setFocusPainted(false);
-            setBorderPainted(false);
-            setOpaque(true);
-            setMargin(new Insets(0, 0, 0, 0));
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            boton = crearBoton(texto, fondo, textoColor);
+            boton.setFont(FUENTE_NEGRITA);
+            boton.setBorder(new EmptyBorder(0, 6, 0, 6));
+            boton.setMinimumSize(new Dimension(0, 0));
         }
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            return this;
+            return envolverBotonTabla(boton, true, row);
         }
     }
 
@@ -513,15 +752,10 @@ public class TemaFarmac {
 
         public BotonTablaEditor(String texto, Color fondo, Color textoColor, Consumer<Integer> accionFila) {
             this.accionFila = accionFila;
-            this.button = new JButton(texto);
-            this.button.setFont(FUENTE_BADGE);
-            this.button.setBackground(fondo);
-            this.button.setForeground(textoColor);
-            this.button.setFocusPainted(false);
-            this.button.setBorderPainted(false);
-            this.button.setOpaque(true);
-            this.button.setMargin(new Insets(0, 0, 0, 0));
-            this.button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            this.button = crearBoton(texto, fondo, textoColor);
+            this.button.setFont(FUENTE_NEGRITA);
+            this.button.setBorder(new EmptyBorder(0, 6, 0, 6));
+            this.button.setMinimumSize(new Dimension(0, 0));
             this.button.addActionListener(this);
         }
 
@@ -533,7 +767,7 @@ public class TemaFarmac {
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             this.filaActual = row;
-            return button;
+            return envolverBotonTabla(button, true, row);
         }
 
         @Override
@@ -545,34 +779,85 @@ public class TemaFarmac {
         }
     }
 
+    /** Indicador de estado: punto de color + texto (rediseño). Los tipos neutros se muestran como texto plano. */
     public static class BadgeCellRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             String texto = (value != null) ? value.toString() : "";
-            JLabel badge = new JLabel(texto, SwingConstants.CENTER) {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    Color bg = new Color(0xF1, 0xF5, 0xF9);
-                    Color fg = TEXTO;
-                    if (texto.contains("VIGENTE") || texto.contains("ACTIVO") || texto.contains("COMPLETADA") || texto.contains("ABIERTO") || texto.contains("VENTA LIBRE") || texto.contains("ÓPTIMO") || texto.contains("LIBRE")) {
-                        bg = VERDE_BG; fg = VERDE;
-                    } else if (texto.contains("POR VENCER") || texto.contains("TARJETA") || texto.contains("TRANSFERENCIA") || texto.contains("BAJO STOCK")) {
-                        bg = AMBAR_BG; fg = AMBAR;
-                    } else if (texto.contains("VENCIDO") || texto.contains("INACTIVO") || texto.contains("CANCELADA") || texto.contains("CERRADO") || texto.contains("REQUIERE RECETA") || texto.contains("RECETA")) {
-                        bg = ROJO_BG; fg = ROJO;
+            String u = texto.toUpperCase();
+            Color punto = null;
+            Color fg = TEXTO;
+            boolean negrita = false;
+            if (u.contains("INACTIVO") || u.contains("CERRADO")) {
+                fg = TEXTO;
+            } else if (u.contains("VIGENTE") || u.contains("ACTIV") || u.contains("COMPLETADA")
+                    || u.contains("ABIERTO") || u.contains("ÓPTIMO")) {
+                punto = VERDE; fg = VERDE;
+            } else if (u.contains("POR VENCER")) {
+                punto = AMBAR; fg = AMBAR;
+            } else if (u.contains("VENCIDO") || u.contains("CANCELADA") || u.contains("BAJO STOCK")) {
+                punto = ROJO; fg = ROJO;
+            } else if (u.contains("RECETA") || u.contains("ENCARGADO")) {
+                fg = AZUL_ACCION; negrita = true;
+            }
+            JLabel lbl = new JLabel(texto);
+            lbl.setFont(negrita ? FUENTE_NEGRITA : FUENTE_REGULAR);
+            lbl.setForeground(fg);
+            lbl.setBorder(new EmptyBorder(0, 8, 0, 8));
+            lbl.setIconTextGap(6);
+            if (punto != null) {
+                final Color pc = punto;
+                lbl.setIcon(new javax.swing.Icon() {
+                    @Override public void paintIcon(Component c, Graphics g, int x, int y) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2.setColor(pc);
+                        g2.fillOval(x, y, 8, 8);
+                        g2.dispose();
                     }
-                    g2.setColor(bg);
-                    g2.fill(new RoundRectangle2D.Float(2, 3, getWidth() - 4, getHeight() - 6, 6, 6));
-                    g2.dispose();
-                    setForeground(fg);
-                    super.paintComponent(g);
-                }
-            };
-            badge.setFont(FUENTE_BADGE);
-            badge.setOpaque(false);
-            return badge;
+                    @Override public int getIconWidth() { return 8; }
+                    @Override public int getIconHeight() { return 8; }
+                });
+            }
+            lbl.setOpaque(true);
+            lbl.setBackground(isSelected ? table.getSelectionBackground() : (row % 2 == 0 ? BLANCO : TABLA_ZEBRA));
+            return lbl;
+        }
+    }
+
+    /** Botón de selector segmentado: el activo se dibuja con esquinas redondeadas. */
+    public static class BotonSegmento extends JButton {
+        private boolean activo;
+
+        public BotonSegmento(String texto) {
+            super(texto);
+            setFont(FUENTE_NEGRITA);
+            setForeground(TEXTO_AZUL);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setOpaque(false);
+            setRolloverEnabled(false);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setBorder(new EmptyBorder(6, 18, 6, 18));
+        }
+
+        public void setActivo(boolean activo) {
+            this.activo = activo;
+            setForeground(activo ? BLANCO : TEXTO_AZUL);
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            if (activo) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(AZUL_PETROLEO);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.dispose();
+            }
+            super.paintComponent(g);
         }
     }
 
@@ -591,6 +876,19 @@ public class TemaFarmac {
         public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            // Rellena las esquinas exteriores con el fondo del contenedor para que no se vean cuadros blancos
+            if (c.isOpaque()) {
+                Component padre = c.getParent();
+                while (padre != null && !padre.isOpaque()) {
+                    padre = padre.getParent();
+                }
+                if (padre != null) {
+                    java.awt.geom.Area esquinas = new java.awt.geom.Area(new java.awt.geom.Rectangle2D.Float(x, y, width, height));
+                    esquinas.subtract(new java.awt.geom.Area(new RoundRectangle2D.Float(x, y, width - 1, height - 1, radio, radio)));
+                    g2.setColor(padre.getBackground());
+                    g2.fill(esquinas);
+                }
+            }
             g2.setColor(color);
             g2.setStroke(new BasicStroke(grosor));
             g2.draw(new RoundRectangle2D.Float(x, y, width - 1, height - 1, radio, radio));

@@ -37,6 +37,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -112,14 +113,14 @@ public class PuntoVentaScreen extends JPanel {
     private void inicializarUI() {
         setLayout(new BorderLayout(8, 8));
         setBackground(TemaFarmac.GRIS_FONDO);
-        setBorder(new EmptyBorder(10, 12, 10, 12));
+        setBorder(new EmptyBorder(20, 26, 20, 26));
 
-        // 1. Cabecera con Buscador / Escáner y Banner de Caja
+        // Banner de caja cerrada
         JPanel pnlNorte = new JPanel();
         pnlNorte.setLayout(new BoxLayout(pnlNorte, BoxLayout.Y_AXIS));
         pnlNorte.setOpaque(false);
 
-        lblBannerCajaCerrada = new JLabel("CAJA CERRADA: Debe abrir un turno de caja en 'Control de Caja' antes de registrar ventas.", SwingConstants.CENTER);
+        lblBannerCajaCerrada = new JLabel("CAJA CERRADA: Debe abrir un turno de caja en 'Control de caja' antes de registrar ventas.", SwingConstants.CENTER);
         lblBannerCajaCerrada.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblBannerCajaCerrada.setOpaque(true);
         lblBannerCajaCerrada.setBackground(TemaFarmac.ROJO);
@@ -127,77 +128,56 @@ public class PuntoVentaScreen extends JPanel {
         lblBannerCajaCerrada.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
         lblBannerCajaCerrada.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
         lblBannerCajaCerrada.setVisible(false);
-
         pnlNorte.add(lblBannerCajaCerrada);
-        pnlNorte.add(Box.createRigidArea(new Dimension(0, 6)));
-
-        // Cabecera reacomodable: si el ancho no alcanza, el buscador baja de fila
-        JPanel pnlHeader = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 10, 4));
-        pnlHeader.setOpaque(false);
-
-        JPanel pnlTit = new JPanel();
-        pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
-        pnlTit.setOpaque(false);
-
-        JLabel lblTitulo = new JLabel("Punto de Venta y Facturación");
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JLabel lblSub = new JLabel("Escanee el código de barras o agregue productos desde el catálogo con regla FEFO");
-        lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
-
-        pnlTit.add(lblTitulo);
-        pnlTit.add(lblSub);
-
-        JPanel pnlEscaner = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        pnlEscaner.setOpaque(false);
-
-        JLabel lblLector = new JLabel("Lector / Código:");
-        lblLector.setFont(TemaFarmac.FUENTE_NEGRITA);
-        lblLector.setForeground(TemaFarmac.TEXTO_AZUL);
-
-        txtEscaner = TemaFarmac.crearCampoTexto(14);
-        txtEscaner.setPreferredSize(new Dimension(180, TemaFarmac.ALTO_CONTROL));
-        txtEscaner.setMinimumSize(new Dimension(120, TemaFarmac.ALTO_CONTROL));
-        txtEscaner.addActionListener(e -> procesarDisparoEscaner());
-
-        JButton btnBuscar = TemaFarmac.crearBoton("Buscar", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
-        btnBuscar.setIcon(FontIcon.of(FontAwesomeSolid.SEARCH, 12, Color.WHITE));
-        btnBuscar.addActionListener(e -> procesarDisparoEscaner());
-
-        JButton btnRefrescar = TemaFarmac.crearBotonSecundario("Actualizar Catálogo");
-        btnRefrescar.addActionListener(e -> cargarDatosCatalogo());
-
-        pnlEscaner.add(lblLector);
-        pnlEscaner.add(txtEscaner);
-        pnlEscaner.add(btnBuscar);
-        pnlEscaner.add(btnRefrescar);
-
-        pnlHeader.add(pnlTit);
-        pnlHeader.add(pnlEscaner);
-        pnlNorte.add(pnlHeader);
-
         add(pnlNorte, BorderLayout.NORTH);
 
-        // 2. División Central (Catálogo a la izquierda, Carrito a la derecha)
+        // 2. División central (catálogo a la izquierda, carrito a la derecha)
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        // División proporcional: el catálogo conserva ~55% y el carrito el resto,
-        // sin importar la resolución del equipo.
-        splitPane.setResizeWeight(0.55);
+        splitPane.setResizeWeight(0.62);
         splitPane.setContinuousLayout(true);
         splitPane.setOpaque(false);
         splitPane.setBorder(null);
+        splitPane.setDividerSize(12);
 
-        // LADO IZQUIERDO: Catálogo
-        JPanel pnlCardCatalogo = TemaFarmac.crearCard();
-        pnlCardCatalogo.setLayout(new BorderLayout(4, 4));
-        pnlCardCatalogo.setMinimumSize(new Dimension(320, 0));
+        // LADO IZQUIERDO: búsqueda y catálogo
+        JPanel pnlIzq = new JPanel(new BorderLayout(0, 10));
+        pnlIzq.setOpaque(false);
+        pnlIzq.setMinimumSize(new Dimension(340, 0));
 
-        JLabel lblTitCat = new JLabel("Catálogo de Medicamentos Disponibles");
-        lblTitCat.setFont(TemaFarmac.FUENTE_SUBTITULO);
-        lblTitCat.setForeground(TemaFarmac.AZUL_PETROLEO);
-        pnlCardCatalogo.add(lblTitCat, BorderLayout.NORTH);
+        JPanel pnlTitCat = new JPanel(new BorderLayout());
+        pnlTitCat.setOpaque(false);
+        JLabel lblTitCat = new JLabel("Búsqueda y catálogo");
+        lblTitCat.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 18));
+        lblTitCat.setForeground(TemaFarmac.TEXTO_AZUL);
+        JButton btnRefrescar = TemaFarmac.crearBotonSecundario("Actualizar catálogo");
+        btnRefrescar.setIcon(FontIcon.of(FontAwesomeSolid.SYNC_ALT, 12, TemaFarmac.TEXTO));
+        btnRefrescar.setIconTextGap(8);
+        btnRefrescar.addActionListener(e -> cargarDatosCatalogo());
+        pnlTitCat.add(lblTitCat, BorderLayout.WEST);
+        pnlTitCat.add(btnRefrescar, BorderLayout.EAST);
+
+        // Campo de escáner / búsqueda con lupa y código de barras
+        txtEscaner = TemaFarmac.crearCampoTexto(14);
+        txtEscaner.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+        txtEscaner.setOpaque(false);
+        txtEscaner.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 14));
+        txtEscaner.putClientProperty("JTextField.placeholderText", "Escanear código de barras o buscar medicamento...");
+        txtEscaner.addActionListener(e -> procesarDisparoEscaner());
+        JPanel pnlBusqueda = new JPanel(new BorderLayout(6, 0));
+        pnlBusqueda.setBackground(Color.WHITE);
+        pnlBusqueda.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(TemaFarmac.TURQUESA, 12, 2),
+                new EmptyBorder(4, 12, 4, 12)));
+        pnlBusqueda.setPreferredSize(new Dimension(300, 48));
+        pnlBusqueda.add(new JLabel(FontIcon.of(FontAwesomeSolid.SEARCH, 15, TemaFarmac.TEXTO_MUTED)), BorderLayout.WEST);
+        pnlBusqueda.add(txtEscaner, BorderLayout.CENTER);
+        pnlBusqueda.add(new JLabel(FontIcon.of(FontAwesomeSolid.BARCODE, 22, TemaFarmac.TEXTO_AZUL)), BorderLayout.EAST);
+
+        JPanel pnlNorteIzq = new JPanel(new BorderLayout(0, 10));
+        pnlNorteIzq.setOpaque(false);
+        pnlNorteIzq.add(pnlTitCat, BorderLayout.NORTH);
+        pnlNorteIzq.add(pnlBusqueda, BorderLayout.CENTER);
+        pnlIzq.add(pnlNorteIzq, BorderLayout.NORTH);
 
         String[] colsCat = {"Código", "Medicamento", "Precio", "Stock", "Tipo", "Acción"};
         modeloCatalogo = new DefaultTableModel(colsCat, 0) {
@@ -206,151 +186,165 @@ public class PuntoVentaScreen extends JPanel {
         };
         tblCatalogo = new JTable(modeloCatalogo);
         TemaFarmac.estilizarTabla(tblCatalogo);
-        tblCatalogo.setRowHeight(42);
-        tblCatalogo.setIntercellSpacing(new Dimension(0, 4));
-        tblCatalogo.getColumnModel().getColumn(0).setPreferredWidth(68);
-        tblCatalogo.getColumnModel().getColumn(1).setPreferredWidth(140);
-        tblCatalogo.getColumnModel().getColumn(2).setPreferredWidth(62);
+        tblCatalogo.setRowHeight(37);
+        tblCatalogo.getColumnModel().getColumn(0).setPreferredWidth(78);
+        tblCatalogo.getColumnModel().getColumn(1).setPreferredWidth(200);
+        tblCatalogo.getColumnModel().getColumn(2).setPreferredWidth(66);
         tblCatalogo.getColumnModel().getColumn(3).setPreferredWidth(70);
-        tblCatalogo.getColumnModel().getColumn(4).setPreferredWidth(65);
-        tblCatalogo.getColumnModel().getColumn(5).setPreferredWidth(85);
-
+        tblCatalogo.getColumnModel().getColumn(4).setPreferredWidth(66);
+        tblCatalogo.getColumnModel().getColumn(5).setPreferredWidth(110);
+        tblCatalogo.getColumnModel().getColumn(4).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
         tblCatalogo.getColumnModel().getColumn(5).setCellRenderer(
-                new TemaFarmac.BotonTablaRenderer("Agregar", TemaFarmac.TURQUESA, Color.WHITE)
+                new TemaFarmac.BotonTablaRenderer("+  Agregar", TemaFarmac.TURQUESA, Color.WHITE)
         );
         tblCatalogo.getColumnModel().getColumn(5).setCellEditor(
-                new TemaFarmac.BotonTablaEditor("Agregar", TemaFarmac.TURQUESA, Color.WHITE, this::agregarProductoPorIndice)
+                new TemaFarmac.BotonTablaEditor("+  Agregar", TemaFarmac.TURQUESA, Color.WHITE, this::agregarProductoPorIndice)
         );
 
         JScrollPane scrollCat = new JScrollPane(tblCatalogo);
-        scrollCat.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
+        scrollCat.setBorder(new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 8, 1));
         scrollCat.getViewport().setBackground(Color.WHITE);
-        pnlCardCatalogo.add(scrollCat, BorderLayout.CENTER);
+        pnlIzq.add(scrollCat, BorderLayout.CENTER);
 
-        // LADO DERECHO: Carrito y Cobro
+        // LADO DERECHO: carrito y cobro
         JPanel pnlCardCarrito = TemaFarmac.crearCard();
-        pnlCardCarrito.setLayout(new BorderLayout(6, 6));
-        pnlCardCarrito.setMinimumSize(new Dimension(300, 0));
+        pnlCardCarrito.setLayout(new BorderLayout(6, 8));
+        pnlCardCarrito.setMinimumSize(new Dimension(320, 0));
 
         JPanel pnlHeaderCarrito = new JPanel(new BorderLayout());
         pnlHeaderCarrito.setOpaque(false);
-        JLabel lblTitCar = new JLabel("Carrito de la Venta");
-        lblTitCar.setFont(TemaFarmac.FUENTE_SUBTITULO);
-        lblTitCar.setForeground(TemaFarmac.AZUL_PETROLEO);
+        JLabel lblTitCar = new JLabel("Carrito de venta");
+        lblTitCar.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 16));
+        lblTitCar.setForeground(TemaFarmac.TEXTO_AZUL);
         pnlHeaderCarrito.add(lblTitCar, BorderLayout.WEST);
 
-        // Botones de ajuste de cantidad en carrito
-        JPanel pnlControlesCarrito = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        JPanel pnlControlesCarrito = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         pnlControlesCarrito.setOpaque(false);
 
-        btnSumar = TemaFarmac.crearBoton("+ 1", TemaFarmac.TURQUESA, Color.WHITE);
+        btnSumar = TemaFarmac.crearBoton("+1", new Color(0x1F, 0xBF, 0x5B), TemaFarmac.TEXTO_AZUL);
         btnSumar.addActionListener(e -> modificarCantidadSeleccionada(1));
-
-        btnRestar = TemaFarmac.crearBoton("- 1", TemaFarmac.AMBAR, Color.WHITE);
+        btnRestar = TemaFarmac.crearBoton("-1", new Color(0xF2, 0xB3, 0x3D), TemaFarmac.TEXTO_AZUL);
         btnRestar.addActionListener(e -> modificarCantidadSeleccionada(-1));
-
-        btnQuitar = TemaFarmac.crearBoton("Quitar", TemaFarmac.ROJO, Color.WHITE);
+        btnQuitar = TemaFarmac.crearBoton("Quitar", TemaFarmac.ROJO_SUAVE, Color.WHITE);
         btnQuitar.addActionListener(e -> quitarSeleccionado());
 
         pnlControlesCarrito.add(btnSumar);
         pnlControlesCarrito.add(btnRestar);
         pnlControlesCarrito.add(btnQuitar);
         pnlHeaderCarrito.add(pnlControlesCarrito, BorderLayout.EAST);
-
         pnlCardCarrito.add(pnlHeaderCarrito, BorderLayout.NORTH);
 
-        String[] colsCar = {"ID", "Medicamento", "Cant.", "P. Unit.", "Subtotal"};
+        String[] colsCar = {"ID", "Medicamento", "Cant.", "Precio", "Subtotal"};
         modeloCarrito = new DefaultTableModel(colsCar, 0) {
             @Override
             public boolean isCellEditable(int row, int col) { return false; }
         };
         tblCarrito = new JTable(modeloCarrito);
         TemaFarmac.estilizarTabla(tblCarrito);
-        tblCarrito.getColumnModel().getColumn(0).setPreferredWidth(40);
-        tblCarrito.getColumnModel().getColumn(1).setPreferredWidth(160);
+        tblCarrito.getColumnModel().getColumn(1).setPreferredWidth(170);
         tblCarrito.getColumnModel().getColumn(2).setPreferredWidth(48);
         tblCarrito.getColumnModel().getColumn(3).setPreferredWidth(70);
-        tblCarrito.getColumnModel().getColumn(4).setPreferredWidth(72);
-        // Evita que el encabezado se recorte cuando la tabla se comprime.
+        tblCarrito.getColumnModel().getColumn(4).setPreferredWidth(76);
         tblCarrito.getColumnModel().getColumn(2).setMinWidth(46);
         tblCarrito.getColumnModel().getColumn(3).setMinWidth(56);
         tblCarrito.getColumnModel().getColumn(4).setMinWidth(62);
+        // La columna ID se conserva en el modelo pero no se muestra
+        tblCarrito.removeColumn(tblCarrito.getColumnModel().getColumn(0));
 
         JScrollPane scrollCar = new JScrollPane(tblCarrito);
-        scrollCar.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
+        scrollCar.setBorder(new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 8, 1));
         scrollCar.getViewport().setBackground(Color.WHITE);
         pnlCardCarrito.add(scrollCar, BorderLayout.CENTER);
 
-        // Panel de Totales y Cobro
-        JPanel pnlTotales = new JPanel(new BorderLayout(0, 4));
+        // Totales (caja azul) + forma de pago + acciones
+        JPanel pnlTotales = new JPanel();
+        pnlTotales.setLayout(new BoxLayout(pnlTotales, BoxLayout.Y_AXIS));
         pnlTotales.setOpaque(false);
-        pnlTotales.setBorder(new EmptyBorder(6, 0, 0, 0));
 
-        JPanel pnlMontos = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
-        pnlMontos.setOpaque(false);
-        lblSubtotal = new JLabel("Subtotal: $0.00");
+        JPanel pnlCajaTotal = new JPanel(new BorderLayout(0, 0)) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(TemaFarmac.AZUL_PETROLEO);
+                g2.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.dispose();
+            }
+        };
+        pnlCajaTotal.setOpaque(false);
+        pnlCajaTotal.setBorder(new EmptyBorder(10, 14, 10, 14));
+        pnlCajaTotal.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlCajaTotal.setMaximumSize(new Dimension(Integer.MAX_VALUE, 92));
+
+        JLabel lblSubEt = new JLabel("Subtotal:");
+        lblSubEt.setFont(TemaFarmac.FUENTE_REGULAR);
+        lblSubEt.setForeground(new Color(0xD5, 0xDD, 0xEE));
+        lblSubtotal = new JLabel("$0.00");
         lblSubtotal.setFont(TemaFarmac.FUENTE_REGULAR);
-        lblSubtotal.setForeground(TemaFarmac.TEXTO_MUTED);
+        lblSubtotal.setForeground(new Color(0xD5, 0xDD, 0xEE));
+        JPanel pnlSubFila = new JPanel(new BorderLayout());
+        pnlSubFila.setOpaque(false);
+        pnlSubFila.add(lblSubEt, BorderLayout.WEST);
+        pnlSubFila.add(lblSubtotal, BorderLayout.EAST);
 
         lblTotal = new JLabel("$0.00");
-        lblTotal.setFont(TemaFarmac.FUENTE_DISPLAY);
-        lblTotal.setForeground(TemaFarmac.AZUL_PETROLEO);
+        lblTotal.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 30));
+        lblTotal.setForeground(TemaFarmac.VERDE_CLARO);
+        JPanel pnlTotalFila = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        pnlTotalFila.setOpaque(false);
+        JLabel lblTotEt = new JLabel("Total: ");
+        lblTotEt.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 30));
+        lblTotEt.setForeground(TemaFarmac.VERDE_CLARO);
+        pnlTotalFila.add(lblTotEt);
+        pnlTotalFila.add(lblTotal);
 
-        pnlMontos.add(lblSubtotal);
-        pnlMontos.add(lblTotal);
+        pnlCajaTotal.add(pnlSubFila, BorderLayout.NORTH);
+        pnlCajaTotal.add(pnlTotalFila, BorderLayout.CENTER);
 
-        // Pago y acciones apilados en dos filas: así nunca se recortan aunque
-        // el panel del carrito quede angosto.
-        JPanel pnlPagoAccion = new JPanel();
-        pnlPagoAccion.setLayout(new BoxLayout(pnlPagoAccion, BoxLayout.Y_AXIS));
-        pnlPagoAccion.setOpaque(false);
-
-        JPanel pnlPago = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
-        pnlPago.setOpaque(false);
-        JLabel lblForma = new JLabel("Forma de Pago:");
+        JLabel lblForma = new JLabel("Forma de pago");
         lblForma.setFont(TemaFarmac.FUENTE_NEGRITA);
         lblForma.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblForma.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         cmbFormaPago = new JComboBox<>(new String[]{"EFECTIVO", "TARJETA", "TRANSFERENCIA"});
-        cmbFormaPago.setBackground(Color.WHITE);
-        pnlPago.add(lblForma);
-        pnlPago.add(cmbFormaPago);
+        TemaFarmac.estilizarComboBox(cmbFormaPago);
+        cmbFormaPago.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cmbFormaPago.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
 
-        JPanel pnlBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        JPanel pnlBotones = new JPanel(new BorderLayout(8, 0));
         pnlBotones.setOpaque(false);
+        pnlBotones.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlBotones.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
 
-        btnVaciar = TemaFarmac.crearBoton("Vaciar", TemaFarmac.BORDE, TemaFarmac.TEXTO);
-        btnVaciar.setIcon(FontIcon.of(FontAwesomeSolid.TRASH, 12, TemaFarmac.TEXTO));
-
-        btnCobrar = TemaFarmac.crearBoton("Cobrar y Generar Ticket PDF", TemaFarmac.VERDE, Color.WHITE);
-        btnCobrar.setIcon(FontIcon.of(FontAwesomeSolid.CASH_REGISTER, 12, Color.WHITE));
-        btnCobrar.setMinimumSize(new Dimension(0, TemaFarmac.ALTO_CONTROL));
+        btnVaciar = TemaFarmac.crearBotonSecundario("Vaciar");
+        btnCobrar = TemaFarmac.crearBoton("Cobrar y generar ticket PDF", TemaFarmac.TURQUESA, Color.WHITE);
+        btnCobrar.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 13));
+        btnCobrar.setPreferredSize(new Dimension(200, 46));
         btnCobrar.addActionListener(e -> finalizarCobro());
+        pnlBotones.add(btnCobrar, BorderLayout.CENTER);
+        pnlBotones.add(btnVaciar, BorderLayout.EAST);
 
-        pnlBotones.add(btnVaciar);
-        pnlBotones.add(btnCobrar);
-
-        pnlPagoAccion.add(pnlPago);
-        pnlPagoAccion.add(Box.createRigidArea(new Dimension(0, 4)));
-        pnlPagoAccion.add(pnlBotones);
-
-        pnlTotales.add(pnlMontos, BorderLayout.NORTH);
-        pnlTotales.add(pnlPagoAccion, BorderLayout.CENTER);
-
+        pnlTotales.add(pnlCajaTotal);
+        pnlTotales.add(Box.createRigidArea(new Dimension(0, 12)));
+        pnlTotales.add(lblForma);
+        pnlTotales.add(Box.createRigidArea(new Dimension(0, 4)));
+        pnlTotales.add(cmbFormaPago);
+        pnlTotales.add(Box.createRigidArea(new Dimension(0, 10)));
+        pnlTotales.add(pnlBotones);
         pnlCardCarrito.add(pnlTotales, BorderLayout.SOUTH);
 
-        splitPane.setLeftComponent(pnlCardCatalogo);
+        splitPane.setLeftComponent(pnlIzq);
         splitPane.setRightComponent(pnlCardCarrito);
         add(splitPane, BorderLayout.CENTER);
 
         // Aplicar la división proporcional en cuanto el panel tenga ancho real
-        // (también cuando esta pantalla se muestra dentro de MainScreen).
         splitPane.addComponentListener(new java.awt.event.ComponentAdapter() {
             private boolean aplicado = false;
 
             @Override
             public void componentResized(java.awt.event.ComponentEvent e) {
                 if (!aplicado && splitPane.getWidth() > 0) {
-                    splitPane.setDividerLocation(0.55);
+                    splitPane.setDividerLocation(0.62);
                     aplicado = true;
                 }
             }
@@ -430,7 +424,7 @@ public class PuntoVentaScreen extends JPanel {
                 p.getNombre(),
                 String.format("$%.2f", p.getPrecioVenta()),
                 stockDisponible + " pzas",
-                p.isRequiereReceta() ? "RECETA" : "LIBRE",
+                p.isRequiereReceta() ? "Receta" : "Libre",
                 "Agregar"
             });
         }
@@ -571,7 +565,7 @@ public class PuntoVentaScreen extends JPanel {
         }
 
         total = Math.round(total * 100.0) / 100.0;
-        lblSubtotal.setText(String.format("Subtotal: $%.2f", total));
+        lblSubtotal.setText(String.format("$%.2f", total));
         lblTotal.setText(String.format("$%.2f", total));
     }
 
@@ -606,25 +600,15 @@ public class PuntoVentaScreen extends JPanel {
         // Si es pago en efectivo, solicitar importe recibido y calcular cambio
         double efectivoRecibido = totalVenta;
         double cambio = 0.0;
-        if ("EFECTIVO".equalsIgnoreCase(formaPago)) {
-            String recibidoStr = JOptionPane.showInputDialog(this,
-                    "Total a Cobrar: $" + String.format("%.2f", totalVenta) + "\nIngrese el Efectivo Recibido ($):",
-                    String.format("%.2f", totalVenta));
-            if (recibidoStr == null) {
-                return; // Cancelado por el usuario
-            }
-            try {
-                efectivoRecibido = Double.parseDouble(recibidoStr.trim());
-                if (efectivoRecibido < totalVenta) {
-                    DialogoFarmac.mostrarJO(this, "El efectivo recibido es menor al total a pagar.", "Importe Insuficiente", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-                cambio = Math.round((efectivoRecibido - totalVenta) * 100.0) / 100.0;
-            } catch (NumberFormatException ex) {
-                DialogoFarmac.mostrarJO(this, "Monto recibido inválido.", "Validación", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
+        // Diálogo de cobro: forma de pago, efectivo recibido y cambio
+        Object[] cobroDlg = solicitarCobro(totalVenta, formaPago);
+        if (cobroDlg == null) {
+            return; // Cancelado por el usuario
         }
+        formaPago = (String) cobroDlg[0];
+        cmbFormaPago.setSelectedItem(formaPago);
+        efectivoRecibido = (Double) cobroDlg[1];
+        cambio = (Double) cobroDlg[2];
 
         // 1. Detectar productos controlados que requieran receta médica
         List<RecetaMedica> recetasCapturadas = new ArrayList<>();
@@ -684,7 +668,7 @@ public class PuntoVentaScreen extends JPanel {
             BitacoraDAO.registrar(usuario, "VENTA_REGISTRADA",
                     "Venta #" + venta.getId() + " - Total: $" + venta.getTotal() + " [" + formaPago + "]");
 
-            String mensajeCobro = "✓ Venta #" + String.format("%05d", venta.getId()) + " registrada con éxito.\n"
+            String mensajeCobro = "Venta #" + String.format("%05d", venta.getId()) + " registrada con éxito.\n"
                     + "Total: $" + String.format("%.2f", venta.getTotal()) + "\n"
                     + ("EFECTIVO".equalsIgnoreCase(formaPago) ? "Efectivo Recibido: $" + String.format("%.2f", efectivoRecibido) + "\nCAMBIO A ENTREGAR: $" + String.format("%.2f", cambio) + "\n" : "")
                     + rutaMsg;
@@ -701,5 +685,220 @@ public class PuntoVentaScreen extends JPanel {
                     "Error transaccional en la venta (Se ejecutó Rollback): " + ex.getMessage(),
                     "Error de Transacción", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    /**
+     * Diálogo "Cobrar Venta". Devuelve {formaPago, efectivoRecibido, cambio} o null si se cancela.
+     * Enter avanza entre campos y, en el último, confirma el cobro.
+     */
+    private Object[] solicitarCobro(double total, String formaInicial) {
+        java.awt.Window dueno = SwingUtilities.getWindowAncestor(this);
+        javax.swing.JDialog dlg = new javax.swing.JDialog(dueno, "Cobrar Venta", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        final Object[][] resultado = {null};
+        final String[] forma = {formaInicial};
+
+        JPanel raiz = new JPanel(new BorderLayout());
+        raiz.setBackground(Color.WHITE);
+
+        JLabel lblTit = new JLabel("Cobrar Venta");
+        lblTit.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 17));
+        lblTit.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblTit.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, TemaFarmac.BORDE),
+                new EmptyBorder(16, 22, 14, 22)));
+        raiz.add(lblTit, BorderLayout.NORTH);
+
+        JPanel cuerpo = new JPanel();
+        cuerpo.setOpaque(false);
+        cuerpo.setLayout(new BoxLayout(cuerpo, BoxLayout.Y_AXIS));
+        cuerpo.setBorder(new EmptyBorder(18, 22, 12, 22));
+
+        JPanel cajaTotal = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(TemaFarmac.AZUL_PETROLEO);
+                g2.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.dispose();
+            }
+        };
+        cajaTotal.setOpaque(false);
+        cajaTotal.setBorder(new EmptyBorder(18, 20, 18, 20));
+        cajaTotal.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cajaTotal.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        JLabel lblTc = new JLabel("Total a cobrar");
+        lblTc.setForeground(Color.WHITE);
+        lblTc.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 14));
+        JLabel lblTm = new JLabel(String.format("$%.2f", total));
+        lblTm.setForeground(TemaFarmac.VERDE_CLARO);
+        lblTm.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 30));
+        cajaTotal.add(lblTc, BorderLayout.WEST);
+        cajaTotal.add(lblTm, BorderLayout.EAST);
+
+        JLabel lblFp = new JLabel("Forma de pago");
+        lblFp.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblFp.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblFp.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel segmento = new JPanel(new GridLayout(1, 3, 4, 0)) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0xA9, 0xAC, 0xA9));
+                g2.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.dispose();
+            }
+        };
+        segmento.setOpaque(false);
+        segmento.setBorder(new EmptyBorder(4, 4, 4, 4));
+        segmento.setAlignmentX(Component.LEFT_ALIGNMENT);
+        segmento.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+
+        JLabel lblRec = new JLabel("Efectivo recibido ($)");
+        lblRec.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblRec.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblRec.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JTextField txtRecibido = TemaFarmac.crearCampoTexto(String.format("%.2f", total), 10);
+        txtRecibido.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 18));
+        txtRecibido.setAlignmentX(Component.LEFT_ALIGNMENT);
+        txtRecibido.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        txtRecibido.setPreferredSize(new Dimension(300, 46));
+
+        JPanel cajaCambio = new JPanel(new BorderLayout());
+        cajaCambio.setBackground(new Color(0xDF, 0xF0, 0xE6));
+        cajaCambio.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(new Color(0xB5, 0xD9, 0xC4), 8, 1), new EmptyBorder(14, 16, 14, 16)));
+        cajaCambio.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cajaCambio.setMaximumSize(new Dimension(Integer.MAX_VALUE, 64));
+        JLabel lblCe = new JLabel("CAMBIO A ENTREGAR");
+        lblCe.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblCe.setForeground(TemaFarmac.VERDE);
+        JLabel lblCm = new JLabel("$0.00");
+        lblCm.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 24));
+        lblCm.setForeground(TemaFarmac.VERDE);
+        cajaCambio.add(lblCe, BorderLayout.WEST);
+        cajaCambio.add(lblCm, BorderLayout.EAST);
+
+        Runnable actualizarCambio = () -> {
+            try {
+                double rec = Double.parseDouble(txtRecibido.getText().trim());
+                double cambio = Math.max(0, Math.round((rec - total) * 100.0) / 100.0);
+                lblCm.setText(String.format("$%.2f", cambio));
+            } catch (NumberFormatException ex) {
+                lblCm.setText("$0.00");
+            }
+        };
+        txtRecibido.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizarCambio.run(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { actualizarCambio.run(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { actualizarCambio.run(); }
+        });
+
+        String[] formas = {"EFECTIVO", "TARJETA", "TRANSFERENCIA"};
+        String[] etiquetas = {"Efectivo", "Tarjeta", "Transferencia"};
+        List<JButton> botonesForma = new ArrayList<>();
+        Runnable refrescarForma = () -> {
+            for (int i = 0; i < botonesForma.size(); i++) {
+                JButton b = botonesForma.get(i);
+                boolean activo = formas[i].equals(forma[0]);
+                ((TemaFarmac.BotonSegmento) b).setActivo(activo);
+            }
+            boolean efectivo = "EFECTIVO".equals(forma[0]);
+            lblRec.setVisible(efectivo);
+            txtRecibido.setVisible(efectivo);
+            cajaCambio.setVisible(efectivo);
+            dlg.revalidate();
+            dlg.repaint();
+        };
+        for (int i = 0; i < formas.length; i++) {
+            final String valor = formas[i];
+            JButton b = new TemaFarmac.BotonSegmento(etiquetas[i]);
+            b.setFont(TemaFarmac.FUENTE_NEGRITA);
+            b.setFocusPainted(false);
+            b.setBorderPainted(false);
+            b.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+            b.addActionListener(e -> {
+                forma[0] = valor;
+                refrescarForma.run();
+                if ("EFECTIVO".equals(valor)) {
+                    txtRecibido.requestFocusInWindow();
+                    txtRecibido.selectAll();
+                }
+            });
+            botonesForma.add(b);
+            segmento.add(b);
+        }
+
+        cuerpo.add(cajaTotal);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 16)));
+        cuerpo.add(lblFp);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 4)));
+        cuerpo.add(segmento);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 12)));
+        cuerpo.add(lblRec);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 4)));
+        cuerpo.add(txtRecibido);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 12)));
+        cuerpo.add(cajaCambio);
+        raiz.add(cuerpo, BorderLayout.CENTER);
+
+        JPanel pie = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        pie.setOpaque(false);
+        pie.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, TemaFarmac.BORDE),
+                new EmptyBorder(14, 12, 14, 12)));
+        JButton btnCancelar = TemaFarmac.crearBotonSecundario("Cancelar");
+        JButton btnConfirmar = TemaFarmac.crearBoton("Confirmar y generar ticket PDF", TemaFarmac.TURQUESA, Color.WHITE);
+        btnConfirmar.setIcon(FontIcon.of(FontAwesomeSolid.CHECK, 12, Color.WHITE));
+        btnConfirmar.setIconTextGap(8);
+        pie.add(btnCancelar);
+        pie.add(btnConfirmar);
+        raiz.add(pie, BorderLayout.SOUTH);
+
+        Runnable confirmar = () -> {
+            double recibido = total;
+            double cambio = 0.0;
+            if ("EFECTIVO".equals(forma[0])) {
+                try {
+                    recibido = Double.parseDouble(txtRecibido.getText().trim());
+                } catch (NumberFormatException ex) {
+                    DialogoFarmac.mostrarJO(dlg, "Monto recibido inválido.", "Validación", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (recibido < total) {
+                    DialogoFarmac.mostrarJO(dlg, "El efectivo recibido es menor al total a pagar.", "Importe Insuficiente", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                cambio = Math.round((recibido - total) * 100.0) / 100.0;
+            }
+            resultado[0] = new Object[]{forma[0], recibido, cambio};
+            dlg.dispose();
+        };
+        btnConfirmar.addActionListener(e -> confirmar.run());
+        btnCancelar.addActionListener(e -> dlg.dispose());
+        // Enter en el campo de efectivo confirma el cobro
+        TemaFarmac.enterComoTab(confirmar, txtRecibido);
+        dlg.getRootPane().registerKeyboardAction(e -> dlg.dispose(),
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+        refrescarForma.run();
+        dlg.setContentPane(raiz);
+        dlg.setSize(560, 560);
+        dlg.pack();
+        dlg.setSize(Math.max(dlg.getWidth(), 560), dlg.getHeight());
+        dlg.setLocationRelativeTo(this);
+        SwingUtilities.invokeLater(() -> {
+            if ("EFECTIVO".equals(forma[0])) {
+                txtRecibido.requestFocusInWindow();
+                txtRecibido.selectAll();
+            } else {
+                btnConfirmar.requestFocusInWindow();
+            }
+        });
+        dlg.setVisible(true);
+        return resultado[0];
     }
 }

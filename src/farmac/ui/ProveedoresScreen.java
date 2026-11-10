@@ -47,61 +47,66 @@ public class ProveedoresScreen extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout(15, 15));
+        setLayout(new BorderLayout(0, 12));
         setBackground(TemaFarmac.GRIS_FONDO);
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setBorder(BorderFactory.createEmptyBorder(20, 26, 20, 26));
 
-        // Encabezado (se reacomoda en varias filas si hace falta)
-        JPanel pnlHeader = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 10, 0));
-        pnlHeader.setBackground(TemaFarmac.GRIS_FONDO);
+        // Cabecera
+        JPanel pnlHeader = new JPanel(new BorderLayout());
+        pnlHeader.setOpaque(false);
+        JLabel lblTitulo = new JLabel("Administración de proveedores");
+        lblTitulo.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 20));
+        lblTitulo.setForeground(TemaFarmac.TEXTO_AZUL);
+        JButton btnNuevo = TemaFarmac.crearBotonPrimario("Nuevo proveedor");
+        btnNuevo.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.PLUS, 12, java.awt.Color.WHITE));
+        btnNuevo.setIconTextGap(8);
+        btnNuevo.addActionListener(e -> abrirDialogoEdicion(null));
+        pnlHeader.add(lblTitulo, BorderLayout.WEST);
+        pnlHeader.add(btnNuevo, BorderLayout.EAST);
 
-        JLabel lblTitulo = new JLabel("Administración de Proveedores");
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JLabel lblSub = new JLabel("Alta, edición y control de estado de casas farmacéuticas y distribuidores");
-        lblSub.setFont(TemaFarmac.FUENTE_REGULAR);
-        lblSub.setForeground(TemaFarmac.GRIS_TEXTO);
-
-        JPanel pnlTitulos = new JPanel(new BorderLayout(0, 4));
-        pnlTitulos.setBackground(TemaFarmac.GRIS_FONDO);
-        pnlTitulos.add(lblTitulo, BorderLayout.NORTH);
-        pnlTitulos.add(lblSub, BorderLayout.SOUTH);
-
-        // Barra de acciones
-        JPanel pnlBarra = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        pnlBarra.setBackground(TemaFarmac.GRIS_FONDO);
-
+        // Buscador
         txtBuscar = TemaFarmac.crearCampoTexto(15);
         txtBuscar.putClientProperty("JTextField.placeholderText", "Buscar razón social...");
+        txtBuscar.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+        txtBuscar.setOpaque(false);
         txtBuscar.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
             public void keyReleased(java.awt.event.KeyEvent e) {
                 filtrarTabla(txtBuscar.getText());
             }
         });
+        JPanel pnlCampoBuscar = new JPanel(new BorderLayout(6, 0));
+        pnlCampoBuscar.setBackground(java.awt.Color.WHITE);
+        pnlCampoBuscar.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE_CAMPO, 8, 1),
+                BorderFactory.createEmptyBorder(0, 10, 0, 10)));
+        pnlCampoBuscar.setPreferredSize(new Dimension(300, 40));
+        pnlCampoBuscar.add(new JLabel(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.SEARCH, 13, TemaFarmac.TEXTO_MUTED)), BorderLayout.WEST);
+        pnlCampoBuscar.add(txtBuscar, BorderLayout.CENTER);
 
-        JButton btnNuevo = TemaFarmac.crearBotonPrimario("+ Nuevo Proveedor");
-        btnNuevo.addActionListener(e -> abrirDialogoEdicion(null));
+        JLabel lblBus = new JLabel("Buscar");
+        lblBus.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblBus.setForeground(TemaFarmac.TEXTO_AZUL);
+        JPanel pnlFiltros = new JPanel(new BorderLayout(0, 4));
+        pnlFiltros.setBackground(java.awt.Color.WHITE);
+        pnlFiltros.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 10, 1),
+                BorderFactory.createEmptyBorder(12, 16, 12, 16)));
+        pnlFiltros.add(lblBus, BorderLayout.NORTH);
+        pnlFiltros.add(pnlCampoBuscar, BorderLayout.CENTER);
 
-        JButton btnEditar = TemaFarmac.crearBotonSecundario("Editar");
-        btnEditar.addActionListener(e -> editarSeleccionado());
-
-        JButton btnToggle = TemaFarmac.crearBotonSecundario("Activar / Desactivar");
-        btnToggle.addActionListener(e -> toggleEstadoSeleccionado());
-
-        pnlBarra.add(new JLabel("Buscar:"));
-        pnlBarra.add(txtBuscar);
-        pnlBarra.add(btnNuevo);
-        pnlBarra.add(btnEditar);
-        pnlBarra.add(btnToggle);
-
-        pnlHeader.add(pnlTitulos);
-        pnlHeader.add(pnlBarra);
-        add(pnlHeader, BorderLayout.NORTH);
+        JPanel pnlNorte = new JPanel();
+        pnlNorte.setOpaque(false);
+        pnlNorte.setLayout(new javax.swing.BoxLayout(pnlNorte, javax.swing.BoxLayout.Y_AXIS));
+        pnlHeader.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pnlFiltros.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pnlNorte.add(pnlHeader);
+        pnlNorte.add(Box.createRigidArea(new Dimension(0, 12)));
+        pnlNorte.add(pnlFiltros);
+        add(pnlNorte, BorderLayout.NORTH);
 
         // Tabla
-        String[] columnas = {"ID", "Razón Social", "Contacto", "Teléfono", "Estado"};
+        String[] columnas = {"ID", "Razón social", "Contacto", "Teléfono", "Estado"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
@@ -112,14 +117,33 @@ public class ProveedoresScreen extends JPanel {
         tablaProveedores = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tablaProveedores);
         tablaProveedores.getColumnModel().getColumn(0).setPreferredWidth(60);
-        tablaProveedores.getColumnModel().getColumn(1).setPreferredWidth(250);
-        tablaProveedores.getColumnModel().getColumn(2).setPreferredWidth(180);
-        tablaProveedores.getColumnModel().getColumn(3).setPreferredWidth(140);
+        tablaProveedores.getColumnModel().getColumn(1).setPreferredWidth(320);
+        tablaProveedores.getColumnModel().getColumn(2).setPreferredWidth(200);
+        tablaProveedores.getColumnModel().getColumn(3).setPreferredWidth(130);
         tablaProveedores.getColumnModel().getColumn(4).setPreferredWidth(100);
+        tablaProveedores.getColumnModel().getColumn(4).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+        // La columna ID se conserva en el modelo pero no se muestra
+        tablaProveedores.removeColumn(tablaProveedores.getColumnModel().getColumn(0));
 
         JScrollPane scroll = new JScrollPane(tablaProveedores);
-        scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
+        scroll.setBorder(new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 8, 1));
+        scroll.getViewport().setBackground(java.awt.Color.WHITE);
         add(scroll, BorderLayout.CENTER);
+
+        // Acciones sobre la fila seleccionada
+        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        pnlAcciones.setOpaque(false);
+        JButton btnEditar = TemaFarmac.crearBotonSecundario("Editar");
+        btnEditar.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.PENCIL_ALT, 12, TemaFarmac.TEXTO));
+        btnEditar.setIconTextGap(8);
+        btnEditar.addActionListener(e -> editarSeleccionado());
+        JButton btnToggle = TemaFarmac.crearBotonPeligro("Activar / desactivar");
+        btnToggle.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.POWER_OFF, 12, TemaFarmac.ROJO));
+        btnToggle.setIconTextGap(8);
+        btnToggle.addActionListener(e -> toggleEstadoSeleccionado());
+        pnlAcciones.add(btnEditar);
+        pnlAcciones.add(btnToggle);
+        add(pnlAcciones, BorderLayout.SOUTH);
     }
 
     public void cargarDatos() {
@@ -230,7 +254,7 @@ public class ProveedoresScreen extends JPanel {
         pnlForm.setOpaque(true);
 
         JPanel pnlBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnGuardar = TemaFarmac.crearBotonPrimario("Guardar");
+        JButton btnGuardar = TemaFarmac.crearBotonPrimario("Guardar proveedor");
         JButton btnCancelar = TemaFarmac.crearBotonSecundario("Cancelar");
 
         btnCancelar.addActionListener(e -> dlg.dispose());
@@ -263,6 +287,14 @@ public class ProveedoresScreen extends JPanel {
 
         pnlBotones.add(btnCancelar);
         pnlBotones.add(btnGuardar);
+
+        // Navegación con Enter: razón social -> contacto -> teléfono -> estado -> guardar
+        TemaFarmac.enterComoTab(btnGuardar::doClick, txtRazon, txtContacto, txtTelefono, chkActivo);
+        dlg.getRootPane().registerKeyboardAction(ev -> dlg.dispose(),
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0),
+                javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
+        pnlBotones.setBackground(java.awt.Color.WHITE);
+        pnlBotones.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, TemaFarmac.BORDE));
 
         dlg.add(pnlForm, BorderLayout.CENTER);
         dlg.add(pnlBotones, BorderLayout.SOUTH);

@@ -53,56 +53,26 @@ public class GestionUsuariosScreen extends JPanel {
     }
 
     private void inicializarUI() {
-        setLayout(new BorderLayout(16, 16));
+        setLayout(new BorderLayout(0, 12));
         setBackground(TemaFarmac.GRIS_FONDO);
-        setBorder(new EmptyBorder(18, 20, 18, 20));
+        setBorder(new EmptyBorder(20, 26, 20, 26));
 
-        // Cabecera (se reacomoda si el ancho no alcanza)
-        JPanel pnlHeader = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 10, 0));
+        // Cabecera
+        JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setOpaque(false);
-
-        JPanel pnlTit = new JPanel();
-        pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
-        pnlTit.setOpaque(false);
-
-        JLabel lblTitulo = new JLabel("Administración y CRUD de Usuarios");
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JLabel lblSub = new JLabel("Alta, edición de credenciales (BCrypt), asignación de roles y control de acceso");
-        lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
-
-        pnlTit.add(lblTitulo);
-        pnlTit.add(Box.createRigidArea(new Dimension(0, 2)));
-        pnlTit.add(lblSub);
-
-        // Barra de botones CRUD
-        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        pnlAcciones.setOpaque(false);
-
-        btnNuevo = TemaFarmac.crearBoton("+ Nuevo Usuario", TemaFarmac.TURQUESA, Color.WHITE);
+        JLabel lblTitulo = new JLabel("Administración de usuarios");
+        lblTitulo.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 20));
+        lblTitulo.setForeground(TemaFarmac.TEXTO_AZUL);
+        btnNuevo = TemaFarmac.crearBoton("Nuevo usuario", TemaFarmac.TURQUESA, Color.WHITE);
+        btnNuevo.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.PLUS, 12, Color.WHITE));
+        btnNuevo.setIconTextGap(8);
         btnNuevo.addActionListener(e -> abrirFormularioNuevoUsuario());
-
-        btnEditar = TemaFarmac.crearBoton("Editar Usuario Seleccionado", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
-        btnEditar.addActionListener(e -> abrirFormularioEditarUsuario());
-
-        btnCambiarEstado = TemaFarmac.crearBoton("Activar / Desactivar", TemaFarmac.AMBAR, Color.WHITE);
-        btnCambiarEstado.addActionListener(e -> alternarEstadoUsuario());
-
-        pnlAcciones.add(btnNuevo);
-        pnlAcciones.add(btnEditar);
-        pnlAcciones.add(btnCambiarEstado);
-
-        pnlHeader.add(pnlTit);
-        pnlHeader.add(pnlAcciones);
+        pnlHeader.add(lblTitulo, BorderLayout.WEST);
+        pnlHeader.add(btnNuevo, BorderLayout.EAST);
         add(pnlHeader, BorderLayout.NORTH);
 
-        // Tabla Principal
-        JPanel pnlCard = TemaFarmac.crearCard();
-        pnlCard.setLayout(new BorderLayout(10, 10));
-
-        String[] columnas = {"ID", "Usuario (Login)", "Nombre Completo del Personal", "Rol Asignado", "Estado de la Cuenta"};
+        // Tabla principal
+        String[] columnas = {"ID", "Usuario (login)", "Nombre completo del personal", "Rol asignado", "Estado"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int col) { return false; }
@@ -110,23 +80,34 @@ public class GestionUsuariosScreen extends JPanel {
         tblUsuarios = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tblUsuarios);
         tblUsuarios.getColumnModel().getColumn(0).setPreferredWidth(55);
-        tblUsuarios.getColumnModel().getColumn(1).setPreferredWidth(140);
-        tblUsuarios.getColumnModel().getColumn(2).setPreferredWidth(230);
-        tblUsuarios.getColumnModel().getColumn(3).setPreferredWidth(130);
-        tblUsuarios.getColumnModel().getColumn(4).setPreferredWidth(150);
+        tblUsuarios.getColumnModel().getColumn(1).setPreferredWidth(150);
+        tblUsuarios.getColumnModel().getColumn(2).setPreferredWidth(360);
+        tblUsuarios.getColumnModel().getColumn(3).setPreferredWidth(120);
+        tblUsuarios.getColumnModel().getColumn(4).setPreferredWidth(110);
+        tblUsuarios.getColumnModel().getColumn(3).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
         tblUsuarios.getColumnModel().getColumn(4).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+        // La columna ID se conserva en el modelo pero no se muestra
+        tblUsuarios.removeColumn(tblUsuarios.getColumnModel().getColumn(0));
 
         JScrollPane scroll = new JScrollPane(tblUsuarios);
-        scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
+        scroll.setBorder(new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 8, 1));
         scroll.getViewport().setBackground(Color.WHITE);
-        pnlCard.add(scroll, BorderLayout.CENTER);
+        add(scroll, BorderLayout.CENTER);
 
-        JLabel lblAyuda = new JLabel("Nota de seguridad: No está permitido desactivar al último Encargado ni modificar el estado de su propia cuenta activa.");
-        lblAyuda.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblAyuda.setForeground(TemaFarmac.TEXTO_MUTED);
-        pnlCard.add(lblAyuda, BorderLayout.SOUTH);
-
-        add(pnlCard, BorderLayout.CENTER);
+        // Acciones sobre la fila seleccionada
+        JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        pnlAcciones.setOpaque(false);
+        btnEditar = TemaFarmac.crearBotonSecundario("Editar usuario seleccionado");
+        btnEditar.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.PENCIL_ALT, 12, TemaFarmac.TEXTO));
+        btnEditar.setIconTextGap(8);
+        btnEditar.addActionListener(e -> abrirFormularioEditarUsuario());
+        btnCambiarEstado = TemaFarmac.crearBotonPeligro("Activar / desactivar");
+        btnCambiarEstado.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.POWER_OFF, 12, TemaFarmac.ROJO));
+        btnCambiarEstado.setIconTextGap(8);
+        btnCambiarEstado.addActionListener(e -> alternarEstadoUsuario());
+        pnlAcciones.add(btnEditar);
+        pnlAcciones.add(btnCambiarEstado);
+        add(pnlAcciones, BorderLayout.SOUTH);
     }
 
     public void cargarDatos() {
@@ -170,10 +151,9 @@ public class GestionUsuariosScreen extends JPanel {
     private void abrirFormularioNuevoUsuario() {
         JTextField txtUser = TemaFarmac.crearCampoTexto(15);
         JTextField txtNombre = TemaFarmac.crearCampoTexto(20);
-        JPasswordField txtPass = new JPasswordField(15);
+        JPasswordField txtPass = TemaFarmac.crearCampoPassword(15);
         JComboBox<String> cmbRol = new JComboBox<>(new String[]{"EMPLEADO", "ENCARGADO"});
-        cmbRol.setFont(TemaFarmac.FUENTE_REGULAR);
-        cmbRol.setBackground(Color.WHITE);
+        TemaFarmac.estilizarComboBox(cmbRol);
 
         JPanel form = TemaFarmac.crearFormulario(
                 new String[]{
@@ -229,11 +209,10 @@ boolean res = DialogoFarmac.confirmar(this, "Registrar Nuevo Usuario", form);
         txtUser.setText(u.getNombreUsuario());
         JTextField txtNombre = TemaFarmac.crearCampoTexto(20);
         txtNombre.setText(u.getNombreCompleto());
-        JPasswordField txtPass = new JPasswordField(15);
+        JPasswordField txtPass = TemaFarmac.crearCampoPassword(15);
         JComboBox<String> cmbRol = new JComboBox<>(new String[]{"EMPLEADO", "ENCARGADO"});
         cmbRol.setSelectedItem(u.obtenerRol());
-        cmbRol.setFont(TemaFarmac.FUENTE_REGULAR);
-        cmbRol.setBackground(Color.WHITE);
+        TemaFarmac.estilizarComboBox(cmbRol);
 
         JPanel form = TemaFarmac.crearFormulario(
                 new String[]{

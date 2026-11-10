@@ -11,10 +11,13 @@ import farmac.dominio.Usuario;
 import farmac.util.Sesion;
 import farmac.util.DialogoFarmac;
 import farmac.util.TemaFarmac;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.io.File;
 import java.io.FileWriter;
@@ -71,99 +74,98 @@ public class CatalogoProductosScreen extends JPanel {
     }
 
     private void inicializarUI() {
-        setLayout(new BorderLayout(14, 14));
+        setLayout(new BorderLayout(0, 12));
         setBackground(TemaFarmac.GRIS_FONDO);
-        setBorder(new EmptyBorder(16, 18, 16, 18));
-
-        // Cabecera superior
-        JPanel pnlNorte = new JPanel();
-        pnlNorte.setLayout(new BoxLayout(pnlNorte, BoxLayout.Y_AXIS));
-        pnlNorte.setOpaque(false);
-
-        JPanel pnlTit = new JPanel(new BorderLayout());
-        pnlTit.setOpaque(false);
-        JLabel lblTitulo = new JLabel("Catálogo de Medicamentos y Productos");
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JLabel lblSub = new JLabel("Administración de catálogo, baja lógica, control médico y trazabilidad de lotes");
-        lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
-
-        JPanel pnlTitText = new JPanel();
-        pnlTitText.setLayout(new BoxLayout(pnlTitText, BoxLayout.Y_AXIS));
-        pnlTitText.setOpaque(false);
-        pnlTitText.add(lblTitulo);
-        pnlTitText.add(Box.createRigidArea(new Dimension(0, 2)));
-        pnlTitText.add(lblSub);
-        pnlTit.add(pnlTitText, BorderLayout.WEST);
-
-        pnlNorte.add(pnlTit);
-        pnlNorte.add(Box.createRigidArea(new Dimension(0, 10)));
-
-        // Barra de Herramientas (FlowLayout: se reacomoda en varias filas
-        // cuando el ancho de la ventana no alcanza para una sola)
-        JPanel pnlBarraHerramientas = new JPanel(new TemaFarmac.WrapLayout(FlowLayout.LEFT, 8, 4));
-        pnlBarraHerramientas.setOpaque(false);
-
-        // Botones CRUD (Exclusivo Encargado)
-        JPanel pnlBotonesCrud = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        pnlBotonesCrud.setOpaque(false);
+        setBorder(new EmptyBorder(20, 26, 20, 26));
 
         boolean esAdmin = (usuarioActivo != null) && "ENCARGADO".equalsIgnoreCase(usuarioActivo.obtenerRol());
+
+        // Cabecera: título + exportar / nuevo
+        JPanel pnlTit = new JPanel(new BorderLayout());
+        pnlTit.setOpaque(false);
+        JLabel lblTitulo = new JLabel("Catálogo de medicamentos y productos");
+        lblTitulo.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 20));
+        lblTitulo.setForeground(TemaFarmac.TEXTO_AZUL);
+        pnlTit.add(lblTitulo, BorderLayout.WEST);
+
+        JPanel pnlAccionesTop = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        pnlAccionesTop.setOpaque(false);
+        JButton btnExportar = TemaFarmac.crearBotonSecundario("Exportar CSV");
+        btnExportar.setIcon(FontIcon.of(FontAwesomeSolid.DOWNLOAD, 12, TemaFarmac.TEXTO));
+        btnExportar.setIconTextGap(8);
+        btnExportar.addActionListener(e -> exportarCSV());
+        pnlAccionesTop.add(btnExportar);
         if (esAdmin) {
-            JButton btnNuevo = TemaFarmac.crearBoton("+ Nuevo Medicamento", TemaFarmac.TURQUESA, Color.WHITE);
+            JButton btnNuevo = TemaFarmac.crearBoton("Nuevo medicamento", TemaFarmac.TURQUESA, Color.WHITE);
+            btnNuevo.setIcon(FontIcon.of(FontAwesomeSolid.PLUS, 12, Color.WHITE));
+            btnNuevo.setIconTextGap(8);
             btnNuevo.addActionListener(e -> abrirFormularioNuevo());
-
-            JButton btnEditar = TemaFarmac.crearBoton("Editar Medicamento", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
-            btnEditar.addActionListener(e -> abrirFormularioEditar());
-
-            JButton btnEliminar = TemaFarmac.crearBoton("Desactivar (Baja Lógica)", TemaFarmac.ROJO, Color.WHITE);
-            btnEliminar.addActionListener(e -> eliminarProductoSeleccionado());
-
-            pnlBotonesCrud.add(btnNuevo);
-            pnlBotonesCrud.add(btnEditar);
-            pnlBotonesCrud.add(btnEliminar);
+            pnlAccionesTop.add(btnNuevo);
         }
+        pnlTit.add(pnlAccionesTop, BorderLayout.EAST);
 
-        // Buscador y Exportación
-        JPanel pnlBuscarExportar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        pnlBuscarExportar.setOpaque(false);
-
+        // Filtros
         cmbFiltroCategoria = new JComboBox<>(new String[]{"TODAS"});
         TemaFarmac.estilizarComboBox(cmbFiltroCategoria);
+        cmbFiltroCategoria.setPreferredSize(new Dimension(240, 40));
         cmbFiltroCategoria.addActionListener(e -> filtrar());
 
         txtBuscar = TemaFarmac.crearCampoTexto(14);
         txtBuscar.putClientProperty("JTextField.placeholderText", "Nombre o código...");
+        txtBuscar.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+        txtBuscar.setOpaque(false);
         txtBuscar.addActionListener(e -> filtrar());
+        JPanel pnlCampoBuscar = new JPanel(new BorderLayout(6, 0));
+        pnlCampoBuscar.setBackground(Color.WHITE);
+        pnlCampoBuscar.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE_CAMPO, 8, 1),
+                new EmptyBorder(0, 10, 0, 10)));
+        pnlCampoBuscar.add(new JLabel(FontIcon.of(FontAwesomeSolid.SEARCH, 13, TemaFarmac.TEXTO_MUTED)), BorderLayout.WEST);
+        pnlCampoBuscar.add(txtBuscar, BorderLayout.CENTER);
 
-        JButton btnBuscar = TemaFarmac.crearBoton("Buscar", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
+        JButton btnBuscar = TemaFarmac.crearBoton("Buscar", TemaFarmac.TURQUESA, Color.WHITE);
         btnBuscar.addActionListener(e -> filtrar());
 
-        JButton btnExportar = TemaFarmac.crearBoton("Exportar CSV", TemaFarmac.VERDE, Color.WHITE);
-        btnExportar.addActionListener(e -> exportarCSV());
+        JPanel pnlFiltros = new JPanel(new GridBagLayout());
+        pnlFiltros.setBackground(Color.WHITE);
+        pnlFiltros.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 10, 1),
+                new EmptyBorder(12, 16, 12, 16)));
+        java.awt.GridBagConstraints g = new java.awt.GridBagConstraints();
+        g.anchor = java.awt.GridBagConstraints.WEST;
+        JLabel lblCat = new JLabel("Categoría");
+        lblCat.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblCat.setForeground(TemaFarmac.TEXTO_AZUL);
+        JLabel lblBus = new JLabel("Buscar");
+        lblBus.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblBus.setForeground(TemaFarmac.TEXTO_AZUL);
+        g.gridx = 0; g.gridy = 0; g.insets = new java.awt.Insets(0, 0, 4, 14);
+        pnlFiltros.add(lblCat, g);
+        g.gridx = 1; g.insets = new java.awt.Insets(0, 0, 4, 14);
+        pnlFiltros.add(lblBus, g);
+        g.gridx = 0; g.gridy = 1; g.insets = new java.awt.Insets(0, 0, 0, 14);
+        pnlFiltros.add(cmbFiltroCategoria, g);
+        g.gridx = 1; g.weightx = 1; g.fill = java.awt.GridBagConstraints.HORIZONTAL; g.insets = new java.awt.Insets(0, 0, 0, 14);
+        pnlCampoBuscar.setPreferredSize(new Dimension(300, 40));
+        pnlFiltros.add(pnlCampoBuscar, g);
+        g.gridx = 2; g.weightx = 0; g.fill = java.awt.GridBagConstraints.NONE; g.insets = new java.awt.Insets(0, 0, 0, 0);
+        btnBuscar.setPreferredSize(new Dimension(90, 40));
+        pnlFiltros.add(btnBuscar, g);
 
-        pnlBuscarExportar.add(new JLabel("Categoría:"));
-        pnlBuscarExportar.add(cmbFiltroCategoria);
-        pnlBuscarExportar.add(new JLabel("Buscar:"));
-        pnlBuscarExportar.add(txtBuscar);
-        pnlBuscarExportar.add(btnBuscar);
-        pnlBuscarExportar.add(btnExportar);
-
-        pnlBarraHerramientas.add(pnlBotonesCrud);
-        pnlBarraHerramientas.add(pnlBuscarExportar);
-        pnlNorte.add(pnlBarraHerramientas);
-
+        JPanel pnlNorte = new JPanel();
+        pnlNorte.setLayout(new BoxLayout(pnlNorte, BoxLayout.Y_AXIS));
+        pnlNorte.setOpaque(false);
+        pnlTit.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pnlFiltros.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pnlNorte.add(pnlTit);
+        pnlNorte.add(Box.createRigidArea(new Dimension(0, 12)));
+        pnlNorte.add(pnlFiltros);
         add(pnlNorte, BorderLayout.NORTH);
 
-        // Tabla Principal
-        JPanel pnlCard = TemaFarmac.crearCard();
-        pnlCard.setLayout(new BorderLayout(8, 8));
-
+        // Tabla principal
         String[] columnas = {
             "ID", "Código", "Medicamento", "Categoría",
-            "Proveedor", "P. Venta", "Tipo", "Mín.", "Existencia", "Caduc."
+            "Proveedor", "P. venta", "Tipo", "Mín.", "Existencia", "Caduc."
         };
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
@@ -172,24 +174,40 @@ public class CatalogoProductosScreen extends JPanel {
         tblProductos = new JTable(modeloTabla);
         TemaFarmac.estilizarTabla(tblProductos);
         tblProductos.getColumnModel().getColumn(0).setPreferredWidth(40);
-        tblProductos.getColumnModel().getColumn(1).setPreferredWidth(100);
-        tblProductos.getColumnModel().getColumn(2).setPreferredWidth(170);
-        tblProductos.getColumnModel().getColumn(3).setPreferredWidth(90);
-        tblProductos.getColumnModel().getColumn(4).setPreferredWidth(95);
+        tblProductos.getColumnModel().getColumn(1).setPreferredWidth(90);
+        tblProductos.getColumnModel().getColumn(2).setPreferredWidth(190);
+        tblProductos.getColumnModel().getColumn(3).setPreferredWidth(130);
+        tblProductos.getColumnModel().getColumn(4).setPreferredWidth(140);
         tblProductos.getColumnModel().getColumn(5).setPreferredWidth(75);
-        tblProductos.getColumnModel().getColumn(6).setPreferredWidth(75);
-        tblProductos.getColumnModel().getColumn(7).setPreferredWidth(75);
+        tblProductos.getColumnModel().getColumn(6).setPreferredWidth(70);
+        tblProductos.getColumnModel().getColumn(7).setPreferredWidth(60);
         tblProductos.getColumnModel().getColumn(8).setPreferredWidth(85);
-        tblProductos.getColumnModel().getColumn(9).setPreferredWidth(85);
-
+        tblProductos.getColumnModel().getColumn(9).setPreferredWidth(90);
         tblProductos.getColumnModel().getColumn(6).setCellRenderer(new TemaFarmac.BadgeCellRenderer());
+        // La columna ID se conserva en el modelo pero no se muestra
+        tblProductos.removeColumn(tblProductos.getColumnModel().getColumn(0));
 
         JScrollPane scroll = new JScrollPane(tblProductos);
-        scroll.setBorder(BorderFactory.createLineBorder(TemaFarmac.GRIS_BORDE));
+        scroll.setBorder(new TemaFarmac.BordeRedondeado(TemaFarmac.BORDE, 8, 1));
         scroll.getViewport().setBackground(Color.WHITE);
-        pnlCard.add(scroll, BorderLayout.CENTER);
+        add(scroll, BorderLayout.CENTER);
 
-        add(pnlCard, BorderLayout.CENTER);
+        // Acciones sobre la fila seleccionada
+        if (esAdmin) {
+            JPanel pnlAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+            pnlAcciones.setOpaque(false);
+            JButton btnEditar = TemaFarmac.crearBotonSecundario("Editar medicamento");
+            btnEditar.setIcon(FontIcon.of(FontAwesomeSolid.PENCIL_ALT, 12, TemaFarmac.TEXTO));
+            btnEditar.setIconTextGap(8);
+            btnEditar.addActionListener(e -> abrirFormularioEditar());
+            JButton btnEliminar = TemaFarmac.crearBotonPeligro("Desactivar (baja lógica)");
+            btnEliminar.setIcon(FontIcon.of(FontAwesomeSolid.POWER_OFF, 12, TemaFarmac.ROJO));
+            btnEliminar.setIconTextGap(8);
+            btnEliminar.addActionListener(e -> eliminarProductoSeleccionado());
+            pnlAcciones.add(btnEditar);
+            pnlAcciones.add(btnEliminar);
+            add(pnlAcciones, BorderLayout.SOUTH);
+        }
     }
 
     public void cargarDatos() {
@@ -229,7 +247,7 @@ public class CatalogoProductosScreen extends JPanel {
                 p.getCategoria(),
                 p.getProveedor(),
                 String.format("$%.2f", p.getPrecioVenta()),
-                p.isRequiereReceta() ? "REQUIERE RECETA" : "VENTA LIBRE",
+                p.isRequiereReceta() ? "Receta" : "Libre",
                 p.getStockMinimo() + " pzas",
                 stock + " pzas",
                 cadProxima != null ? cadProxima.toString() : "Sin lotes vigentes"
@@ -277,7 +295,9 @@ DialogoFarmac.mostrar(this, "Error", "Error al consultar producto: " + e.getMess
             JTextField txtNom = TemaFarmac.crearCampoTexto(20);
             JComboBox<String> cmbCat = new JComboBox<>(categorias.toArray(new String[0]));
             cmbCat.setEditable(true);
+            TemaFarmac.estilizarComboBox(cmbCat);
             JComboBox<Proveedor> cmbProv = new JComboBox<>(proveedores.toArray(new Proveedor[0]));
+            TemaFarmac.estilizarComboBox(cmbProv);
             JTextField txtPrecio = TemaFarmac.crearCampoTexto("50.00", 10);
             JCheckBox chkReceta = new JCheckBox("Requiere Receta Médica Obligatoria (Antibiótico / Controlado)");
             JTextField txtMin = TemaFarmac.crearCampoTexto("5", 5);
@@ -354,9 +374,11 @@ boolean res = DialogoFarmac.confirmar(this, "Alta de Nuevo Medicamento", form);
             JTextField txtNom = TemaFarmac.crearCampoTexto(p.getNombre(), 20);
             JComboBox<String> cmbCat = new JComboBox<>(categorias.toArray(new String[0]));
             cmbCat.setEditable(true);
+            TemaFarmac.estilizarComboBox(cmbCat);
             cmbCat.setSelectedItem(p.getCategoria());
 
             JComboBox<Proveedor> cmbProv = new JComboBox<>(proveedores.toArray(new Proveedor[0]));
+            TemaFarmac.estilizarComboBox(cmbProv);
             if (p.getProveedorObj() != null) {
                 for (int i = 0; i < cmbProv.getItemCount(); i++) {
                     if (cmbProv.getItemAt(i).getId() == p.getProveedorObj().getId()) {

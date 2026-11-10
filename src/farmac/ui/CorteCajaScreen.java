@@ -68,232 +68,322 @@ public class CorteCajaScreen extends JPanel {
         refrescarDatosTurno();
     }
 
+    private JLabel lblTurnoTag;
+    private JPanel pnlAvisoTurno;
+    private JLabel lblDetFondo;
+    private JLabel lblDetVentas;
+    private JLabel lblDetEsperado;
+    private JLabel lblDetContado;
+    private JPanel pnlDiferencia;
+    private JLabel lblDiferenciaEt;
+    private JLabel lblDiferenciaMonto;
+    private double fondoActual;
+    private double ventasEfectivoActual;
+
     private void inicializarUI() {
-        setLayout(new BorderLayout(14, 14));
+        setLayout(new BorderLayout(0, 14));
         setBackground(TemaFarmac.GRIS_FONDO);
-        setBorder(new EmptyBorder(16, 18, 16, 18));
+        setBorder(new EmptyBorder(20, 26, 20, 26));
 
         // Cabecera
         JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setOpaque(false);
+        JLabel lblTitulo = new JLabel("Control de caja y turnos financieros");
+        lblTitulo.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 20));
+        lblTitulo.setForeground(TemaFarmac.TEXTO_AZUL);
+        pnlHeader.add(lblTitulo, BorderLayout.WEST);
 
-        JLabel lblTitulo = new JLabel("Control de Caja y Turnos Financieros");
-        lblTitulo.setFont(TemaFarmac.FUENTE_TITULO);
-        lblTitulo.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JLabel lblSub = new JLabel("Apertura de turno, arqueo con ventas reales y corte financiero diario");
-        lblSub.setFont(TemaFarmac.FUENTE_PEQUENA);
-        lblSub.setForeground(TemaFarmac.TEXTO_MUTED);
-
-        JPanel pnlTit = new JPanel();
-        pnlTit.setLayout(new BoxLayout(pnlTit, BoxLayout.Y_AXIS));
-        pnlTit.setOpaque(false);
-        pnlTit.add(lblTitulo);
-        pnlTit.add(Box.createRigidArea(new Dimension(0, 2)));
-        pnlTit.add(lblSub);
-
-        pnlHeader.add(pnlTit, BorderLayout.WEST);
-
-        JButton btnActualizar = TemaFarmac.crearBotonSecundario("Actualizar Valores");
+        JButton btnActualizar = TemaFarmac.crearBotonSecundario("Actualizar valores");
+        btnActualizar.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.SYNC_ALT, 12, TemaFarmac.TEXTO));
+        btnActualizar.setIconTextGap(8);
         btnActualizar.addActionListener(e -> refrescarDatosTurno());
         pnlHeader.add(btnActualizar, BorderLayout.EAST);
 
-        add(pnlHeader, BorderLayout.NORTH);
+        // Tarjetas de KPIs
+        lblEstado = new JLabel("SIN TURNO");
+        lblFondoInicial = new JLabel("$0.00");
+        lblVentasEfectivo = new JLabel("$0.00");
+        lblVentasTarjeta = new JLabel("$0.00");
+        lblTotalEsperado = new JLabel("$0.00");
 
-        // Tarjetas de KPIs Superiores
-        JPanel pnlKpis = new JPanel(new GridLayout(1, 5, 10, 0));
+        JPanel pnlKpis = new JPanel(new GridLayout(1, 5, 14, 0));
         pnlKpis.setOpaque(false);
+        pnlKpis.add(crearKpi("Estado del turno", lblEstado, TemaFarmac.AZUL_PETROLEO, false, 20));
+        pnlKpis.add(crearKpi("Fondo inicial", lblFondoInicial, TemaFarmac.TEXTO_AZUL, false, 22));
+        pnlKpis.add(crearKpi("Ventas en efectivo", lblVentasEfectivo, TemaFarmac.TEXTO_AZUL, false, 22));
+        pnlKpis.add(crearKpi("Ventas tarjeta / transf.", lblVentasTarjeta, TemaFarmac.TEXTO_AZUL, false, 22));
+        pnlKpis.add(crearKpi("Efectivo esperado", lblTotalEsperado, TemaFarmac.VERDE_CLARO, true, 22));
 
-        lblEstado = new JLabel("SIN TURNO", JLabel.CENTER);
-        lblFondoInicial = new JLabel("$0.00", JLabel.CENTER);
-        lblVentasEfectivo = new JLabel("$0.00", JLabel.CENTER);
-        lblVentasTarjeta = new JLabel("$0.00", JLabel.CENTER);
-        lblTotalEsperado = new JLabel("$0.00", JLabel.CENTER);
+        JLabel lblOps = new JLabel("Operaciones de caja y arqueo");
+        lblOps.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 14));
+        lblOps.setForeground(TemaFarmac.TEXTO_AZUL);
 
-        pnlKpis.add(TemaFarmac.crearTarjetaKPI("Estado Turno", lblEstado, TemaFarmac.AZUL_PETROLEO));
-        pnlKpis.add(TemaFarmac.crearTarjetaKPI("Fondo Inicial", lblFondoInicial, TemaFarmac.TURQUESA));
-        pnlKpis.add(TemaFarmac.crearTarjetaKPI("Ventas Efectivo", lblVentasEfectivo, TemaFarmac.VERDE));
-        pnlKpis.add(TemaFarmac.crearTarjetaKPI("Ventas Tarjeta / Transf.", lblVentasTarjeta, TemaFarmac.TEXTO_AZUL));
-        pnlKpis.add(TemaFarmac.crearTarjetaKPI("Efectivo Esperado", lblTotalEsperado, TemaFarmac.AZUL_OSCURO));
+        JPanel pnlNorte = new JPanel();
+        pnlNorte.setOpaque(false);
+        pnlNorte.setLayout(new BoxLayout(pnlNorte, BoxLayout.Y_AXIS));
+        pnlHeader.setAlignmentX(LEFT_ALIGNMENT);
+        pnlKpis.setAlignmentX(LEFT_ALIGNMENT);
+        lblOps.setAlignmentX(LEFT_ALIGNMENT);
+        pnlNorte.add(pnlHeader);
+        pnlNorte.add(Box.createRigidArea(new Dimension(0, 14)));
+        pnlNorte.add(pnlKpis);
+        pnlNorte.add(Box.createRigidArea(new Dimension(0, 14)));
+        pnlNorte.add(lblOps);
+        add(pnlNorte, BorderLayout.NORTH);
 
-        JPanel pnlCentro = new JPanel(new BorderLayout(0, 14));
-        pnlCentro.setOpaque(false);
-        pnlCentro.add(pnlKpis, BorderLayout.NORTH);
+        // Dos tarjetas lado a lado: abrir turno / realizar corte
+        JPanel pnlOps = new JPanel(new GridLayout(1, 2, 18, 0));
+        pnlOps.setOpaque(false);
+        pnlOps.add(crearPanelApertura());
+        pnlOps.add(crearPanelCierre());
+        add(pnlOps, BorderLayout.CENTER);
 
-        // Formulario de Operaciones: switch Abrir / Cerrar turno
-        JPanel pnlCardForm = TemaFarmac.crearCard();
-        pnlCardForm.setLayout(new BorderLayout(0, 10));
-
-        JLabel lblSec = new JLabel("Operaciones de Caja y Arqueo");
-        lblSec.setFont(TemaFarmac.FUENTE_SUBTITULO);
-        lblSec.setForeground(TemaFarmac.AZUL_PETROLEO);
-
-        JPanel pnlEncabezadoForm = new JPanel(new BorderLayout(0, 8));
-        pnlEncabezadoForm.setOpaque(false);
-        pnlEncabezadoForm.add(lblSec, BorderLayout.NORTH);
-
-        JPanel pnlSwitchWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        pnlSwitchWrap.setOpaque(false);
-        pnlSwitchWrap.add(crearSwitchModo());
-        pnlEncabezadoForm.add(pnlSwitchWrap, BorderLayout.CENTER);
-        pnlCardForm.add(pnlEncabezadoForm, BorderLayout.NORTH);
-
-        cardModos = new CardLayout();
-        pnlModos = new JPanel(cardModos);
-        pnlModos.setOpaque(false);
-        pnlModos.add(crearPanelApertura(), "ABRIR");
-        pnlModos.add(crearPanelCierre(), "CERRAR");
-        pnlCardForm.add(pnlModos, BorderLayout.CENTER);
-
-        JPanel pnlContenedor = new JPanel(new BorderLayout());
-        pnlContenedor.setOpaque(false);
-        pnlContenedor.add(pnlCardForm, BorderLayout.NORTH);
-
-        pnlCentro.add(TemaFarmac.crearScrollResponsivo(pnlContenedor), BorderLayout.CENTER);
-        add(pnlCentro, BorderLayout.CENTER);
-
-        mostrarModo(true);
+        // Navegación con Enter
+        TemaFarmac.enterComoTab(this::abrirTurno, txtMontoInicial);
+        TemaFarmac.enterComoTab(this::cerrarTurno, txtEfectivoContado);
+        txtEfectivoContado.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizarArqueo(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { actualizarArqueo(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { actualizarArqueo(); }
+        });
     }
 
-    private JPanel crearPanelApertura() {
-        JPanel pnl = new JPanel(new GridBagLayout());
-        pnl.setOpaque(false);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(6, 4, 6, 4);
-
-        JLabel lblFondo = new JLabel("Fondo inicial con el que se abre la caja ($):");
-        lblFondo.setForeground(TemaFarmac.TEXTO_AZUL);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 1;
-        pnl.add(lblFondo, gbc);
-
-        txtMontoInicial = TemaFarmac.crearCampoTexto("500.00", 12);
-        gbc.gridy = 1;
-        pnl.add(txtMontoInicial, gbc);
-
-        btnAbrirTurno = TemaFarmac.crearBoton("Abrir Nuevo Turno de Caja", TemaFarmac.AZUL_PETROLEO, Color.WHITE);
-        btnAbrirTurno.addActionListener(e -> abrirTurno());
-        gbc.gridy = 2;
-        gbc.insets = new Insets(14, 4, 4, 4);
-        pnl.add(btnAbrirTurno, gbc);
-
-        gbc.gridy = 3;
-        gbc.weighty = 1;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        JPanel relleno = new JPanel();
-        relleno.setOpaque(false);
-        pnl.add(relleno, gbc);
-
-        return pnl;
-    }
-
-    private JPanel crearPanelCierre() {
-        JPanel pnl = new JPanel(new GridBagLayout());
-        pnl.setOpaque(false);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(6, 4, 6, 4);
-
-        JLabel lblContado = new JLabel("Efectivo contado físicamente en caja ($):");
-        lblContado.setForeground(TemaFarmac.TEXTO_AZUL);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 1;
-        pnl.add(lblContado, gbc);
-
-        txtEfectivoContado = TemaFarmac.crearCampoTexto(12);
-        txtEfectivoContado.putClientProperty("JTextField.placeholderText", "Capturar arqueo...");
-        gbc.gridy = 1;
-        pnl.add(txtEfectivoContado, gbc);
-
-        btnCerrarTurno = TemaFarmac.crearBoton("Realizar Corte de Caja (Cerrar Turno)", TemaFarmac.ROJO, Color.WHITE);
-        btnCerrarTurno.addActionListener(e -> cerrarTurno());
-        gbc.gridy = 2;
-        gbc.insets = new Insets(14, 4, 4, 4);
-        pnl.add(btnCerrarTurno, gbc);
-
-        gbc.gridy = 3;
-        gbc.weighty = 1;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        JPanel relleno = new JPanel();
-        relleno.setOpaque(false);
-        pnl.add(relleno, gbc);
-
-        return pnl;
-    }
-
-    private JPanel crearSwitchModo() {
-        JPanel contenedor = new JPanel() {
+    private JPanel crearKpi(String titulo, JLabel valor, Color colorValor, boolean oscuro, int tamValor) {
+        JPanel card = new JPanel(new BorderLayout(0, 2)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0xE2, 0xE8, 0xF0));
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(oscuro ? TemaFarmac.AZUL_PETROLEO : Color.WHITE);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 10, 10));
+                if (!oscuro) {
+                    g2.setColor(TemaFarmac.BORDE);
+                    g2.draw(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 10, 10));
+                }
                 g2.dispose();
             }
         };
-        contenedor.setOpaque(false);
-        contenedor.setLayout(new GridLayout(1, 2, 4, 0));
-        contenedor.setBorder(new EmptyBorder(3, 3, 3, 3));
-        contenedor.setPreferredSize(new Dimension(320, 34));
-
-        btnModoAbrir = crearBotonSegmento("Abrir Turno");
-        btnModoCerrar = crearBotonSegmento("Cerrar Turno");
-        btnModoAbrir.addActionListener(e -> mostrarModo(true));
-        btnModoCerrar.addActionListener(e -> mostrarModo(false));
-
-        contenedor.add(btnModoAbrir);
-        contenedor.add(btnModoCerrar);
-        return contenedor;
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(10, 16, 10, 16));
+        card.setPreferredSize(new Dimension(150, 84));
+        JLabel lblTit = new JLabel(titulo);
+        lblTit.setFont(TemaFarmac.FUENTE_REGULAR);
+        lblTit.setForeground(oscuro ? Color.WHITE : TemaFarmac.TEXTO_MUTED);
+        valor.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, tamValor));
+        valor.setForeground(colorValor);
+        valor.setHorizontalAlignment(JLabel.LEFT);
+        card.add(lblTit, BorderLayout.NORTH);
+        card.add(valor, BorderLayout.CENTER);
+        return card;
     }
 
-    private JButton crearBotonSegmento(String texto) {
-        JButton btn = new JButton(texto);
-        btn.setFont(TemaFarmac.FUENTE_NEGRITA);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setContentAreaFilled(false);
-        btn.setRolloverEnabled(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
+    private JPanel crearTarjetaOperacion() {
+        JPanel card = TemaFarmac.crearCard();
+        card.setLayout(new BorderLayout(0, 10));
+        card.setBorder(new EmptyBorder(18, 20, 18, 20));
+        return card;
     }
 
-    private void mostrarModo(boolean abrir) {
-        if (abrir && turnoActual != null && turnoActual.estaAbierto()) {
-            DialogoFarmac.mostrarJO(this,
-                    "Ya existe un turno de caja abierto (#" + turnoActual.getId() + ").\n"
-                    + "Debe realizar el corte antes de abrir otro.",
-                    "Turno en Curso", JOptionPane.WARNING_MESSAGE);
-            abrir = false;
+    private JPanel crearPanelApertura() {
+        JPanel card = crearTarjetaOperacion();
+
+        JLabel lblTit = new JLabel("Abrir nuevo turno de caja");
+        lblTit.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 16));
+        lblTit.setForeground(TemaFarmac.TEXTO_AZUL);
+        card.add(lblTit, BorderLayout.NORTH);
+
+        JPanel cuerpo = new JPanel();
+        cuerpo.setOpaque(false);
+        cuerpo.setLayout(new BoxLayout(cuerpo, BoxLayout.Y_AXIS));
+
+        // Aviso de turno en curso
+        pnlAvisoTurno = new JPanel(new BorderLayout(10, 0));
+        pnlAvisoTurno.setBackground(TemaFarmac.AMBAR_BG);
+        pnlAvisoTurno.setBorder(new EmptyBorder(12, 14, 12, 14));
+        pnlAvisoTurno.setAlignmentX(LEFT_ALIGNMENT);
+        pnlAvisoTurno.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+        JLabel lblAviso = new JLabel("<html>Ya existe un turno de caja abierto. Debe realizar el corte antes de abrir otro.</html>");
+        lblAviso.setFont(TemaFarmac.FUENTE_REGULAR);
+        lblAviso.setForeground(TemaFarmac.AMBAR);
+        pnlAvisoTurno.add(new JLabel(org.kordamp.ikonli.swing.FontIcon.of(
+                org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.EXCLAMATION_TRIANGLE, 16, TemaFarmac.AMBAR)), BorderLayout.WEST);
+        pnlAvisoTurno.add(lblAviso, BorderLayout.CENTER);
+        pnlAvisoTurno.setVisible(false);
+
+        JLabel lblFondo = new JLabel("Fondo inicial con el que se abre la caja ($)");
+        lblFondo.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblFondo.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblFondo.setAlignmentX(LEFT_ALIGNMENT);
+
+        txtMontoInicial = TemaFarmac.crearCampoTexto("500.00", 12);
+        txtMontoInicial.setAlignmentX(LEFT_ALIGNMENT);
+        txtMontoInicial.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        btnAbrirTurno = TemaFarmac.crearBoton("Abrir turno", TemaFarmac.TURQUESA, Color.WHITE);
+        btnAbrirTurno.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 13));
+        btnAbrirTurno.setAlignmentX(LEFT_ALIGNMENT);
+        btnAbrirTurno.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        btnAbrirTurno.addActionListener(e -> abrirTurno());
+
+        cuerpo.add(pnlAvisoTurno);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 14)));
+        cuerpo.add(lblFondo);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 4)));
+        cuerpo.add(txtMontoInicial);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 10)));
+        cuerpo.add(btnAbrirTurno);
+        card.add(cuerpo, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel crearPanelCierre() {
+        JPanel card = crearTarjetaOperacion();
+
+        JPanel cab = new JPanel(new BorderLayout());
+        cab.setOpaque(false);
+        JLabel lblTit = new JLabel("Realizar corte de caja (cerrar turno)");
+        lblTit.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 16));
+        lblTit.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblTurnoTag = new JLabel();
+        lblTurnoTag.setFont(TemaFarmac.FUENTE_REGULAR);
+        lblTurnoTag.setForeground(TemaFarmac.VERDE);
+        cab.add(lblTit, BorderLayout.WEST);
+        cab.add(lblTurnoTag, BorderLayout.EAST);
+        card.add(cab, BorderLayout.NORTH);
+
+        JPanel cuerpo = new JPanel();
+        cuerpo.setOpaque(false);
+        cuerpo.setLayout(new BoxLayout(cuerpo, BoxLayout.Y_AXIS));
+
+        JLabel lblContado = new JLabel("Efectivo contado físicamente en caja ($)");
+        lblContado.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblContado.setForeground(TemaFarmac.TEXTO_AZUL);
+        lblContado.setAlignmentX(LEFT_ALIGNMENT);
+
+        txtEfectivoContado = TemaFarmac.crearCampoTexto(12);
+        txtEfectivoContado.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 20));
+        txtEfectivoContado.putClientProperty("JTextField.placeholderText", "Capturar arqueo...");
+        txtEfectivoContado.setAlignmentX(LEFT_ALIGNMENT);
+        txtEfectivoContado.setPreferredSize(new Dimension(200, 52));
+        txtEfectivoContado.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
+
+        // Desglose del arqueo
+        JPanel pnlDetalle = new JPanel(new GridLayout(4, 2, 0, 0));
+        pnlDetalle.setBackground(Color.WHITE);
+        pnlDetalle.setBorder(BorderFactory.createCompoundBorder(
+                new TemaFarmac.BordeRedondeado(new Color(0xD5, 0xD8, 0xDC), 8, 1), new EmptyBorder(6, 14, 6, 14)));
+        pnlDetalle.setAlignmentX(LEFT_ALIGNMENT);
+        pnlDetalle.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
+        lblDetFondo = new JLabel("$0.00", JLabel.RIGHT);
+        lblDetVentas = new JLabel("$0.00", JLabel.RIGHT);
+        lblDetEsperado = new JLabel("$0.00", JLabel.RIGHT);
+        lblDetContado = new JLabel("$0.00", JLabel.RIGHT);
+        agregarFilaDetalle(pnlDetalle, "Fondo inicial", lblDetFondo, false);
+        agregarFilaDetalle(pnlDetalle, "+ Ventas en efectivo", lblDetVentas, false);
+        agregarFilaDetalle(pnlDetalle, "Monto esperado", lblDetEsperado, true);
+        agregarFilaDetalle(pnlDetalle, "Efectivo contado", lblDetContado, false);
+
+        // Resultado del arqueo
+        pnlDiferencia = new JPanel(new BorderLayout());
+        pnlDiferencia.setBackground(TemaFarmac.VERDE_BG);
+        pnlDiferencia.setBorder(new EmptyBorder(14, 16, 14, 16));
+        pnlDiferencia.setAlignmentX(LEFT_ALIGNMENT);
+        pnlDiferencia.setMaximumSize(new Dimension(Integer.MAX_VALUE, 64));
+        lblDiferenciaEt = new JLabel("CAJA CUADRADA");
+        lblDiferenciaEt.setFont(TemaFarmac.FUENTE_NEGRITA);
+        lblDiferenciaMonto = new JLabel("$0.00");
+        lblDiferenciaMonto.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 24));
+        pnlDiferencia.add(lblDiferenciaEt, BorderLayout.WEST);
+        pnlDiferencia.add(lblDiferenciaMonto, BorderLayout.EAST);
+        pnlDiferencia.setVisible(false);
+
+        btnCerrarTurno = TemaFarmac.crearBoton("Realizar corte de caja", TemaFarmac.TURQUESA, Color.WHITE);
+        btnCerrarTurno.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 13));
+        btnCerrarTurno.setIcon(org.kordamp.ikonli.swing.FontIcon.of(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.WALLET, 13, Color.WHITE));
+        btnCerrarTurno.setIconTextGap(8);
+        btnCerrarTurno.setAlignmentX(LEFT_ALIGNMENT);
+        btnCerrarTurno.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        btnCerrarTurno.addActionListener(e -> cerrarTurno());
+
+        cuerpo.add(lblContado);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 4)));
+        cuerpo.add(txtEfectivoContado);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 12)));
+        cuerpo.add(pnlDetalle);
+        cuerpo.add(Box.createRigidArea(new Dimension(0, 12)));
+        cuerpo.add(pnlDiferencia);
+        card.add(cuerpo, BorderLayout.CENTER);
+        card.add(btnCerrarTurno, BorderLayout.SOUTH);
+        return card;
+    }
+
+    private void agregarFilaDetalle(JPanel pnl, String etiqueta, JLabel valor, boolean negrita) {
+        JLabel et = new JLabel(etiqueta);
+        et.setFont(negrita ? TemaFarmac.FUENTE_NEGRITA : TemaFarmac.FUENTE_REGULAR);
+        et.setForeground(TemaFarmac.TEXTO);
+        valor.setFont(negrita ? TemaFarmac.FUENTE_NEGRITA : TemaFarmac.FUENTE_REGULAR);
+        valor.setForeground(TemaFarmac.TEXTO);
+        pnl.add(et);
+        pnl.add(valor);
+    }
+
+    /** Actualiza el desglose y el resultado del arqueo mientras se captura el efectivo contado. */
+    private void actualizarArqueo() {
+        if (turnoActual == null || !turnoActual.estaAbierto()) {
+            pnlDiferencia.setVisible(false);
+            return;
         }
-        modoAbrir = abrir;
-        cardModos.show(pnlModos, abrir ? "ABRIR" : "CERRAR");
-        actualizarEstiloSwitch();
+        double esperado = fondoActual + ventasEfectivoActual;
+        lblDetFondo.setText(String.format("$%,.2f", fondoActual));
+        lblDetVentas.setText(String.format("$%,.2f", ventasEfectivoActual));
+        lblDetEsperado.setText(String.format("$%,.2f", esperado));
+        String txt = txtEfectivoContado.getText().trim();
+        if (txt.isEmpty()) {
+            lblDetContado.setText("$0.00");
+            pnlDiferencia.setVisible(false);
+            return;
+        }
+        try {
+            double contado = Double.parseDouble(txt);
+            lblDetContado.setText(String.format("$%,.2f", contado));
+            double dif = Math.round((contado - esperado) * 100.0) / 100.0;
+            Color fg;
+            Color bg;
+            if (Math.abs(dif) < 0.01) {
+                lblDiferenciaEt.setText("CAJA CUADRADA");
+                fg = TemaFarmac.VERDE;
+                bg = TemaFarmac.VERDE_BG;
+            } else if (dif > 0) {
+                lblDiferenciaEt.setText("SOBRANTE EN CAJA");
+                fg = TemaFarmac.AMBAR;
+                bg = TemaFarmac.AMBAR_BG;
+            } else {
+                lblDiferenciaEt.setText("FALTANTE EN CAJA");
+                fg = TemaFarmac.ROJO;
+                bg = TemaFarmac.ROJO_BG;
+            }
+            lblDiferenciaMonto.setText((dif < 0 ? "-" : "") + String.format("$%,.2f", Math.abs(dif)));
+            lblDiferenciaEt.setForeground(fg);
+            lblDiferenciaMonto.setForeground(fg);
+            pnlDiferencia.setBackground(bg);
+            pnlDiferencia.setVisible(true);
+        } catch (NumberFormatException ex) {
+            pnlDiferencia.setVisible(false);
+        }
     }
 
-    private void actualizarEstiloSwitch() {
-        if (modoAbrir) {
-            btnModoAbrir.setOpaque(true);
-            btnModoAbrir.setContentAreaFilled(true);
-            btnModoAbrir.setBackground(TemaFarmac.AZUL_PETROLEO);
-            btnModoAbrir.setForeground(Color.WHITE);
-
-            btnModoCerrar.setOpaque(false);
-            btnModoCerrar.setContentAreaFilled(false);
-            btnModoCerrar.setForeground(TemaFarmac.TEXTO_MUTED);
-        } else {
-            btnModoCerrar.setOpaque(true);
-            btnModoCerrar.setContentAreaFilled(true);
-            btnModoCerrar.setBackground(TemaFarmac.TURQUESA);
-            btnModoCerrar.setForeground(Color.WHITE);
-
-            btnModoAbrir.setOpaque(false);
-            btnModoAbrir.setContentAreaFilled(false);
-            btnModoAbrir.setForeground(TemaFarmac.TEXTO_MUTED);
+    /** Habilita solo el panel que corresponde al estado actual del turno. */
+    private void actualizarPaneles(boolean turnoAbierto) {
+        pnlAvisoTurno.setVisible(turnoAbierto);
+        txtMontoInicial.setEnabled(!turnoAbierto);
+        btnAbrirTurno.setEnabled(!turnoAbierto);
+        txtEfectivoContado.setEnabled(turnoAbierto);
+        btnCerrarTurno.setEnabled(turnoAbierto);
+        lblTurnoTag.setText(turnoAbierto && turnoActual != null ? "\u25CF Turno #" + turnoActual.getId() : "");
+        if (turnoAbierto) {
+            txtMontoInicial.setText(String.format("%.2f", fondoActual));
         }
-        btnModoAbrir.repaint();
-        btnModoCerrar.repaint();
+        actualizarArqueo();
     }
 
     public void refrescarDatosTurno() {
@@ -332,13 +422,17 @@ public class CorteCajaScreen extends JPanel {
                     lblFondoInicial.setText(String.format("$%.2f", turnoActual.getMontoInicial()));
 
                     double esperado = turnoActual.getMontoInicial() + ventasEf;
+                    fondoActual = turnoActual.getMontoInicial();
+                    ventasEfectivoActual = ventasEf;
 
                     lblVentasEfectivo.setText(String.format("$%.2f", ventasEf));
                     lblVentasTarjeta.setText(String.format("$%.2f", ventasTarj));
                     lblTotalEsperado.setText(String.format("$%.2f", esperado));
 
-                    mostrarModo(false);
+                    actualizarPaneles(true);
                 } else {
+                    fondoActual = 0;
+                    ventasEfectivoActual = 0;
                     lblEstado.setText("CERRADO");
                     lblEstado.setForeground(TemaFarmac.ROJO);
                     lblFondoInicial.setText("$0.00");
@@ -347,7 +441,7 @@ public class CorteCajaScreen extends JPanel {
                     lblTotalEsperado.setText("$0.00");
 
                     txtEfectivoContado.setText("");
-                    mostrarModo(true);
+                    actualizarPaneles(false);
                 }
             }
         };
