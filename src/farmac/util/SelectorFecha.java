@@ -93,7 +93,8 @@ public class SelectorFecha extends JPanel {
         return txt;
     }
 
-    private void aplicarTexto() {
+    /** Interpreta el texto escrito (si es válido) y lo toma como fecha actual. */
+    public void aplicarTexto() {
         try {
             LocalDate nueva = LocalDate.parse(txt.getText().trim(), FORMATO);
             cambiar(nueva);

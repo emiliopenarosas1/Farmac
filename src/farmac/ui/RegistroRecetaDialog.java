@@ -33,7 +33,7 @@ public class RegistroRecetaDialog extends JDialog {
     private JTextField txtMedico;
     private JTextField txtCedula;
     private JTextField txtFolio;
-    private JTextField txtFechaExpedicion;
+    private farmac.util.SelectorFecha selFechaExpedicion;
     private JLabel lblMedicamento;
     private boolean confirmado = false;
     private RecetaMedica recetaRegistrada;
@@ -117,8 +117,8 @@ public class RegistroRecetaDialog extends JDialog {
         txtCedula.putClientProperty("JTextField.placeholderText", "Ej. 7481920");
         txtFolio = TemaFarmac.crearCampoTexto(18);
         txtFolio.putClientProperty("JTextField.placeholderText", "Ej. FOL-2026-0045");
-        txtFechaExpedicion = TemaFarmac.crearCampoTexto(18);
-        txtFechaExpedicion.setText(LocalDate.now().toString());
+        selFechaExpedicion = new farmac.util.SelectorFecha(LocalDate.now());
+        selFechaExpedicion.setPreferredSize(new Dimension(200, 38));
 
         // Medicamento amparado (solo lectura)
         lblMedicamento = new JLabel(productoAmparado != null ? productoAmparado.getNombre() : "Medicamento controlado");
@@ -137,9 +137,9 @@ public class RegistroRecetaDialog extends JDialog {
                     "Nombre completo del médico *",
                     "Cédula profesional *",
                     "Folio de receta *",
-                    "Fecha de expedición (AAAA-MM-DD) *"
+                    "Fecha de expedición *"
                 },
-                new javax.swing.JComponent[]{pnlMed, txtMedico, txtCedula, txtFolio, txtFechaExpedicion},
+                new javax.swing.JComponent[]{pnlMed, txtMedico, txtCedula, txtFolio, selFechaExpedicion},
                 new int[]{2, 2, 1, 1, 1});
 
         JPanel pnlCuerpo = new JPanel();
@@ -185,7 +185,10 @@ public class RegistroRecetaDialog extends JDialog {
         raiz.add(pnlBotones, BorderLayout.SOUTH);
 
         // Navegación con Enter: médico -> cédula -> folio -> fecha -> validar y autorizar
-        TemaFarmac.enterComoTab(btnGuardar::doClick, txtMedico, txtCedula, txtFolio, txtFechaExpedicion);
+        TemaFarmac.enterComoTab(() -> {
+            selFechaExpedicion.aplicarTexto();
+            btnGuardar.doClick();
+        }, txtMedico, txtCedula, txtFolio, selFechaExpedicion.getCampoTexto());
         getRootPane().registerKeyboardAction(e -> {
             confirmado = false;
             dispose();
@@ -198,7 +201,8 @@ public class RegistroRecetaDialog extends JDialog {
         String medico = txtMedico.getText().trim();
         String cedula = txtCedula.getText().trim();
         String folio = txtFolio.getText().trim();
-        String fechaStr = txtFechaExpedicion.getText().trim();
+        selFechaExpedicion.aplicarTexto();
+        String fechaStr = selFechaExpedicion.getFecha().toString();
 
         if (medico.isEmpty() || cedula.isEmpty() || folio.isEmpty() || fechaStr.isEmpty()) {
             DialogoFarmac.mostrarJO(this, "Todos los datos de la receta médica son obligatorios por ley (COFEPRIS).", "Receta Incompleta", JOptionPane.WARNING_MESSAGE);

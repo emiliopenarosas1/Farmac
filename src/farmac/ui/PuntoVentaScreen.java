@@ -78,6 +78,7 @@ public class PuntoVentaScreen extends JPanel {
     private JButton btnQuitar;
 
     private List<Producto> catalogoProductos;
+    private List<Producto> catalogoVisible = new ArrayList<>(); // resultado del filtro de búsqueda
     private List<Lote> inventarioLotes;
     private boolean catalogoCargando;
     private volatile boolean cajaAbierta;
@@ -163,6 +164,12 @@ public class PuntoVentaScreen extends JPanel {
         txtEscaner.setFont(TemaFarmac.fuente(java.awt.Font.PLAIN, 14));
         txtEscaner.putClientProperty("JTextField.placeholderText", "Escanear código de barras o buscar medicamento...");
         txtEscaner.addActionListener(e -> procesarDisparoEscaner());
+        // Filtra el catálogo mientras se escribe (nombre o código de barras)
+        txtEscaner.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { llenarTablaCatalogo(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { llenarTablaCatalogo(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { llenarTablaCatalogo(); }
+        });
         JPanel pnlBusqueda = new JPanel(new BorderLayout(6, 0));
         pnlBusqueda.setBackground(Color.WHITE);
         pnlBusqueda.setBorder(BorderFactory.createCompoundBorder(
@@ -317,6 +324,15 @@ public class PuntoVentaScreen extends JPanel {
         pnlBotones.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
 
         btnVaciar = TemaFarmac.crearBotonSecundario("Vaciar");
+        btnVaciar.addActionListener(e -> {
+            if (cantidadesCarrito.isEmpty()) {
+                return;
+            }
+            if (DialogoFarmac.confirmar(this, "Vaciar carrito", "¿Desea quitar todos los medicamentos del carrito de venta?")) {
+                limpiarCarrito();
+                txtEscaner.requestFocusInWindow();
+            }
+        });
         btnCobrar = TemaFarmac.crearBoton("Cobrar y generar ticket PDF", TemaFarmac.TURQUESA, Color.WHITE);
         btnCobrar.setFont(TemaFarmac.fuente(java.awt.Font.BOLD, 13));
         btnCobrar.setPreferredSize(new Dimension(200, 46));
@@ -414,8 +430,16 @@ public class PuntoVentaScreen extends JPanel {
 
     private void llenarTablaCatalogo() {
         modeloCatalogo.setRowCount(0);
+        catalogoVisible = new ArrayList<>();
         if (catalogoProductos == null) return;
+        String filtro = txtEscaner != null ? txtEscaner.getText().trim().toLowerCase() : "";
         for (Producto p : catalogoProductos) {
+            if (!filtro.isEmpty()
+                    && !p.getNombre().toLowerCase().contains(filtro)
+                    && !p.getCodigoBarras().toLowerCase().contains(filtro)) {
+                continue;
+            }
+            catalogoVisible.add(p);
             // Calcular existencias únicamente en lotes vigentes (no vencidos)
             int stockDisponible = operacionesInventario.calcularStockDisponible(p);
 
@@ -446,14 +470,19 @@ public class PuntoVentaScreen extends JPanel {
             return;
         }
 
+        // Enter agrega al carrito si el código coincide exactamente o si el filtro dejó un solo resultado
         Producto encontrado = null;
-        if (catalogoProductos != null) {
-            for (Producto p : catalogoProductos) {
-                if (p.getCodigoBarras().equalsIgnoreCase(texto) || p.getNombre().toLowerCase().contains(texto.toLowerCase())) {
-                    encontrado = p;
-                    break;
-                }
+        for (Producto p : catalogoProductos) {
+            if (p.getCodigoBarras().equalsIgnoreCase(texto)) {
+                encontrado = p;
+                break;
             }
+        }
+        if (encontrado == null && catalogoVisible.size() == 1) {
+            encontrado = catalogoVisible.get(0);
+        }
+        if (encontrado == null && catalogoVisible.size() > 1) {
+            return; // varios resultados: se muestran en la tabla para elegir con "Agregar"
         }
 
         if (encontrado != null) {
@@ -474,8 +503,8 @@ public class PuntoVentaScreen extends JPanel {
             asegurarCatalogoCargado();
             return;
         }
-        if (fila >= 0 && fila < catalogoProductos.size()) {
-            Producto p = catalogoProductos.get(fila);
+        if (fila >= 0 && fila < catalogoVisible.size()) {
+            Producto p = catalogoVisible.get(fila);
             agregarProductoAlCarrito(p, 1);
         }
     }
