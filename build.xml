@@ -111,4 +111,18 @@
         </java>
     </target>
 
+    <!-- Generar el instalador de Windows (Farmac-Setup.exe).
+         Requiere JDK 21, Apache Ant e Inno Setup 6 instalados.
+         El script build-installer.ps1 compila el JAR, genera el JRE mínimo
+         con jdeps + jlink, compila el helper y ejecuta ISCC. -->
+    <target name="installer" description="Genera installer/Output/Farmac-Setup.exe con Inno Setup">
+        <exec executable="powershell.exe" failonerror="true">
+            <arg value="-NoProfile"/>
+            <arg value="-ExecutionPolicy"/>
+            <arg value="Bypass"/>
+            <arg value="-File"/>
+            <arg value="${basedir}/installer/build-installer.ps1"/>
+        </exec>
+    </target>
+
 </project>

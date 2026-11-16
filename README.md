@@ -107,6 +107,7 @@ Farmac/
 ├── sql/                  # Scripts de esquema, datos y migraciones
 ├── test/                 # Pruebas JUnit
 ├── lib/                  # Librerias de terceros
+├── installer/            # Instalador de Windows (Inno Setup 6 + jlink)
 ├── build.xml             # Build con Apache Ant
 ├── nbproject/           # Configuracion de NetBeans
 └── README.md
@@ -149,6 +150,26 @@ java -jar dist/Farmac.jar
 ```
 
 O desde NetBeans: `Run Project (F6)`.
+
+## Instalador de Windows
+
+El proyecto incluye un asistente de instalacion grafico (`Farmac-Setup.exe`) para
+Windows 10/11 de 64 bits, generado con **Inno Setup 6** y un **JRE minimo**
+creado con `jlink`. Para generarlo se requiere JDK 21, Apache Ant e Inno Setup 6:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\build-installer.ps1
+```
+
+o, de forma equivalente, con el target de Ant:
+
+```bash
+ant installer
+```
+
+El resultado queda en `installer\Output\Farmac-Setup.exe`. El detalle del
+asistente, la logica de base de datos y la lista de pruebas manuales estan en
+`installer/README.md`.
 
 ## Consultas de auditoria
 

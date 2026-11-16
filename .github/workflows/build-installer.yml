@@ -1,0 +1,43 @@
+name: build-installer
+
+# Compila Farmac-Setup.exe en un runner de Windows y lo publica como artefacto.
+# Se ejecuta al hacer push a main, en pull requests hacia main y manualmente.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Generar Farmac-Setup.exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Instalar Apache Ant
+        run: choco install ant --no-progress -y
+
+      - name: Instalar Inno Setup 6
+        run: choco install innosetup --no-progress -y
+
+      - name: Compilar el instalador
+        shell: pwsh
+        run: ./installer/build-installer.ps1
+
+      - name: Publicar Farmac-Setup.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: Farmac-Setup
+          path: installer/Output/Farmac-Setup.exe
+          if-no-files-found: error

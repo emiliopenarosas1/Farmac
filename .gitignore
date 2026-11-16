@@ -28,6 +28,9 @@ Thumbs.db
 # Zips de entrega
 *.zip
 
+# Instalador generado (el ejecutable no se versiona; los assets si)
+installer/Output/
+
 # Las librerias de lib/ y los scripts de sql/ SI se versionan:
 # son necesarios para compilar y para recrear la base en otro equipo.
 !lib/
