@@ -20,6 +20,7 @@ nbactions.xml
 # Logs y temporales
 *.log
 tickets/
+respaldos/
 
 # OS
 .DS_Store
