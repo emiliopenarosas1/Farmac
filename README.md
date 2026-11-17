@@ -15,6 +15,7 @@ El diseno del software se sustenta en una arquitectura por capas: paquetes de pr
 - Integracion con lector de codigo de barras.
 - Carrito de ventas y calculo de totales.
 - Generacion de ticket en formato PDF al completar la venta.
+- Visor de ticket integrado: al cobrar, el PDF se muestra dentro de la aplicacion con zoom, ajuste de ancho y opcion de abrirlo con el visor externo del sistema.
 
 ### Inventario
 - Recepcion de lotes con numero de lote, fecha de caducidad, cantidad recibida, precio de compra y referencia de factura.
@@ -75,6 +76,7 @@ El resultado esperado es una farmacia con procesos auditables, inventario contro
 
 ### Generacion de documentos
 - Tickets de venta en formato PDF.
+- Visualizacion de los tickets dentro de la aplicacion mediante Apache PDFBox 2.0.37 (`pdfbox`, `fontbox` y `commons-logging` en `lib/`).
 
 ### Desarrollo y control de calidad
 - Build: Apache Ant (`build.xml`).
@@ -182,6 +184,11 @@ La pantalla **Historial de Ventas** incluye:
 ## Tickets PDF
 
 Los tickets se generan al completar una venta y se guardan en `tickets/YYYY-MM-DD/`.
+Al finalizar el cobro, ademas de indicar la ruta del archivo, la aplicacion abre
+un visor integrado (`farmac.ui.VisorTicketPDF`) que renderiza el PDF real con
+**Apache PDFBox** y ofrece controles de zoom (`-`, `+`, `Ajustar ancho`), navegacion
+de paginas y un boton **Abrir PDF** para enviarlo al visor predeterminado de Windows.
+El render se ejecuta en segundo plano, por lo que la interfaz no se bloquea.
 
 ## Roles del sistema
 

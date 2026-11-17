@@ -704,6 +704,12 @@ public class PuntoVentaScreen extends JPanel {
 
             DialogoFarmac.mostrarJO(this, mensajeCobro, "Cobro Completado con Éxito", JOptionPane.INFORMATION_MESSAGE);
 
+            // 5. Mostrar el ticket en pantalla (visor PDF integrado). El mensaje
+            // anterior ya indicó dónde quedó archivado el archivo.
+            if (ticketPDF != null && ticketPDF.isFile()) {
+                VisorTicketPDF.mostrar(this, ticketPDF);
+            }
+
             // Limpiar y refrescar catálogo
             limpiarCarrito();
             cargarDatosCatalogo();

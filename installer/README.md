@@ -51,6 +51,18 @@ En integración continua, el flujo `.github/workflows/build-installer.yml`
 instala Temurin 21, Ant e Inno Setup (Chocolatey), compila y publica
 `Farmac-Setup.exe` como artefacto descargable.
 
+## Dependencias de la aplicación
+
+El instalador copia todos los JAR de `dist\lib\` y recalcula con `jdeps` los
+módulos de la JDK que necesita cada librería para construir el JRE mínimo con
+`jlink`. Entre esas librerías está **Apache PDFBox 2.0.37** (`pdfbox`,
+`fontbox` y `commons-logging`), que la aplicación usa para el **visor de
+tickets integrado**: al cobrar una venta, el PDF se muestra dentro de Farmac
+con zoom, ajuste de ancho y un botón para abrirlo con el visor de Windows.
+
+Al agregar o quitar JARs de `lib\`, no hay que tocar el instalador: basta con
+volver a ejecutar `build-installer.ps1`, que recalcula los módulos del JRE.
+
 ## Las 7 pantallas del asistente
 
 1. **Bienvenida** — aviso sobre PostgreSQL.
@@ -103,6 +115,9 @@ y confirme, en orden:
       claro (por ejemplo, `password authentication failed`).
 - [ ] La aplicación abre la pantalla de inicio de sesión con el acceso directo y
       `admin / admin123` entra correctamente.
+- [ ] Tras registrar una venta en el punto de venta, además del mensaje con la
+      ruta del ticket, se abre el **visor integrado** mostrando el ticket; los
+      botones de zoom, *Ajustar ancho* y *Abrir PDF* funcionan.
 - [ ] Un cambio en la pantalla 4 (por ejemplo, otra base de datos) se refleja de
       verdad en la conexión de la aplicación: `config` va **primero** en el
       classpath (`-cp "config;Farmac.jar;lib\*"`), por lo que gana sobre el
