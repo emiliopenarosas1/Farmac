@@ -29,8 +29,9 @@ Thumbs.db
 # Zips de entrega
 *.zip
 
-# Instalador generado (el ejecutable no se versiona; los assets si)
-installer/Output/
+# Instalador: se versiona el ejecutable final; el resto de la salida no.
+installer/Output/*
+!installer/Output/Farmac-Setup.exe
 
 # Las librerias de lib/ y los scripts de sql/ SI se versionan:
 # son necesarios para compilar y para recrear la base en otro equipo.

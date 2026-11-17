@@ -13,7 +13,7 @@ PostgreSQL) en equipos Windows 10/11 de 64 bits.
 | `helper/DbSetup.java` | Utilidad Java de respaldo para probar la conexión y ejecutar los scripts SQL cuando no hay `psql`. |
 | `assets/generate-assets.ps1` | Genera el banner (164x314), el icono pequeño (55x55) y `farmac.ico` con la identidad visual. |
 | `assets/wizard-image.bmp`, `assets/wizard-small.bmp`, `assets/farmac.ico` | Recursos gráficos ya generados. |
-| `Output/Farmac-Setup.exe` | Instalador resultante (se crea al compilar). |
+| `Output/Farmac-Setup.exe` | Instalador resultante. Se versiona en el repositorio para descarga directa. |
 
 ## Requisitos
 
